@@ -471,6 +471,355 @@ async def on_startup() -> None:
     asyncio.create_task(simulation_loop())
 
 
+
+# TSEA_GATEWAY_COMPAT_ROUTES_START
+
+TANKS: list[dict[str, Any]] = [
+    {
+        "id": 1,
+        "code": "TQ-01",
+        "type": "Camara do prototipo",
+        "volume_liters": 50,
+        "structural_limit_mbar": 35,
+        "status": "available",
+    }
+]
+
+
+def public_recipe(recipe: dict[str, Any]) -> dict[str, Any]:
+    estimated_seconds = int(recipe.get("estimated_seconds") or recipe.get("max_cycle_seconds") or 205)
+    oil_per_tank = float(recipe.get("oil_per_tank_l") or 50.0)
+    min_oil_flow = float(recipe.get("min_oil_flow_l_min") or max(1.2, oil_per_tank / 25.0))
+
+    return {
+        **recipe,
+        "id": str(recipe.get("id") or "PAD-001"),
+        "name": recipe.get("name") or recipe.get("title") or "Receita Operacional",
+        "title": recipe.get("title") or recipe.get("name") or "Receita Operacional",
+        "tank_type": recipe.get("tank_type") or "Comum",
+        "estimated_seconds": estimated_seconds,
+        "max_cycle_seconds": int(recipe.get("max_cycle_seconds") or estimated_seconds),
+        "target_pressure_mbar": float(recipe.get("target_pressure_mbar") or 8.0),
+        "roots_start_pressure_mbar": float(recipe.get("roots_start_pressure_mbar") or 50.0),
+        "b2_start_seconds": int(recipe.get("b2_start_seconds") or 24),
+        "oil_start_seconds": int(recipe.get("oil_start_seconds") or 90),
+        "stabilization_seconds": int(recipe.get("stabilization_seconds") or 165),
+        "oil_per_tank_l": oil_per_tank,
+        "min_oil_flow_l_min": min_oil_flow,
+        "note": recipe.get("note") or recipe.get("observacao") or "Receita operacional.",
+    }
+
+
+def public_hose(hose: dict[str, Any]) -> dict[str, Any]:
+    code = str(hose.get("code") or hose.get("id") or "MG-02")
+    return {
+        **hose,
+        "id": code,
+        "code": code,
+        "label": hose.get("label") or hose.get("descricao") or code,
+        "length_m": float(hose.get("length_m") or 8),
+        "diameter_in": float(hose.get("diameter_in") or 1),
+        "loss_factor": float(hose.get("loss_factor") or hose.get("loss_base_mbar") or 1.2),
+        "loss_base_mbar": float(hose.get("loss_base_mbar") or hose.get("loss_factor") or 1.2),
+        "status": hose.get("status") or "available",
+    }
+
+
+def normalize_recipe_id(value: Any) -> str:
+    text = str(value or "").strip()
+
+    if any(str(recipe.get("id")) == text for recipe in RECIPES):
+        return text
+
+    if text.isdigit():
+        index = int(text) - 1
+        if 0 <= index < len(RECIPES):
+            return str(RECIPES[index].get("id"))
+
+    return str(RECIPES[0].get("id"))
+
+
+def normalize_hose_id(value: Any) -> str:
+    text = str(value or "").strip()
+
+    if text in HOSES:
+        return text
+
+    numeric_map = {
+        "1": "MG-01",
+        "2": "MG-02",
+        "3": "MG-03",
+    }
+
+    return numeric_map.get(text, "MG-02")
+
+
+def legacy_status(status: str) -> str:
+    mapping = {
+        "PRONTO": "stopped",
+        "EM_CICLO": "running",
+        "PAUSADO": "paused",
+        "FINALIZADO": "stopped",
+        "BLOQUEADO": "emergency",
+    }
+
+    return mapping.get(status, "stopped")
+
+
+def legacy_state_payload() -> dict[str, Any]:
+    payload = STATE.payload()
+    recipe = public_recipe(STATE.recipe)
+    hose = public_hose(STATE.hose)
+
+    tank_states: list[dict[str, Any]] = []
+
+    for tank in payload.get("tanks", []):
+        risk = float(tank.get("risk_pct") or 0)
+
+        tank_states.append(
+            {
+                "tank": {
+                    "id": tank.get("id"),
+                    "code": tank.get("code"),
+                    "type": recipe.get("tank_type"),
+                },
+                "hose": hose,
+                "pressure_mbar": tank.get("pressure_mbar"),
+                "expected_pressure_mbar": recipe.get("target_pressure_mbar"),
+                "effective_pressure_mbar": tank.get("pressure_mbar"),
+                "machine_pressure_mbar": tank.get("machine_pressure_mbar"),
+                "hose_loss_mbar": tank.get("hose_loss_mbar"),
+                "oil_volume_liters": tank.get("oil_in_l"),
+                "collapse_risk_pct": risk,
+                "status_light": "red" if risk >= 82 else "yellow" if risk >= 65 else "green",
+            }
+        )
+
+    return {
+        **payload,
+        "recipe": recipe,
+        "hose": hose,
+        "cycle": {
+            "status": legacy_status(str(payload.get("status"))),
+            "stage": payload.get("stage"),
+            "elapsed_seconds": payload.get("elapsed_seconds"),
+        },
+        "tank_states": tank_states,
+        "primary_pump": {
+            "running": bool(payload.get("pumps", {}).get("b1")),
+            "model": "Mini bomba de vacuo do prototipo",
+            "health_pct": 96,
+        },
+        "roots_pump": {
+            "running": bool(payload.get("pumps", {}).get("b2")),
+            "model": "Lampada simulando B2/Roots",
+            "health_pct": 94 if payload.get("pumps", {}).get("b2") else 0,
+        },
+        "oil_injection": {
+            "enabled": bool(payload.get("pumps", {}).get("oil")),
+            "current_flow_l_min": payload.get("oil", {}).get("flow_l_min"),
+            "target_flow_l_min": recipe.get("min_oil_flow_l_min"),
+            "injected_l": payload.get("oil", {}).get("injected_l"),
+            "required_l": payload.get("oil", {}).get("required_l"),
+        },
+        "plc_comm_ok": bool(payload.get("hardware", {}).get("plc_online")),
+    }
+
+
+@app.get("/api/health")
+def health() -> dict[str, Any]:
+    return {
+        "ok": True,
+        "status": "online",
+        "gateway": "TSEA Physical Gateway",
+        "mode": STATE.mode,
+    }
+
+
+@app.get("/api/operation/state")
+def legacy_operation_state() -> dict[str, Any]:
+    return legacy_state_payload()
+
+
+@app.post("/api/operation/tick")
+async def legacy_operation_tick() -> dict[str, Any]:
+    STATE.update_simulation()
+    await broadcast()
+    return legacy_state_payload()
+
+
+@app.post("/api/operation/start")
+async def legacy_operation_start(payload: dict[str, Any]) -> dict[str, Any]:
+    command = StartCommand(
+        recipe_id=normalize_recipe_id(payload.get("recipe_id")),
+        tank_count=max(1, min(3, int(payload.get("tank_count") or 1))),
+        hose_id=normalize_hose_id(payload.get("hose_id")),
+        oil_reservoir_l=float(payload.get("oil_reservoir_l") or payload.get("oleoColocado") or 150),
+        operator=str(payload.get("operator") or "OPERADOR 01"),
+        shift=str(payload.get("shift") or "MANHA"),
+    )
+
+    STATE.start(command)
+    await broadcast()
+    return legacy_state_payload()
+
+
+@app.post("/api/operation/pause")
+async def legacy_operation_pause() -> dict[str, Any]:
+    STATE.pause()
+    await broadcast()
+    return legacy_state_payload()
+
+
+@app.post("/api/operation/stop")
+async def legacy_operation_stop() -> dict[str, Any]:
+    STATE.stop()
+    await broadcast()
+    return legacy_state_payload()
+
+
+@app.post("/api/operation/reset")
+async def legacy_operation_reset() -> dict[str, Any]:
+    STATE.reset()
+    await broadcast()
+    return legacy_state_payload()
+
+
+@app.post("/api/operation/emergency")
+async def legacy_operation_emergency() -> dict[str, Any]:
+    STATE.emergency_stop()
+    await broadcast()
+    return legacy_state_payload()
+
+
+@app.get("/api/tanks")
+def get_tanks() -> list[dict[str, Any]]:
+    return TANKS
+
+
+@app.get("/api/digital-twin/config-options")
+def digital_twin_config_options() -> dict[str, Any]:
+    return {
+        "presets": {
+            "seguro": {
+                "name": "Ciclo seguro padrao",
+                "config": {
+                    "tank_type": "Comum",
+                    "target_pressure_mbar": 8,
+                    "roots_start_pressure_mbar": 50,
+                    "oil_flow_l_min": 2,
+                    "max_cycle_seconds": 205,
+                },
+            },
+            "critico": {
+                "name": "Tanque critico",
+                "config": {
+                    "tank_type": "Critico",
+                    "target_pressure_mbar": 35,
+                    "roots_start_pressure_mbar": 50,
+                    "oil_flow_l_min": 1.6,
+                    "max_cycle_seconds": 255,
+                },
+            },
+        }
+    }
+
+
+@app.get("/api/reports/operational")
+def reports_operational() -> dict[str, Any]:
+    return {
+        "summary": legacy_state_payload(),
+        "history_today": STATE.history_today,
+    }
+
+
+@app.get("/api/alarms")
+def get_alarms() -> list[dict[str, Any]]:
+    return [
+        event for event in STATE.events
+        if str(event.get("level", "")).upper() in ["WARN", "WARNING", "CRITICAL", "ERROR"]
+    ]
+
+
+@app.get("/api/maintenance/prediction")
+def maintenance_prediction() -> list[dict[str, Any]]:
+    return [
+        {
+            "component": "Mini bomba de vacuo",
+            "status": "operacional",
+            "health_pct": 96,
+            "recommendation": "Monitorar horimetro durante a demonstracao.",
+        },
+        {
+            "component": "Lampada B2/Roots simulada",
+            "status": "operacional",
+            "health_pct": 94,
+            "recommendation": "Validar acionamento por faixa de pressao.",
+        },
+    ]
+
+
+@app.get("/api/records/operations")
+def records_operations() -> dict[str, Any]:
+    return {
+        "items": STATE.history_today,
+    }
+
+
+@app.get("/api/records/simulations")
+def records_simulations() -> dict[str, Any]:
+    return {
+        "items": [],
+    }
+
+
+@app.post("/api/records/simulations")
+async def create_simulation_record(payload: dict[str, Any]) -> dict[str, Any]:
+    STATE.event(f"Simulacao registrada pelo sistema gerente: {payload.get('name', 'Simulacao')}", "INFO")
+    await broadcast()
+
+    return {
+        "ok": True,
+        "record": payload,
+    }
+
+
+@app.post("/api/digital-twin/simulate")
+def digital_twin_simulate(payload: dict[str, Any]) -> dict[str, Any]:
+    pressure = float(payload.get("target_pressure_mbar") or payload.get("pressaoFinal") or 8)
+    oil_flow = float(payload.get("oil_flow_l_min") or payload.get("min_oil_flow_l_min") or 2)
+    max_cycle = int(payload.get("max_cycle_seconds") or payload.get("estimated_seconds") or 205)
+
+    risk = 18
+    if pressure < 8:
+        risk += 8
+    if oil_flow < 1.5:
+        risk += 20
+    if bool(payload.get("simulate_hose_leak")):
+        risk += 22
+    if bool(payload.get("simulate_sensor_failure")):
+        risk += 18
+
+    risk = min(95, risk)
+
+    return {
+        "id": f"SIM-{datetime.now().strftime('%H%M%S')}",
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "status": "critical" if risk >= 82 else "warning" if risk >= 65 else "success",
+        "diagnosis": "Simulacao executada pelo gateway da demonstracao fisica.",
+        "recommendation": "Validar parametros no prototipo fisico antes da apresentacao.",
+        "metrics": {
+            "final_real_pressure_mbar": pressure,
+            "estimated_time_seconds": max_cycle,
+            "max_collapse_risk_pct": risk,
+            "oil_flow_l_min": oil_flow,
+        },
+        "config": payload,
+    }
+
+# TSEA_GATEWAY_COMPAT_ROUTES_END
+
+
 @app.get("/")
 def root() -> dict[str, str]:
     return {
@@ -487,7 +836,7 @@ def get_state() -> dict[str, Any]:
 
 @app.get("/api/recipes")
 def get_recipes() -> list[dict[str, Any]]:
-    return RECIPES
+    return [public_recipe(item) for item in RECIPES]
 
 
 @app.post("/api/recipes")
@@ -520,7 +869,7 @@ async def reset_recipes() -> list[dict[str, Any]]:
 
 @app.get("/api/hoses")
 def get_hoses() -> list[dict[str, Any]]:
-    return list(HOSES.values())
+    return [public_hose(item) for item in HOSES.values()]
 
 
 @app.get("/api/history/today")

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell, type View } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -8,7 +8,7 @@ import { ParametersPage } from "./pages/ParametersPage";
 import { TraceabilityPage } from "./pages/TraceabilityPage";
 import "./styles.css";
 
-const API = "http://127.0.0.1:8000/api";
+const API = "http://127.0.0.1:8020/api";
 
 type TwinTab = "scenarios" | "manual" | "result" | "assistant" | "technical";
 type ParamTab = "tanks" | "hoses" | "recipes" | "formulas" | "operators";
@@ -2805,7 +2805,7 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
-  function saveParam() {
+  async function saveParam() {
     if (paramTab === "tanks") {
       const item = {
         id: `LT-${Date.now()}`,
@@ -2832,15 +2832,36 @@ function App() {
 
     if (paramTab === "recipes") {
       const item = {
-        id: `LR-${Date.now()}`,
+        id: form.id || `REC-${Date.now()}`,
         name: form.name || "Receita Operacional",
-        tank_type: form.tank_type || "grande",
-        target_pressure_mbar: Number(form.target_pressure_mbar || 6.5),
+        title: form.name || "Receita Operacional",
+        tank_type: form.tank_type || "Comum",
+        target_pressure_mbar: Number(form.target_pressure_mbar || 8),
         roots_start_pressure_mbar: Number(form.roots_start_pressure_mbar || 50),
-        max_cycle_seconds: Number(form.max_cycle_seconds || 900),
+        max_cycle_seconds: Number(form.max_cycle_seconds || 205),
+        estimated_seconds: Number(form.max_cycle_seconds || 205),
         min_oil_flow_l_min: Number(form.min_oil_flow_l_min || 2),
+        oil_per_tank_l: Math.max(30, Number(form.min_oil_flow_l_min || 2) * 25),
+        note: "Receita cadastrada no sistema do gerente e compartilhada com a IHM pelo Gateway.",
       };
-      setLocalRecipes((list) => [...list, item]);
+
+      const result = await safe("/recipes", {
+        method: "POST",
+        body: JSON.stringify(item),
+      });
+
+      if (result.ok) {
+        const saved = result.data;
+        setRecipes((list) => {
+          const current = Array.isArray(list) ? list : [];
+          const exists = current.some((recipe: any) => String(recipe.id) === String(saved.id));
+          return exists
+            ? current.map((recipe: any) => String(recipe.id) === String(saved.id) ? saved : recipe)
+            : [...current, saved];
+        });
+      } else {
+        setLocalRecipes((list) => [...list, item]);
+      }
     }
 
     if (paramTab === "formulas") {

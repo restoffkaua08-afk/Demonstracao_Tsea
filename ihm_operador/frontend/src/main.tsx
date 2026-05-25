@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -16,8 +16,8 @@ type Phase =
 
 type OperationTab = "reguladores" | "bombas" | "oleo" | "informacoes";
 type Status = "PRONTO" | "EM CICLO" | "PAUSADO" | "FINALIZADO" | "BLOQUEADO";
-type RecipeKey = "PAD-001" | "GRA-002" | "CRI-003";
-type HoseKey = "MG-01" | "MG-02" | "MG-03";
+type RecipeKey = string;
+type HoseKey = string;
 
 type ChecklistPre = {
   mangueira: boolean;
@@ -56,11 +56,13 @@ type Recipe = {
 type Hose = { id: HoseKey; descricao: string; perdaBase: number };
 type Registro = { id: string; horario: string; status: string; qtdTanques: number; receita: string; mangueira: string };
 
-const recipes: Recipe[] = [
+const defaultRecipes: Recipe[] = [
   { id: "PAD-001", title: "Operacao Padrao", tipoTanque: "Comum", tempoEstimado: 205, pressaoAlvo: 8, b2StartSeg: 24, oilStartSeg: 90, estabilizacaoSeg: 165, observacao: "Ciclo padrao" },
   { id: "GRA-002", title: "Tanque Grande", tipoTanque: "Grande", tempoEstimado: 225, pressaoAlvo: 12, b2StartSeg: 32, oilStartSeg: 100, estabilizacaoSeg: 178, observacao: "Acompanhar rampa" },
   { id: "CRI-003", title: "Tanque Critico", tipoTanque: "Critico", tempoEstimado: 255, pressaoAlvo: 35, b2StartSeg: 45, oilStartSeg: 120, estabilizacaoSeg: 195, observacao: "Vacuo conservador" }
 ];
+
+const GATEWAY_API = "http://127.0.0.1:8020/api";
 
 const hoses: Hose[] = [
   { id: "MG-01", descricao: "Curta (5m)", perdaBase: 0.7 },
@@ -78,6 +80,19 @@ function oilPerTank(recipe: Recipe) {
   return 50;
 }
 
+function gatewayToRecipe(raw: any): Recipe {
+  return {
+    id: String(raw?.id || `REC-${Date.now()}`),
+    title: String(raw?.title || raw?.name || "Receita Operacional"),
+    tipoTanque: String(raw?.tank_type || raw?.tipoTanque || "Comum"),
+    tempoEstimado: Number(raw?.estimated_seconds || raw?.max_cycle_seconds || 205),
+    pressaoAlvo: Number(raw?.target_pressure_mbar || raw?.pressaoAlvo || 8),
+    b2StartSeg: Number(raw?.b2_start_seconds || 24),
+    oilStartSeg: Number(raw?.oil_start_seconds || 90),
+    estabilizacaoSeg: Number(raw?.stabilization_seconds || 165),
+    observacao: String(raw?.note || raw?.observacao || "Receita recebida do Gateway"),
+  };
+}
 function App() {
   const [phase, setPhase] = useState<Phase>("boot");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -104,10 +119,52 @@ function App() {
     tempoOk: false, semAnomalia: false, oleoRestanteVisivel: false, pressaoFinalOk: false,
     bombasDesligaram: false, linhaOleoFinalizada: false, operadorConfirmouFisico: false, observacao: ""
   });
-  const [logs, setLogs] = useState<{time:string; msg:string}[]>([]);
+    const [logs, setLogs] = useState<{time:string; msg:string}[]>([]);
+  const [gatewayRecipes, setGatewayRecipes] = useState<Recipe[]>([]);
 
-  const recipe = recipes.find(r=>r.id===recipeId)!;
-  const hose = hoses.find(h=>h.id===hoseId)!;
+  const recipes = gatewayRecipes.length ? gatewayRecipes : defaultRecipes;
+
+  useEffect(() => {
+    let active = true;
+
+    async function carregarReceitasGateway() {
+      try {
+        const response = await fetch(`${GATEWAY_API}/recipes`);
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+        const list = Array.isArray(data) ? data.map(gatewayToRecipe) : [];
+
+        if (active && list.length) {
+          setGatewayRecipes(list);
+        }
+      } catch {
+        if (active) {
+          setGatewayRecipes([]);
+        }
+      }
+    }
+
+    carregarReceitasGateway();
+    const timer = window.setInterval(carregarReceitasGateway, 3000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!recipes.some((item) => item.id === recipeId)) {
+      setRecipeId(recipes[0]?.id || "PAD-001");
+    }
+  }, [gatewayRecipes, recipeId]);
+
+  const recipe = recipes.find(r=>r.id===recipeId) || recipes[0] || defaultRecipes[0];
+  const hose = hoses.find(h=>h.id===hoseId) || hoses[1] || hoses[0];
 
   useEffect(() => {
     try {
@@ -134,7 +191,46 @@ function App() {
     return ()=>clearInterval(iv);
   }, [phase, status, recipe.tempoEstimado]);
 
-  const addLog = (msg:string) => setLogs(prev => [{time:now(), msg}, ...prev].slice(0,40));
+    const addLog = (msg:string) => setLogs(prev => [{time:now(), msg}, ...prev].slice(0,40));
+
+  const iniciarOperacao = async () => {
+    const localOperationId = `OP-${Date.now()}`;
+
+    setOperationId(localOperationId);
+    setStatus("EM CICLO");
+    setElapsed(0);
+    setLogs([{time:now(), msg:"Operacao iniciada na IHM"}]);
+    setPhase("operacao");
+
+    try {
+      const response = await fetch(`${GATEWAY_API}/command/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipe_id: recipeId,
+          tank_count: qtdTanques,
+          hose_id: hoseId,
+          oil_reservoir_l: oleoColocado,
+          operator: "OPERADOR 01",
+          shift: "MANHA"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const data = await response.json();
+
+      if (data?.operation_id) {
+        setOperationId(data.operation_id);
+      }
+
+      addLog("Comando START enviado ao Gateway fisico");
+    } catch (error) {
+      addLog(`Gateway indisponivel ou recusou START: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
 
   const reiniciar = () => {
     setPhase("boot");
@@ -266,7 +362,7 @@ function App() {
         <p>Receita: {recipe.title}</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Oleo colocado: {oleoColocado} L</p><p>Oleo necessario: {oilNeeded} L</p>{oilInsuficiente && <p className="warn-text">Volume de oleo insuficiente para iniciar.</p>}
       </div>
       <button className="cancel-btn" onClick={()=>setPhase("inicial")}>CANCELAR</button>
-      <button className="start-btn" disabled={oilInsuficiente || !allCheckedPre} onClick={()=>{setOperationId(`OP-${Date.now()}`); setStatus("EM CICLO"); setElapsed(0); setLogs([{time:now(), msg:"Operacao iniciada"}]); setPhase("operacao");}}>INICIAR</button>
+      <button className="start-btn" disabled={oilInsuficiente || !allCheckedPre} onClick={iniciarOperacao}>INICIAR</button>
       {menu()}
     </div>
   );
