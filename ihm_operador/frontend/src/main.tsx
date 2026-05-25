@@ -145,7 +145,7 @@ function App() {
         const data = await response.json();
         const list = Array.isArray(data) ? data.map(gatewayToRecipe) : [];
 
-        if (active && list.length) {
+        if (active) {
           setGatewayRecipes(list);
         }
       } catch {
@@ -298,7 +298,7 @@ function App() {
 
   const menu = () => (
     <div className={`drawer ${drawerOpen?"open":""}`}>
-      <div><button onClick={()=>setDrawerOpen(false)}>Ã¢Å“â€¢</button></div>
+      <div><button onClick={()=>setDrawerOpen(false)}>ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢</button></div>
       <button disabled={phase!=="operacao" || status!=="FINALIZADO"} onClick={()=>setPhase("finalizacao")}>FINALIZAR OPERACAO</button>
       <button onClick={()=>{setDrawerOpen(false); setPhase("alarmes");}}>ALARMES</button>
       <button disabled={phase==="operacao" && status!=="FINALIZADO"} onClick={reiniciar}>INICIO</button>
@@ -317,7 +317,7 @@ function App() {
   );
   if (phase==="registros_dia") return (
     <div className="registros-dia">
-      <button onClick={()=>setPhase("inicial")}>Ã¢â€ Â VOLTAR</button>
+      <button onClick={()=>setPhase("inicial")}>ÃƒÂ¢Ã¢â‚¬Â Ã‚Â VOLTAR</button>
       <h2>REGISTROS DO DIA</h2>
       <ul>{registros.map(r=><li key={r.id}>{r.horario} | {r.status} | {r.qtdTanques} tanque(s)</li>)}</ul>
       {menu()}
@@ -376,7 +376,7 @@ function App() {
   if (phase==="operacao") return (
     <div className="operacao">
       <div className="topbar">
-        <button className="menu-btn" onClick={()=>setDrawerOpen(true)}>Ã¢ËœÂ°</button>
+        <button className="menu-btn" onClick={()=>setDrawerOpen(true)}>ÃƒÂ¢Ã‹Å“Ã‚Â°</button>
         <div><span>STATUS</span><strong>{status}</strong></div>
         <div><span>ETAPA</span><strong>{etapaAtual}</strong></div>
         <div className={alarmText === "NORMAL" || alarmText === "FINALIZADO" ? "alarm-mini ok" : "alarm-mini bad"}><span>ALARME</span><strong>{alarmText}</strong></div>
@@ -385,7 +385,7 @@ function App() {
       <div className="content-area">
         {tab==="reguladores" && <div className="tanks-grid">{tanques.map(t=><div key={t.id} className="tank-card"><div>{t.id}</div><div>{fmt(t.pressao,"mbar")}</div><div>Perda: {fmt(t.perda,"mbar")}</div><div>Oleo: {fmt(t.oleo,"L")}</div><div className="ok">OK</div></div>)}</div>}
         {tab==="bombas" && <div className="bombas-grid"><div>B1 PRIMARIA: {status==="EM CICLO"?"LIGADA":"DESLIGADA"}</div><div>B2 ROOTS: {b2Ligada?"LIGADA":"AGUARDANDO"}</div><div>PRESSAO MAQUINA: {fmt(pressaoMaquina,"mbar")}</div><div>PRESSAO MEDIA: {fmt(pressaoMedia,"mbar")}</div><div>SENSOR: COMUNICANDO</div><div>VACUO: ATIVO</div></div>}
-        {tab==="oleo" && <div className="oleo-grid"><div>RESERVATORIO: {oleoColocado} L</div><div>SAINDO: {fmt(oilInjetado,"L")}</div><div>RESTANTE: {fmt(oilRestante,"L")}</div><div>VAZAO: {oilLigada?"NORMAL":"AGUARDANDO"}</div><div>TEMP: 60Ã‚Â°C</div><div>LINHA: CONECTADA</div><div>OLEO POR TANQUE:</div>{tanques.map(t=><div key={t.id}>{t.id}: {fmt(t.oleo,"L")}</div>)}</div>}
+        {tab==="oleo" && <div className="oleo-grid"><div>RESERVATORIO: {oleoColocado} L</div><div>SAINDO: {fmt(oilInjetado,"L")}</div><div>RESTANTE: {fmt(oilRestante,"L")}</div><div>VAZAO: {oilLigada?"NORMAL":"AGUARDANDO"}</div><div>TEMP: 60Ãƒâ€šÃ‚Â°C</div><div>LINHA: CONECTADA</div><div>OLEO POR TANQUE:</div>{tanques.map(t=><div key={t.id}>{t.id}: {fmt(t.oleo,"L")}</div>)}</div>}
         {tab==="informacoes" && <div className="info-grid"><div className="etapas">{["Preparo","VACUO INICIAL","VACUO PROFUNDO","INJECAO DE OLEO","ESTABILIZACAO","FINALIZACAO"].map(e=><div key={e} className={etapa()===e?"active":(elapsed>recipe.b2StartSeg&&e==="VACUO INICIAL"?"done":(elapsed>recipe.oilStartSeg&&e==="VACUO PROFUNDO"?"done":(elapsed>recipe.estabilizacaoSeg&&e==="INJECAO DE OLEO"?"done":(elapsed>=recipe.tempoEstimado&&e==="ESTABILIZACAO"?"done":""))))}>{e}</div>)}</div><div><p>ID: {operationId}</p><p>Receita: {recipe.title}</p><p>Operador: OPERADOR 01</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Tempo: {timeFmt(elapsed)}</p></div><div className="logs">{logs.slice(0,8).map(l=><div key={l.time}>[{l.time}] {l.msg}</div>)}</div></div>}
       </div>
       <div className="bottom-tabs">

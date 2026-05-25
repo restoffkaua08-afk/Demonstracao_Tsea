@@ -59,17 +59,17 @@ function statusLabel(status: unknown) {
 
   const map: Record<string, string> = {
     success: "Operacional",
-    warning: "AtenÃƒÂ§ÃƒÂ£o",
-    critical: "CrÃƒÂ­tico",
-    running: "Em execuÃƒÂ§ÃƒÂ£o",
+    warning: "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o",
+    critical: "CrÃƒÆ’Ã‚Â­tico",
+    running: "Em execuÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o",
     paused: "Pausado",
     stopped: "Parado",
-    concluido: "ConcluÃƒÂ­do",
+    concluido: "ConcluÃƒÆ’Ã‚Â­do",
     abortado: "Abortado",
     em_andamento: "Em andamento",
-    emergency: "EmergÃƒÂªncia",
-    available: "DisponÃƒÂ­vel",
-    attention: "AtenÃƒÂ§ÃƒÂ£o",
+    emergency: "EmergÃƒÆ’Ã‚Âªncia",
+    available: "DisponÃƒÆ’Ã‚Â­vel",
+    attention: "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o",
   };
 
   return map[value] || String(status || "--");
@@ -79,7 +79,7 @@ function tone(status: unknown) {
   const value = String(status || "").toLowerCase();
 
   if (["success", "concluido", "running", "ok", "operacional", "available"].includes(value)) return "ok";
-  if (["warning", "paused", "em_andamento", "atenÃƒÂ§ÃƒÂ£o", "atencao", "attention"].includes(value)) return "warn";
+  if (["warning", "paused", "em_andamento", "atenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "atencao", "attention"].includes(value)) return "warn";
   if (["critical", "abortado", "emergency", "falha", "fault"].includes(value)) return "bad";
 
   return "neutral";
@@ -143,7 +143,7 @@ function Section({ title, subtitle, children, action }: { title: string; subtitl
 function Empty({ text }: { text: string }) {
   return (
     <div className="empty">
-      <strong>Sem dados disponÃƒÂ­veis</strong>
+      <strong>Sem dados disponÃƒÆ’Ã‚Â­veis</strong>
       <span>{text}</span>
     </div>
   );
@@ -195,7 +195,7 @@ function TankCard({ item }: { item: any }) {
       <div className="tankTop">
         <div>
           <strong>{item?.tank?.code || "Tanque de Processo"}</strong>
-          <span>{item?.hose?.code || "Mangueira de VÃƒÂ¡cuo"}</span>
+          <span>{item?.hose?.code || "Mangueira de VÃƒÆ’Ã‚Â¡cuo"}</span>
         </div>
         <Badge value={risk >= 82 ? "critical" : risk >= 65 ? "warning" : "success"} />
       </div>
@@ -208,9 +208,9 @@ function TankCard({ item }: { item: any }) {
         </div>
 
         <div className="tankReadings">
-          <div><span>PressÃƒÂ£o Atual</span><b>{fmt(pressure, "mbar")}</b></div>
+          <div><span>PressÃƒÆ’Ã‚Â£o Atual</span><b>{fmt(pressure, "mbar")}</b></div>
           <div><span>Curva Esperada</span><b>{fmt(item?.expected_pressure_mbar, "mbar")}</b></div>
-          <div><span>Volume de Ãƒâ€œleo</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
+          <div><span>Volume de ÃƒÆ’Ã¢â‚¬Å“leo</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
           <div><span>Risco Estrutural</span><b>{fmt(risk, "%")}</b></div>
           <div><span>Perda na Mangueira</span><b>{fmt(item?.hose_loss_mbar, "mbar")}</b></div>
           <div><span>Sinal</span><b>{item?.status_light || "green"}</b></div>
@@ -218,9 +218,9 @@ function TankCard({ item }: { item: any }) {
       </div>
 
       <div className="legend">
-        <span><i className="gasDot" />GÃƒÂ¡s</span>
-        <span><i className="pressureDot" />PressÃƒÂ£o</span>
-        <span><i className="oilDot" />Ãƒâ€œleo</span>
+        <span><i className="gasDot" />GÃƒÆ’Ã‚Â¡s</span>
+        <span><i className="pressureDot" />PressÃƒÆ’Ã‚Â£o</span>
+        <span><i className="oilDot" />ÃƒÆ’Ã¢â‚¬Å“leo</span>
       </div>
     </article>
   );
@@ -228,7 +228,7 @@ function TankCard({ item }: { item: any }) {
 
 function Chart({ points }: { points: any[] }) {
   if (!points?.length) {
-    return <Empty text="Curva operacional indisponÃƒÂ­vel para este registro." />;
+    return <Empty text="Curva operacional indisponÃƒÆ’Ã‚Â­vel para este registro." />;
   }
 
   const values = points.flatMap((p) => [
@@ -261,7 +261,7 @@ function Chart({ points }: { points: any[] }) {
       </svg>
 
       <div className="chartLegend">
-        <span><i className="realDot" />PressÃƒÂ£o real/simulada</span>
+        <span><i className="realDot" />PressÃƒÆ’Ã‚Â£o real/simulada</span>
         <span><i className="expectedDot" />Curva esperada</span>
         <span><i className="riskDot" />Carga estrutural</span>
       </div>
@@ -273,28 +273,28 @@ function Chart({ points }: { points: any[] }) {
 const EQUIPMENT_SPECS = {
   primaryPump: {
     model: "Leybold SOGEVAC SV 630 B",
-    technology: "Bomba rotativa de palhetas lubrificada a ÃƒÂ³leo",
-    nominalSpeed50Hz: "640 mÃ‚Â³/h",
-    nominalSpeed60Hz: "755 mÃ‚Â³/h",
-    ultimatePressureNoGasBallast: "Ã¢â€°Â¤ 0,08 mbar",
-    ultimatePressureGasBallast: "Ã¢â€°Â¤ 0,7 mbar",
+    technology: "Bomba rotativa de palhetas lubrificada a ÃƒÆ’Ã‚Â³leo",
+    nominalSpeed50Hz: "640 mÃƒâ€šÃ‚Â³/h",
+    nominalSpeed60Hz: "755 mÃƒâ€šÃ‚Â³/h",
+    ultimatePressureNoGasBallast: "ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ 0,08 mbar",
+    ultimatePressureGasBallast: "ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ 0,7 mbar",
     oilFilling: "20 L",
     motorPower50Hz: "15 kW",
     nominalRpm50Hz: "820 rpm",
     inlet: "DN 100 PN 10 / DN 100 ISO-K",
-    role: "Bomba de apoio responsÃƒÂ¡vel pela evacuaÃƒÂ§ÃƒÂ£o inicial e sustentaÃƒÂ§ÃƒÂ£o do conjunto bomba secundÃƒÂ¡ria."
+    role: "Bomba de apoio responsÃƒÆ’Ã‚Â¡vel pela evacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial e sustentaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do conjunto bomba secundÃƒÆ’Ã‚Â¡ria."
   },
   rootsPump: {
     model: "Leybold RUVAC WSU 2001",
-    technology: "Bomba secundÃƒÂ¡ria com motor blindado refrigerado a ar",
-    nominalSpeed50Hz: "2050 mÃ‚Â³/h",
-    nominalSpeed60Hz: "2460 mÃ‚Â³/h",
-    effectiveSpeedWithSogevac50Hz: "1850 mÃ‚Â³/h",
-    effectiveSpeedWithSogevac60Hz: "2100 mÃ‚Â³/h",
-    ultimatePressure: "< 4 Ãƒâ€” 10Ã¢ÂÂ»Ã‚Â² mbar",
+    technology: "Bomba secundÃƒÆ’Ã‚Â¡ria com motor blindado refrigerado a ar",
+    nominalSpeed50Hz: "2050 mÃƒâ€šÃ‚Â³/h",
+    nominalSpeed60Hz: "2460 mÃƒâ€šÃ‚Â³/h",
+    effectiveSpeedWithSogevac50Hz: "1850 mÃƒâ€šÃ‚Â³/h",
+    effectiveSpeedWithSogevac60Hz: "2100 mÃƒâ€šÃ‚Â³/h",
+    ultimatePressure: "< 4 ÃƒÆ’Ã¢â‚¬â€ 10ÃƒÂ¢Ã‚ÂÃ‚Â»Ãƒâ€šÃ‚Â² mbar",
     maxDifferentialPressure: "50 mbar",
-    leakRate: "< 1 Ãƒâ€” 10Ã¢ÂÂ»Ã¢ÂÂ´ mbarÃ‚Â·l/s",
-    role: "EstÃƒÂ¡gio de reforÃƒÂ§o usado apÃƒÂ³s a pressÃƒÂ£o entrar na faixa segura de acionamento."
+    leakRate: "< 1 ÃƒÆ’Ã¢â‚¬â€ 10ÃƒÂ¢Ã‚ÂÃ‚Â»ÃƒÂ¢Ã‚ÂÃ‚Â´ mbarÃƒâ€šÃ‚Â·l/s",
+    role: "EstÃƒÆ’Ã‚Â¡gio de reforÃƒÆ’Ã‚Â§o usado apÃƒÆ’Ã‚Â³s a pressÃƒÆ’Ã‚Â£o entrar na faixa segura de acionamento."
   }
 };
 
@@ -309,7 +309,7 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
 
   const pumpRows = [
     [
-      <b>Bomba primÃƒÂ¡ria</b>,
+      <b>Bomba primÃƒÆ’Ã‚Â¡ria</b>,
       EQUIPMENT_SPECS.primaryPump.model,
       state?.primary_pump?.running ? "Ligada" : "Pronta",
       "98%",
@@ -317,7 +317,7 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
       EQUIPMENT_SPECS.primaryPump.role
     ],
     [
-      <b>Bomba secundÃƒÂ¡ria</b>,
+      <b>Bomba secundÃƒÆ’Ã‚Â¡ria</b>,
       EQUIPMENT_SPECS.rootsPump.model,
       state?.roots_pump?.running ? "Ligada" : "Intertravada",
       state?.roots_pump?.running ? "96%" : "Aguardando faixa",
@@ -348,7 +348,7 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
     fmt(hose.diameter_in, "pol"),
     fmt(hose.loss_factor),
     Number(hose.loss_factor || 0) > 1 ? <Badge value="warning" /> : <Badge value="success" />,
-    "ConexÃƒÂ£o entre bomba, tanque e processo de vÃƒÂ¡cuo."
+    "ConexÃƒÆ’Ã‚Â£o entre bomba, tanque e processo de vÃƒÆ’Ã‚Â¡cuo."
   ]);
 
   const sensorRows = (tankStates.length ? tankStates : [{ tank: { code: "TQ-SIM" }, pressure_mbar: avgPressure }]).map((item: any, index: number) => {
@@ -359,29 +359,29 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
     return [
       <b>{`SP-${tank.code || index + 1}`}</b>,
       tank.code || `Tanque ${index + 1}`,
-      "PressÃƒÂ£o",
+      "PressÃƒÆ’Ã‚Â£o",
       fmt(pressure, "mbar"),
-      risk >= 82 ? "CrÃƒÂ­tico" : risk >= 65 ? "AtenÃƒÂ§ÃƒÂ£o" : "Operacional",
+      risk >= 82 ? "CrÃƒÆ’Ã‚Â­tico" : risk >= 65 ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Operacional",
       fmt(risk >= 82 ? 62 : risk >= 65 ? 82 : 98, "%")
     ];
   });
 
   return (
     <div className="componentTraceStack">
-      <Section title="Rastreabilidade de mÃƒÂ¡quinas e peÃƒÂ§as" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
-        <Table columns={["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor) tÃƒÂ©cnica", "FunÃƒÂ§ÃƒÂ£o no processo"]} rows={pumpRows} />
+      <Section title="Rastreabilidade de mÃƒÆ’Ã‚Â¡quinas e peÃƒÆ’Ã‚Â§as" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
+        <Table columns={["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor) tÃƒÆ’Ã‚Â©cnica", "FunÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o no processo"]} rows={pumpRows} />
       </Section>
 
-      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numÃƒÂ©ricas dos tanques usados no ciclo.">
-        <Table columns={["Tanque", "Tipo", "PressÃƒÂ£o", "Ãƒâ€œleo", "Risco", "Status"]} rows={tankRows} />
+      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numÃƒÆ’Ã‚Â©ricas dos tanques usados no ciclo.">
+        <Table columns={["Tanque", "Tipo", "PressÃƒÆ’Ã‚Â£o", "ÃƒÆ’Ã¢â‚¬Å“leo", "Risco", "Status"]} rows={tankRows} />
       </Section>
 
-      <Section title="Mangueiras de vÃƒÂ¡cuo" subtitle="Componentes de ligaÃƒÂ§ÃƒÂ£o entre bombas, tanque e processo.">
-        <Table columns={["Mangueira", "Comprimento (m)", "DiÃƒÂ¢metro (mm)", "Fator de perda (multiplicador)", "Status", "FunÃƒÂ§ÃƒÂ£o"]} rows={hoseRows} />
+      <Section title="Mangueiras de vÃƒÆ’Ã‚Â¡cuo" subtitle="Componentes de ligaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o entre bombas, tanque e processo.">
+        <Table columns={["Mangueira", "Comprimento (m)", "DiÃƒÆ’Ã‚Â¢metro (mm)", "Fator de perda (multiplicador)", "Status", "FunÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]} rows={hoseRows} />
       </Section>
 
-      <Section title="Sensores do processo" subtitle="Leitura (unidade do sensor)s usadas para controle, diagnÃƒÂ³stico e rastreabilidade.">
-        <Table columns={["Sensor", "Tanque", "VariÃƒÂ¡vel", "Leitura (unidade do sensor)", "Status", "Desempenho (%)"]} rows={sensorRows} />
+      <Section title="Sensores do processo" subtitle="Leitura (unidade do sensor)s usadas para controle, diagnÃƒÆ’Ã‚Â³stico e rastreabilidade.">
+        <Table columns={["Sensor", "Tanque", "VariÃƒÆ’Ã‚Â¡vel", "Leitura (unidade do sensor)", "Status", "Desempenho (%)"]} rows={sensorRows} />
       </Section>
     </div>
   );
@@ -407,57 +407,57 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
   const simulationStatus = result.status === "success"
     ? "Ciclo simulado aprovado"
     : result.status === "warning"
-      ? "Ciclo simulado aprovado com restriÃƒÂ§ÃƒÂ£o"
+      ? "Ciclo simulado aprovado com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"
       : "Ciclo simulado reprovado";
 
   const componentRows = [
-    [<b>Bomba primÃƒÂ¡ria</b>, EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, EQUIPMENT_SPECS.primaryPump.role],
-    [<b>Bomba secundÃƒÂ¡ria</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado ÃƒÂ  pressÃƒÂ£o segura."],
-    [<b>Mangueira de vÃƒÂ¡cuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restriÃƒÂ§ÃƒÂ£o de fluxo."],
-    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "CrÃƒÂ­tico" : risk >= 65 ? "AtenÃƒÂ§ÃƒÂ£o" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressÃƒÂ£o efetiva."],
-    [<b>Sensor de pressÃƒÂ£o</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressÃƒÂ£o do tanque e alimenta diagnÃƒÂ³stico."],
-    [<b>Sistema de ÃƒÂ³leo</b>, "InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo", oilFlow < 1.5 ? "VazÃƒÂ£o baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedaÃƒÂ§ÃƒÂ£o, estabilidade da curva e proteÃƒÂ§ÃƒÂ£o do conjunto."]
+    [<b>Bomba primÃƒÆ’Ã‚Â¡ria</b>, EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, EQUIPMENT_SPECS.primaryPump.role],
+    [<b>Bomba secundÃƒÆ’Ã‚Â¡ria</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado ÃƒÆ’Ã‚Â  pressÃƒÆ’Ã‚Â£o segura."],
+    [<b>Mangueira de vÃƒÆ’Ã‚Â¡cuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de fluxo."],
+    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "CrÃƒÆ’Ã‚Â­tico" : risk >= 65 ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressÃƒÆ’Ã‚Â£o efetiva."],
+    [<b>Sensor de pressÃƒÆ’Ã‚Â£o</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressÃƒÆ’Ã‚Â£o do tanque e alimenta diagnÃƒÆ’Ã‚Â³stico."],
+    [<b>Sistema de ÃƒÆ’Ã‚Â³leo</b>, "InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo", oilFlow < 1.5 ? "VazÃƒÆ’Ã‚Â£o baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, estabilidade da curva e proteÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do conjunto."]
   ];
 
   const actionRows = [
-    [<b>PreparaÃƒÂ§ÃƒÂ£o</b>, "ParÃƒÂ¢metros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuracao aplicada ao ciclo simulado."],
-    [<b>EvacuaÃƒÂ§ÃƒÂ£o inicial</b>, "Bomba primÃƒÂ¡ria em atuaÃƒÂ§ÃƒÂ£o", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "ReduÃƒÂ§ÃƒÂ£o inicial da pressÃƒÂ£o no tanque."],
-    [<b>Acionamento da bomba secundÃƒÂ¡ria</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar, "mbar"), "Intertravamento", "A bomba secundÃƒÂ¡ria sÃƒÂ³ entra em faixa segura."],
-    [<b>InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "VedaÃƒÂ§ÃƒÂ£o", "CondiÃƒÂ§ÃƒÂ£o usada para estabilidade e risco."],
-    [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendaÃƒÂ§ÃƒÂ£o adicional."]
+    [<b>PreparaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</b>, "ParÃƒÆ’Ã‚Â¢metros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuracao aplicada ao ciclo simulado."],
+    [<b>EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial</b>, "Bomba primÃƒÆ’Ã‚Â¡ria em atuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "ReduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial da pressÃƒÆ’Ã‚Â£o no tanque."],
+    [<b>Acionamento da bomba secundÃƒÆ’Ã‚Â¡ria</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar, "mbar"), "Intertravamento", "A bomba secundÃƒÆ’Ã‚Â¡ria sÃƒÆ’Ã‚Â³ entra em faixa segura."],
+    [<b>InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "VedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "CondiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o usada para estabilidade e risco."],
+    [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o adicional."]
   ];
 
   const reportRows = [
     [<b>Status final</b>, <Badge value={result.status} />, simulationStatus],
-    [<b>PressÃƒÂ£o final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulaÃƒÂ§ÃƒÂ£o."],
-    [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "DuraÃƒÂ§ÃƒÂ£o (s) prevista do ciclo."],
-    [<b>Risco mÃƒÂ¡ximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restriÃƒÂ§ÃƒÂ£o" : "Aprovado"],
-    [<b>CenÃƒÂ¡rio</b>, selectedScenario || "Configuracao", "Origem da simulaÃƒÂ§ÃƒÂ£o usada no diagnÃƒÂ³stico."]
+    [<b>PressÃƒÆ’Ã‚Â£o final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o."],
+    [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "DuraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (s) prevista do ciclo."],
+    [<b>Risco mÃƒÆ’Ã‚Â¡ximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Aprovado"],
+    [<b>CenÃƒÆ’Ã‚Â¡rio</b>, selectedScenario || "Configuracao", "Origem da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o usada no diagnÃƒÆ’Ã‚Â³stico."]
   ];
 
   return (
     <div className="traceabilityStack">
       <div className="traceHeader">
         <div>
-          <h3>Rastreabilidade da simulaÃƒÂ§ÃƒÂ£o</h3>
-          <p>Registro tÃƒÂ©cnico por mÃƒÂ¡quina, peÃƒÂ§a, sensor, mangueira e aÃƒÂ§ÃƒÂ£o simulada.</p>
+          <h3>Rastreabilidade da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h3>
+          <p>Registro tÃƒÆ’Ã‚Â©cnico por mÃƒÆ’Ã‚Â¡quina, peÃƒÆ’Ã‚Â§a, sensor, mangueira e aÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o simulada.</p>
         </div>
         <Badge value={result.status} />
       </div>
 
       <div className="tracePanel">
-        <h3>MÃƒÂ¡quinas, peÃƒÂ§as e sensores</h3>
-        <Table columns={["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto no processo"]} rows={componentRows} />
+        <h3>MÃƒÆ’Ã‚Â¡quinas, peÃƒÆ’Ã‚Â§as e sensores</h3>
+        <Table columns={["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto no processo"]} rows={componentRows} />
       </div>
 
       <div className="tracePanel">
-        <h3>AÃƒÂ§ÃƒÂµes da operaÃƒÂ§ÃƒÂ£o simulada</h3>
-        <Table columns={["Etapa", "Status", "ReferÃƒÂªncia", "Evento", "Registro tÃƒÂ©cnico"]} rows={actionRows} />
+        <h3>AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes da operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o simulada</h3>
+        <Table columns={["Etapa", "Status", "ReferÃƒÆ’Ã‚Âªncia", "Evento", "Registro tÃƒÆ’Ã‚Â©cnico"]} rows={actionRows} />
       </div>
 
       <div className="tracePanel">
-        <h3>RelatÃƒÂ³rio da simulaÃƒÂ§ÃƒÂ£o</h3>
-        <Table columns={["Item", "Valor", "InterpretaÃƒÂ§ÃƒÂ£o"]} rows={reportRows} />
+        <h3>RelatÃƒÆ’Ã‚Â³rio da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h3>
+        <Table columns={["Item", "Valor", "InterpretaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]} rows={reportRows} />
       </div>
     </div>
   );
@@ -482,32 +482,32 @@ function tseaWriteStorage(key: string, value: unknown) {
 
 const TSEA_EQUIPMENT_SPECS = {
   primaryPump: {
-    label: "Bomba primÃƒÂ¡ria",
+    label: "Bomba primÃƒÆ’Ã‚Â¡ria",
     model: "Leybold SOGEVAC SV 630 B",
-    technology: "Bomba rotativa de palhetas lubrificada a ÃƒÂ³leo",
-    nominalSpeed50Hz: "640 mÃ‚Â³/h",
-    nominalSpeed60Hz: "755 mÃ‚Â³/h",
-    ultimatePressureNoGasBallast: "Ã¢â€°Â¤ 0,08 mbar",
-    ultimatePressureGasBallast: "Ã¢â€°Â¤ 0,7 mbar",
+    technology: "Bomba rotativa de palhetas lubrificada a ÃƒÆ’Ã‚Â³leo",
+    nominalSpeed50Hz: "640 mÃƒâ€šÃ‚Â³/h",
+    nominalSpeed60Hz: "755 mÃƒâ€šÃ‚Â³/h",
+    ultimatePressureNoGasBallast: "ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ 0,08 mbar",
+    ultimatePressureGasBallast: "ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ 0,7 mbar",
     oilFilling: "20 L",
     motorPower50Hz: "15 kW",
     nominalRpm50Hz: "820 rpm",
-    role: "EvacuaÃƒÂ§ÃƒÂ£o inicial e sustentaÃƒÂ§ÃƒÂ£o do conjunto de vÃƒÂ¡cuo."
+    role: "EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial e sustentaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do conjunto de vÃƒÆ’Ã‚Â¡cuo."
   },
   secondaryPump: {
-    label: "Bomba secundÃƒÂ¡ria",
+    label: "Bomba secundÃƒÆ’Ã‚Â¡ria",
     model: "Leybold RUVAC WSU 2001",
-    technology: "Bomba secundÃƒÂ¡ria tipo bomba secundÃƒÂ¡ria com motor blindado refrigerado a ar",
-    nominalSpeed50Hz: "2050 mÃ‚Â³/h",
-    nominalSpeed60Hz: "2460 mÃ‚Â³/h",
-    effectiveSpeedWithSogevac50Hz: "1850 mÃ‚Â³/h",
-    ultimatePressure: "< 4 Ãƒâ€” 10Ã¢ÂÂ»Ã‚Â² mbar",
+    technology: "Bomba secundÃƒÆ’Ã‚Â¡ria tipo bomba secundÃƒÆ’Ã‚Â¡ria com motor blindado refrigerado a ar",
+    nominalSpeed50Hz: "2050 mÃƒâ€šÃ‚Â³/h",
+    nominalSpeed60Hz: "2460 mÃƒâ€šÃ‚Â³/h",
+    effectiveSpeedWithSogevac50Hz: "1850 mÃƒâ€šÃ‚Â³/h",
+    ultimatePressure: "< 4 ÃƒÆ’Ã¢â‚¬â€ 10ÃƒÂ¢Ã‚ÂÃ‚Â»Ãƒâ€šÃ‚Â² mbar",
     maxDifferentialPressure: "50 mbar",
-    role: "ReforÃƒÂ§o do vÃƒÂ¡cuo apÃƒÂ³s entrada em faixa segura de acionamento."
+    role: "ReforÃƒÆ’Ã‚Â§o do vÃƒÆ’Ã‚Â¡cuo apÃƒÆ’Ã‚Â³s entrada em faixa segura de acionamento."
   }
 };
 
-function tseaBuildSimulationResult(config: any, state: any, hoses: any[], tanks: any[], scenarioName = "CenÃƒÂ¡rio manual") {
+function tseaBuildSimulationResult(config: any, state: any, hoses: any[], tanks: any[], scenarioName = "CenÃƒÆ’Ã‚Â¡rio manual") {
   const selectedHose = hoses.find((hose: any) => String(hose.id) === String(config?.hose_id) || String(hose.code) === String(config?.hose_id)) || hoses[0] || {};
   const selectedTank = tanks.find((tank: any) => String(tank.id) === String(config?.tank_id) || String(tank.type) === String(config?.tank_type)) || tanks[0] || {};
 
@@ -541,16 +541,16 @@ function tseaBuildSimulationResult(config: any, state: any, hoses: any[], tanks:
       : "success";
 
   const diagnosis = status === "success"
-    ? "SimulaÃƒÂ§ÃƒÂ£o aprovada. O ciclo mantÃƒÂ©m margem operacional aceitÃƒÂ¡vel."
+    ? "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o aprovada. O ciclo mantÃƒÆ’Ã‚Â©m margem operacional aceitÃƒÆ’Ã‚Â¡vel."
     : status === "warning"
-      ? "SimulaÃƒÂ§ÃƒÂ£o aprovada com restriÃƒÂ§ÃƒÂ£o. Existe tendÃƒÂªncia de perda, atraso ou reduÃƒÂ§ÃƒÂ£o de margem."
-      : "SimulaÃƒÂ§ÃƒÂ£o reprovada. O ciclo apresenta risco elevado e nÃƒÂ£o deve ser liberado sem revisÃƒÂ£o.";
+      ? "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o aprovada com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o. Existe tendÃƒÆ’Ã‚Âªncia de perda, atraso ou reduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de margem."
+      : "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o reprovada. O ciclo apresenta risco elevado e nÃƒÆ’Ã‚Â£o deve ser liberado sem revisÃƒÆ’Ã‚Â£o.";
 
   const recommendation = status === "success"
-    ? "Manter parÃƒÂ¢metros e registrar o cenÃƒÂ¡rio como referÃƒÂªncia operacional."
+    ? "Manter parÃƒÆ’Ã‚Â¢metros e registrar o cenÃƒÆ’Ã‚Â¡rio como referÃƒÆ’Ã‚Âªncia operacional."
     : status === "warning"
-      ? "Revisar mangueira, vazÃƒÂ£o de ÃƒÂ³leo, sensores e condiÃƒÂ§ÃƒÂ£o das bombas antes da execuÃƒÂ§ÃƒÂ£o real."
-      : "Bloquear execuÃƒÂ§ÃƒÂ£o, revisar vedaÃƒÂ§ÃƒÂ£o, mangueira, bomba secundÃƒÂ¡ria, sensores e limites estruturais.";
+      ? "Revisar mangueira, vazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo, sensores e condiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o das bombas antes da execuÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o real."
+      : "Bloquear execuÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, revisar vedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, mangueira, bomba secundÃƒÆ’Ã‚Â¡ria, sensores e limites estruturais.";
 
   const timeline = Array.from({ length: 18 }).map((_, index) => {
     const step = index / 17;
@@ -631,7 +631,7 @@ function TseaComponentHealthPanel({ state, allTanks, allHoses }: any) {
     fmt(hose.diameter_in, "pol"),
     fmt(hose.loss_factor),
     Number(hose.loss_factor || 0) > 1 ? <Badge value="warning" /> : <Badge value="success" />,
-    "ConexÃƒÂ£o entre bomba, tanque e processo de vÃƒÂ¡cuo."
+    "ConexÃƒÆ’Ã‚Â£o entre bomba, tanque e processo de vÃƒÆ’Ã‚Â¡cuo."
   ]);
 
   const sensorRows = sourceTanks.map((item: any, index: number) => {
@@ -642,29 +642,29 @@ function TseaComponentHealthPanel({ state, allTanks, allHoses }: any) {
     return [
       <b>{`SP-${tank?.code || item?.code || index + 1}`}</b>,
       tank?.code || item?.code || `Tanque ${index + 1}`,
-      "PressÃƒÂ£o",
+      "PressÃƒÆ’Ã‚Â£o",
       fmt(pressure, "mbar"),
-      risk >= 82 ? "CrÃƒÂ­tico" : risk >= 65 ? "AtenÃƒÂ§ÃƒÂ£o" : "Operacional",
+      risk >= 82 ? "CrÃƒÆ’Ã‚Â­tico" : risk >= 65 ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Operacional",
       fmt(risk >= 82 ? 62 : risk >= 65 ? 82 : 98, "%")
     ];
   });
 
   return (
     <div className="componentTraceStack">
-      <Section title="Rastreabilidade de mÃƒÂ¡quinas e peÃƒÂ§as" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
-        <Table columns={["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor) tÃƒÂ©cnica", "FunÃƒÂ§ÃƒÂ£o no processo"]} rows={pumpRows} />
+      <Section title="Rastreabilidade de mÃƒÆ’Ã‚Â¡quinas e peÃƒÆ’Ã‚Â§as" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
+        <Table columns={["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor) tÃƒÆ’Ã‚Â©cnica", "FunÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o no processo"]} rows={pumpRows} />
       </Section>
 
-      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numÃƒÂ©ricas dos tanques usados no ciclo.">
-        <Table columns={["Tanque", "Tipo", "PressÃƒÂ£o", "Ãƒâ€œleo", "Risco", "Status"]} rows={tankRows} />
+      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numÃƒÆ’Ã‚Â©ricas dos tanques usados no ciclo.">
+        <Table columns={["Tanque", "Tipo", "PressÃƒÆ’Ã‚Â£o", "ÃƒÆ’Ã¢â‚¬Å“leo", "Risco", "Status"]} rows={tankRows} />
       </Section>
 
-      <Section title="Mangueiras de vÃƒÂ¡cuo" subtitle="Componentes de ligaÃƒÂ§ÃƒÂ£o entre bombas, tanque e processo.">
-        <Table columns={["Mangueira", "Comprimento (m)", "DiÃƒÂ¢metro (mm)", "Fator de perda (multiplicador)", "Status", "FunÃƒÂ§ÃƒÂ£o"]} rows={hoseRows} />
+      <Section title="Mangueiras de vÃƒÆ’Ã‚Â¡cuo" subtitle="Componentes de ligaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o entre bombas, tanque e processo.">
+        <Table columns={["Mangueira", "Comprimento (m)", "DiÃƒÆ’Ã‚Â¢metro (mm)", "Fator de perda (multiplicador)", "Status", "FunÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]} rows={hoseRows} />
       </Section>
 
-      <Section title="Sensores do processo" subtitle="Leitura (unidade do sensor)s usadas para controle, diagnÃƒÂ³stico e rastreabilidade.">
-        <Table columns={["Sensor", "Tanque", "VariÃƒÂ¡vel", "Leitura (unidade do sensor)", "Status", "Desempenho (%)"]} rows={sensorRows} />
+      <Section title="Sensores do processo" subtitle="Leitura (unidade do sensor)s usadas para controle, diagnÃƒÆ’Ã‚Â³stico e rastreabilidade.">
+        <Table columns={["Sensor", "Tanque", "VariÃƒÆ’Ã‚Â¡vel", "Leitura (unidade do sensor)", "Status", "Desempenho (%)"]} rows={sensorRows} />
       </Section>
     </div>
   );
@@ -687,57 +687,57 @@ function TseaSimulationTraceability({ result, state, hoses, tanks }: any) {
   const simulationStatus = result.status === "success"
     ? "Ciclo simulado aprovado"
     : result.status === "warning"
-      ? "Ciclo simulado aprovado com restriÃƒÂ§ÃƒÂ£o"
+      ? "Ciclo simulado aprovado com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"
       : "Ciclo simulado reprovado";
 
   const componentRows = [
-    [<b>Bomba primÃƒÂ¡ria</b>, TSEA_EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", TSEA_EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, TSEA_EQUIPMENT_SPECS.primaryPump.role],
-    [<b>Bomba secundÃƒÂ¡ria</b>, TSEA_EQUIPMENT_SPECS.secondaryPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", TSEA_EQUIPMENT_SPECS.secondaryPump.nominalSpeed50Hz, "Acionamento condicionado ÃƒÂ  pressÃƒÂ£o segura."],
-    [<b>Mangueira de vÃƒÂ¡cuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restriÃƒÂ§ÃƒÂ£o de fluxo."],
-    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "CrÃƒÂ­tico" : risk >= 65 ? "AtenÃƒÂ§ÃƒÂ£o" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressÃƒÂ£o efetiva."],
-    [<b>Sensor de pressÃƒÂ£o</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressÃƒÂ£o do tanque e alimenta diagnÃƒÂ³stico."],
-    [<b>Sistema de ÃƒÂ³leo</b>, "InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo", oilFlow < 1.5 ? "VazÃƒÂ£o baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedaÃƒÂ§ÃƒÂ£o, estabilidade da curva e proteÃƒÂ§ÃƒÂ£o do conjunto."]
+    [<b>Bomba primÃƒÆ’Ã‚Â¡ria</b>, TSEA_EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", TSEA_EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, TSEA_EQUIPMENT_SPECS.primaryPump.role],
+    [<b>Bomba secundÃƒÆ’Ã‚Â¡ria</b>, TSEA_EQUIPMENT_SPECS.secondaryPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", TSEA_EQUIPMENT_SPECS.secondaryPump.nominalSpeed50Hz, "Acionamento condicionado ÃƒÆ’Ã‚Â  pressÃƒÆ’Ã‚Â£o segura."],
+    [<b>Mangueira de vÃƒÆ’Ã‚Â¡cuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de fluxo."],
+    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "CrÃƒÆ’Ã‚Â­tico" : risk >= 65 ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressÃƒÆ’Ã‚Â£o efetiva."],
+    [<b>Sensor de pressÃƒÆ’Ã‚Â£o</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressÃƒÆ’Ã‚Â£o do tanque e alimenta diagnÃƒÆ’Ã‚Â³stico."],
+    [<b>Sistema de ÃƒÆ’Ã‚Â³leo</b>, "InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo", oilFlow < 1.5 ? "VazÃƒÆ’Ã‚Â£o baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, estabilidade da curva e proteÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do conjunto."]
   ];
 
   const actionRows = [
-    [<b>PreparaÃƒÂ§ÃƒÂ£o</b>, "ParÃƒÂ¢metros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuracao aplicada ao ciclo simulado."],
-    [<b>EvacuaÃƒÂ§ÃƒÂ£o inicial</b>, "Bomba primÃƒÂ¡ria em atuaÃƒÂ§ÃƒÂ£o", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "ReduÃƒÂ§ÃƒÂ£o inicial da pressÃƒÂ£o no tanque."],
-    [<b>Acionamento da bomba secundÃƒÂ¡ria</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento", "A bomba secundÃƒÂ¡ria sÃƒÂ³ entra em faixa segura."],
-    [<b>InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "VedaÃƒÂ§ÃƒÂ£o", "CondiÃƒÂ§ÃƒÂ£o usada para estabilidade e risco."],
-    [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendaÃƒÂ§ÃƒÂ£o adicional."]
+    [<b>PreparaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</b>, "ParÃƒÆ’Ã‚Â¢metros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuracao aplicada ao ciclo simulado."],
+    [<b>EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial</b>, "Bomba primÃƒÆ’Ã‚Â¡ria em atuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "ReduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial da pressÃƒÆ’Ã‚Â£o no tanque."],
+    [<b>Acionamento da bomba secundÃƒÆ’Ã‚Â¡ria</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento", "A bomba secundÃƒÆ’Ã‚Â¡ria sÃƒÆ’Ã‚Â³ entra em faixa segura."],
+    [<b>InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "VedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "CondiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o usada para estabilidade e risco."],
+    [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o adicional."]
   ];
 
   const reportRows = [
     [<b>Status final</b>, <Badge value={result.status} />, simulationStatus],
-    [<b>PressÃƒÂ£o final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulaÃƒÂ§ÃƒÂ£o."],
-    [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "DuraÃƒÂ§ÃƒÂ£o (s) prevista do ciclo."],
-    [<b>Risco mÃƒÂ¡ximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restriÃƒÂ§ÃƒÂ£o" : "Aprovado"],
-    [<b>DiagnÃƒÂ³stico</b>, result.diagnosis || "--", result.recommendation || "--"]
+    [<b>PressÃƒÆ’Ã‚Â£o final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o."],
+    [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "DuraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (s) prevista do ciclo."],
+    [<b>Risco mÃƒÆ’Ã‚Â¡ximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Aprovado"],
+    [<b>DiagnÃƒÆ’Ã‚Â³stico</b>, result.diagnosis || "--", result.recommendation || "--"]
   ];
 
   return (
     <div className="traceabilityStack">
       <div className="traceHeader">
         <div>
-          <h3>Rastreabilidade da simulaÃƒÂ§ÃƒÂ£o</h3>
-          <p>Registro tÃƒÂ©cnico por mÃƒÂ¡quina, peÃƒÂ§a, sensor, mangueira e aÃƒÂ§ÃƒÂ£o simulada.</p>
+          <h3>Rastreabilidade da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h3>
+          <p>Registro tÃƒÆ’Ã‚Â©cnico por mÃƒÆ’Ã‚Â¡quina, peÃƒÆ’Ã‚Â§a, sensor, mangueira e aÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o simulada.</p>
         </div>
         <Badge value={result.status} />
       </div>
 
       <div className="tracePanel">
-        <h3>MÃƒÂ¡quinas, peÃƒÂ§as e sensores</h3>
-        <Table columns={["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto no processo"]} rows={componentRows} />
+        <h3>MÃƒÆ’Ã‚Â¡quinas, peÃƒÆ’Ã‚Â§as e sensores</h3>
+        <Table columns={["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto no processo"]} rows={componentRows} />
       </div>
 
       <div className="tracePanel">
-        <h3>AÃƒÂ§ÃƒÂµes da operaÃƒÂ§ÃƒÂ£o simulada</h3>
-        <Table columns={["Etapa", "Status", "ReferÃƒÂªncia", "Evento", "Registro tÃƒÂ©cnico"]} rows={actionRows} />
+        <h3>AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes da operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o simulada</h3>
+        <Table columns={["Etapa", "Status", "ReferÃƒÆ’Ã‚Âªncia", "Evento", "Registro tÃƒÆ’Ã‚Â©cnico"]} rows={actionRows} />
       </div>
 
       <div className="tracePanel">
-        <h3>RelatÃƒÂ³rio da simulaÃƒÂ§ÃƒÂ£o</h3>
-        <Table columns={["Item", "Valor", "InterpretaÃƒÂ§ÃƒÂ£o"]} rows={reportRows} />
+        <h3>RelatÃƒÆ’Ã‚Â³rio da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h3>
+        <Table columns={["Item", "Valor", "InterpretaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]} rows={reportRows} />
       </div>
     </div>
   );
@@ -747,20 +747,20 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
   const baseScenarios = [
     {
       id: "base-seguro",
-      name: "Ciclo seguro padrÃƒÂ£o",
-      description: "ParÃƒÂ¢metros conservadores para operaÃƒÂ§ÃƒÂ£o com margem ampliada.",
+      name: "Ciclo seguro padrÃƒÆ’Ã‚Â£o",
+      description: "ParÃƒÆ’Ã‚Â¢metros conservadores para operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o com margem ampliada.",
       config: { tank_type: "grande", tank_count: 1, hose_id: 1, target_pressure_mbar: 8, roots_start_pressure_mbar: 55, oil_flow_l_min: 2, max_cycle_seconds: 780, pump_health_factor: 1 }
     },
     {
       id: "base-produtivo",
-      name: "Reguladores TSEA - VÃƒÂ¡cuo com ÃƒÂ³leo",
-      description: "CenÃƒÂ¡rio operacional padrÃƒÂ£o para reguladores com injeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo.",
+      name: "Reguladores TSEA - VÃƒÆ’Ã‚Â¡cuo com ÃƒÆ’Ã‚Â³leo",
+      description: "CenÃƒÆ’Ã‚Â¡rio operacional padrÃƒÆ’Ã‚Â£o para reguladores com injeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo.",
       config: { tank_type: "grande", hose_id: 1, target_pressure_mbar: 6.5, roots_start_pressure_mbar: 50, oil_flow_l_min: 2, max_cycle_seconds: 900, pump_health_factor: 1 }
     },
     {
       id: "base-risco",
       name: "Teste de perda na mangueira",
-      description: "CenÃƒÂ¡rio para avaliar perda de carga, vazÃƒÂ£o baixa e risco estrutural.",
+      description: "CenÃƒÆ’Ã‚Â¡rio para avaliar perda de carga, vazÃƒÆ’Ã‚Â£o baixa e risco estrutural.",
       config: { tank_type: "extra_grande", hose_id: 3, target_pressure_mbar: 7.5, roots_start_pressure_mbar: 60, oil_flow_l_min: 1.2, oil_delay_seconds: 30, max_cycle_seconds: 1100, pump_health_factor: 0.84, simulate_hose_leak: true }
     }
   ];
@@ -769,8 +769,8 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
   const [customScenarios, setCustomScenarios] = useState<any[]>(() => tseaReadStorage("tsea.customScenarios.final", []));
   const [result, setResult] = useState<any>(() => tseaReadStorage("tsea.lastSimulation.final", null));
   const [form, setForm] = useState<any>({
-    name: "Novo cenÃƒÂ¡rio de teste",
-    description: "CenÃƒÂ¡rio personalizado para validaÃƒÂ§ÃƒÂ£o operacional.",
+    name: "Novo cenÃƒÆ’Ã‚Â¡rio de teste",
+    description: "CenÃƒÆ’Ã‚Â¡rio personalizado para validaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o operacional.",
     tank_type: "grande",
     hose_id: 1,
     target_pressure_mbar: 6.5,
@@ -789,7 +789,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
   }
 
   function runScenario(scenario: any) {
-    const generated = tseaBuildSimulationResult(scenario.config || scenario, state, allHoses, allTanks, scenario.name || "CenÃƒÂ¡rio personalizado");
+    const generated = tseaBuildSimulationResult(scenario.config || scenario, state, allHoses, allTanks, scenario.name || "CenÃƒÆ’Ã‚Â¡rio personalizado");
     setResult(generated);
     tseaWriteStorage("tsea.lastSimulation.final", generated);
 
@@ -802,8 +802,8 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
   function saveScenario() {
     const scenario = {
       id: `custom-${Date.now().toString(36)}`,
-      name: form.name || "CenÃƒÂ¡rio personalizado",
-      description: form.description || "CenÃƒÂ¡rio criado pelo usuÃƒÂ¡rio.",
+      name: form.name || "CenÃƒÆ’Ã‚Â¡rio personalizado",
+      description: form.description || "CenÃƒÆ’Ã‚Â¡rio criado pelo usuÃƒÆ’Ã‚Â¡rio.",
       config: { ...form }
     };
 
@@ -825,7 +825,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
             <div className="scenarioMeta">
               <small>Tanque: {scenario.config?.tank_type || "--"}</small>
               <small>Mangueira: {scenario.config?.hose_id || "--"}</small>
-              <small>Ãƒâ€œleo: {fmt(scenario.config?.oil_flow_l_min, "L/min")}</small>
+              <small>ÃƒÆ’Ã¢â‚¬Å“leo: {fmt(scenario.config?.oil_flow_l_min, "L/min")}</small>
             </div>
             <button onClick={() => runScenario(scenario)}>Simular</button>
           </article>
@@ -835,32 +835,32 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
   }
 
   return (
-    <Section title="GÃƒÂªmeo Digital Ã¢â‚¬â€ cenÃƒÂ¡rios e testes" subtitle="CenÃƒÂ¡rios base, personalizados, criaÃƒÂ§ÃƒÂ£o de teste e resultado com rastreabilidade completa.">
+    <Section title="GÃƒÆ’Ã‚Âªmeo Digital ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cenÃƒÆ’Ã‚Â¡rios e testes" subtitle="CenÃƒÆ’Ã‚Â¡rios base, personalizados, criaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de teste e resultado com rastreabilidade completa.">
 <div className="subTabs">
-        <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>CenÃƒÂ¡rios base</button>
-        <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>CenÃƒÂ¡rios personalizados</button>
-        <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenÃƒÂ¡rio</button>
+        <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>CenÃƒÆ’Ã‚Â¡rios base</button>
+        <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>CenÃƒÆ’Ã‚Â¡rios personalizados</button>
+        <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenÃƒÆ’Ã‚Â¡rio</button>
         <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
       </div>
 
-      {tab === "base" && renderScenarioList(baseScenarios, "Nenhum cenÃƒÂ¡rio base disponÃƒÂ­vel.")}
-      {tab === "custom" && renderScenarioList(customScenarios, "Nenhum cenÃƒÂ¡rio personalizado salvo.")}
+      {tab === "base" && renderScenarioList(baseScenarios, "Nenhum cenÃƒÆ’Ã‚Â¡rio base disponÃƒÆ’Ã‚Â­vel.")}
+      {tab === "custom" && renderScenarioList(customScenarios, "Nenhum cenÃƒÆ’Ã‚Â¡rio personalizado salvo.")}
 
       {tab === "create" && (
         <div className="createScenarioBox">
           <div className="formGrid">
-            <Field label="Nome do cenÃƒÂ¡rio">
+            <Field label="Nome do cenÃƒÆ’Ã‚Â¡rio">
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
 
-            <Field label="DescriÃƒÂ§ÃƒÂ£o">
+            <Field label="DescriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o">
               <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </Field>
 
             <Field label="Tipo de tanque">
               <select value={form.tank_type} onChange={(e) => setForm({ ...form, tank_type: e.target.value })}>
                 <option value="pequeno">Pequeno</option>
-                <option value="medio">MÃƒÂ©dio</option>
+                <option value="medio">MÃƒÆ’Ã‚Â©dio</option>
                 <option value="grande">Grande</option>
                 <option value="extra_grande">Extra grande</option>
               </select>
@@ -874,19 +874,19 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
               </select>
             </Field>
 
-            <Field label="PressÃƒÂ£o final (mbar) desejada (mbar)">
+            <Field label="PressÃƒÆ’Ã‚Â£o final (mbar) desejada (mbar)">
               <input type="number" value={form.target_pressure_mbar} onChange={(e) => setForm({ ...form, target_pressure_mbar: Number(e.target.value) })} />
             </Field>
 
-            <Field label="PressÃƒÂ£o da bomba secundÃƒÂ¡ria (mbar)">
+            <Field label="PressÃƒÆ’Ã‚Â£o da bomba secundÃƒÆ’Ã‚Â¡ria (mbar)">
               <input type="number" value={form.roots_start_pressure_mbar} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: Number(e.target.value) })} />
             </Field>
 
-            <Field label="VazÃƒÂ£o de ÃƒÂ³leo (L/min)">
+            <Field label="VazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo (L/min)">
               <input type="number" value={form.oil_flow_l_min} onChange={(e) => setForm({ ...form, oil_flow_l_min: Number(e.target.value) })} />
             </Field>
 
-            <Field label="SaÃƒÂºde da bomba">
+            <Field label="SaÃƒÆ’Ã‚Âºde da bomba">
               <input type="number" step="0.01" value={form.pump_health_factor} onChange={(e) => setForm({ ...form, pump_health_factor: Number(e.target.value) })} />
             </Field>
           </div>
@@ -898,7 +898,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
           </div>
 
           <div className="actions">
-            <button onClick={saveScenario}>Salvar cenÃƒÂ¡rio</button>
+            <button onClick={saveScenario}>Salvar cenÃƒÆ’Ã‚Â¡rio</button>
             <button className="secondary" onClick={() => runScenario({ name: form.name, description: form.description, config: form })}>Simular agora</button>
           </div>
         </div>
@@ -908,10 +908,10 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
         result ? (
           <div className="resultStack">
             <div className="metrics">
-              <Metric label="Status da simulaÃƒÂ§ÃƒÂ£o" value={<Badge value={result.status} />} detail={result.scenario} />
-              <Metric label="PressÃƒÂ£o final (mbar)" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Valor calculado" />
-              <Metric label="Tempo estimado (s)" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="DuraÃƒÂ§ÃƒÂ£o (s) prevista" />
-              <Metric label="Risco mÃƒÂ¡ximo (%)" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Margem operacional" />
+              <Metric label="Status da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" value={<Badge value={result.status} />} detail={result.scenario} />
+              <Metric label="PressÃƒÆ’Ã‚Â£o final (mbar)" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Valor calculado" />
+              <Metric label="Tempo estimado (s)" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="DuraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (s) prevista" />
+              <Metric label="Risco mÃƒÆ’Ã‚Â¡ximo (%)" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Margem operacional" />
             </div>
 
             <div className="diagnosticBox">
@@ -922,7 +922,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
             <TseaSimulationTraceability result={result} state={state} hoses={allHoses} tanks={allTanks} />
           </div>
         ) : (
-          <Empty text="Execute uma simulaÃƒÂ§ÃƒÂ£o para gerar o resultado tÃƒÂ©cnico." />
+          <Empty text="Execute uma simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o para gerar o resultado tÃƒÆ’Ã‚Â©cnico." />
         )
       )}
     </Section>
@@ -946,9 +946,9 @@ function TseaHistoryDetailsPanel({ state, allTanks, allHoses }: any) {
   }
 
   return (
-    <Section title="Detalhes tÃƒÂ©cnicos das simulaÃƒÂ§ÃƒÂµes" subtitle="HistÃƒÂ³rico local com parÃƒÂ¢metros, resultado, componentes, aÃƒÂ§ÃƒÂµes e diagnÃƒÂ³stico completo.">
+    <Section title="Detalhes tÃƒÆ’Ã‚Â©cnicos das simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes" subtitle="HistÃƒÆ’Ã‚Â³rico local com parÃƒÆ’Ã‚Â¢metros, resultado, componentes, aÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes e diagnÃƒÆ’Ã‚Â³stico completo.">
       <Table
-        columns={["ID", "Data", "CenÃƒÂ¡rio", "Status", "Risco", "PressÃƒÂ£o", "Detalhes"]}
+        columns={["ID", "Data", "CenÃƒÆ’Ã‚Â¡rio", "Status", "Risco", "PressÃƒÆ’Ã‚Â£o", "Detalhes"]}
         rows={items.map((item) => [
           <b>{item.id}</b>,
           new Date(item.created_at).toLocaleString("pt-BR"),
@@ -987,8 +987,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
   const baseScenarios = [
     {
       id: "base-seguro",
-      name: "Ciclo seguro padrÃƒÂ£o",
-      description: "ValidaÃƒÂ§ÃƒÂ£o conservadora para operaÃƒÂ§ÃƒÂ£o com margem ampliada.",
+      name: "Ciclo seguro padrÃƒÆ’Ã‚Â£o",
+      description: "ValidaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o conservadora para operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o com margem ampliada.",
       tag: "Conservador",
       config: {
         tank_type: "grande",
@@ -1007,9 +1007,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     },
     {
       id: "base-produtivo",
-      name: "Reguladores TSEA com ÃƒÂ³leo",
-      description: "Ciclo operacional padrÃƒÂ£o para reguladores com injeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo.",
-      tag: "ProduÃƒÂ§ÃƒÂ£o",
+      name: "Reguladores TSEA com ÃƒÆ’Ã‚Â³leo",
+      description: "Ciclo operacional padrÃƒÆ’Ã‚Â£o para reguladores com injeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo.",
+      tag: "ProduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o",
       config: {
         tank_type: "grande",
         hose_id: allHoses?.[0]?.id || 1,
@@ -1028,7 +1028,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     {
       id: "base-mangueira",
       name: "Teste de perda na mangueira",
-      description: "CenÃƒÂ¡rio para avaliar perda de carga, vazÃƒÂ£o baixa e impacto no tempo de ciclo.",
+      description: "CenÃƒÆ’Ã‚Â¡rio para avaliar perda de carga, vazÃƒÆ’Ã‚Â£o baixa e impacto no tempo de ciclo.",
       tag: "Risco",
       config: {
         tank_type: "extra_grande",
@@ -1047,8 +1047,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     },
     {
       id: "base-sensor",
-      name: "Falha de sensor de pressÃƒÂ£o",
-      description: "Teste para verificar impacto de leitura instÃƒÂ¡vel no diagnÃƒÂ³stico do ciclo.",
+      name: "Falha de sensor de pressÃƒÆ’Ã‚Â£o",
+      description: "Teste para verificar impacto de leitura instÃƒÆ’Ã‚Â¡vel no diagnÃƒÆ’Ã‚Â³stico do ciclo.",
       tag: "Falha",
       config: {
         tank_type: "grande",
@@ -1087,8 +1087,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
   const [selectedDetail, setSelectedDetail] = useState<any>(null);
 
   const defaultForm = {
-    name: "Novo cenÃƒÂ¡rio de teste",
-    description: "CenÃƒÂ¡rio personalizado para validaÃƒÂ§ÃƒÂ£o operacional.",
+    name: "Novo cenÃƒÆ’Ã‚Â¡rio de teste",
+    description: "CenÃƒÆ’Ã‚Â¡rio personalizado para validaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o operacional.",
     tank_type: "grande",
     tank_id: allTanks?.[0]?.id || 1,
     hose_id: allHoses?.[0]?.id || 1,
@@ -1151,28 +1151,28 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     const status = risk >= 82 || safetyMargin < 0 ? "critical" : risk >= 65 ? "warning" : "success";
 
     const diagnosis = status === "success"
-      ? "SimulaÃƒÂ§ÃƒÂ£o aprovada. O ciclo mantÃƒÂ©m margem operacional aceitÃƒÂ¡vel."
+      ? "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o aprovada. O ciclo mantÃƒÆ’Ã‚Â©m margem operacional aceitÃƒÆ’Ã‚Â¡vel."
       : status === "warning"
-        ? "SimulaÃƒÂ§ÃƒÂ£o aprovada com restriÃƒÂ§ÃƒÂ£o. Existe tendÃƒÂªncia de perda, atraso de ÃƒÂ³leo, falha simulada ou reduÃƒÂ§ÃƒÂ£o de margem."
-        : "SimulaÃƒÂ§ÃƒÂ£o reprovada. O ciclo apresenta risco elevado e nÃƒÂ£o deve ser liberado sem revisÃƒÂ£o.";
+        ? "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o aprovada com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o. Existe tendÃƒÆ’Ã‚Âªncia de perda, atraso de ÃƒÆ’Ã‚Â³leo, falha simulada ou reduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de margem."
+        : "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o reprovada. O ciclo apresenta risco elevado e nÃƒÆ’Ã‚Â£o deve ser liberado sem revisÃƒÆ’Ã‚Â£o.";
 
     const probableCause = status === "success"
-      ? "Nenhum componente crÃƒÂ­tico identificado."
+      ? "Nenhum componente crÃƒÆ’Ã‚Â­tico identificado."
       : risk >= 82 && config?.simulate_hose_leak
         ? "Perda simulada na mangueira elevou o risco e prejudicou a estabilidade do ciclo."
         : oilFlow < 1.5
-          ? "VazÃƒÂ£o de ÃƒÂ³leo (L/min) insuficiente reduziu a estabilidade e aumentou risco operacional."
+          ? "VazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo (L/min) insuficiente reduziu a estabilidade e aumentou risco operacional."
           : !secondaryReleased
-            ? "Bomba secundÃƒÂ¡ria permaneceu bloqueada pela pressÃƒÂ£o fora da faixa segura."
+            ? "Bomba secundÃƒÆ’Ã‚Â¡ria permaneceu bloqueada pela pressÃƒÆ’Ã‚Â£o fora da faixa segura."
             : config?.simulate_sensor_failure
               ? "Falha simulada no sensor comprometeu a confiabilidade da leitura."
-              : "Conjunto de perdas e degradaÃƒÂ§ÃƒÂ£o de desempenho elevou o risco.";
+              : "Conjunto de perdas e degradaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de desempenho elevou o risco.";
 
     const recommendation = status === "success"
-      ? "Manter parÃƒÂ¢metros e registrar o cenÃƒÂ¡rio como referÃƒÂªncia operacional."
+      ? "Manter parÃƒÆ’Ã‚Â¢metros e registrar o cenÃƒÆ’Ã‚Â¡rio como referÃƒÆ’Ã‚Âªncia operacional."
       : status === "warning"
-        ? "Revisar mangueira, vazÃƒÂ£o de ÃƒÂ³leo, sensores e saÃƒÂºde das bombas antes da execuÃƒÂ§ÃƒÂ£o real."
-        : "Bloquear execuÃƒÂ§ÃƒÂ£o, revisar vedaÃƒÂ§ÃƒÂ£o, mangueira, sensores, bomba primÃƒÂ¡ria e bomba secundÃƒÂ¡ria.";
+        ? "Revisar mangueira, vazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo, sensores e saÃƒÆ’Ã‚Âºde das bombas antes da execuÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o real."
+        : "Bloquear execuÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, revisar vedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, mangueira, sensores, bomba primÃƒÆ’Ã‚Â¡ria e bomba secundÃƒÆ’Ã‚Â¡ria.";
 
     const timeline = Array.from({ length: 22 }).map((_, index) => {
       const step = index / 21;
@@ -1188,67 +1188,67 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         effective_pressure_mbar: effective,
         collapse_risk_pct: Math.round(risk * step),
         hose_loss_mbar: hoseLoss,
-        event: step === 0 ? "InÃƒÂ­cio" : step > 0.32 && step < 0.38 ? "Bomba secundÃƒÂ¡ria" : step > 0.46 && step < 0.52 ? "Ãƒâ€œleo" : ""
+        event: step === 0 ? "InÃƒÆ’Ã‚Â­cio" : step > 0.32 && step < 0.38 ? "Bomba secundÃƒÆ’Ã‚Â¡ria" : step > 0.46 && step < 0.52 ? "ÃƒÆ’Ã¢â‚¬Å“leo" : ""
       };
     });
 
     const components = [
       {
-        type: "Bomba primÃƒÂ¡ria",
+        type: "Bomba primÃƒÆ’Ã‚Â¡ria",
         id: "Leybold SOGEVAC SV 630 B",
         status: "Operacional",
         performance: fmt(primaryHealth * 100, "%"),
-        reading: "640 mÃ‚Â³/h",
-        impact: "EvacuaÃƒÂ§ÃƒÂ£o inicial e sustentaÃƒÂ§ÃƒÂ£o do vÃƒÂ¡cuo."
+        reading: "640 mÃƒâ€šÃ‚Â³/h",
+        impact: "EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial e sustentaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do vÃƒÆ’Ã‚Â¡cuo."
       },
       {
-        type: "Bomba secundÃƒÂ¡ria",
+        type: "Bomba secundÃƒÆ’Ã‚Â¡ria",
         id: "Leybold RUVAC WSU 2001",
         status: secondaryReleased ? "Liberada" : "Bloqueada",
         performance: secondaryReleased ? fmt(secondaryHealth * 100, "%") : "Aguardando faixa",
-        reading: `${fmt(secondaryStart, "mbar")} liberaÃƒÂ§ÃƒÂ£o`,
-        impact: "ReforÃƒÂ§o do vÃƒÂ¡cuo apÃƒÂ³s entrada em faixa segura."
+        reading: `${fmt(secondaryStart, "mbar")} liberaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o`,
+        impact: "ReforÃƒÆ’Ã‚Â§o do vÃƒÆ’Ã‚Â¡cuo apÃƒÆ’Ã‚Â³s entrada em faixa segura."
       },
       {
-        type: "Mangueira de vÃƒÂ¡cuo",
+        type: "Mangueira de vÃƒÆ’Ã‚Â¡cuo",
         id: hose?.code || hose?.codigo || `MG-${config?.hose_id || "--"}`,
-        status: hoseLoss > 1 || config?.simulate_hose_leak ? "AtenÃƒÂ§ÃƒÂ£o" : "Operacional",
+        status: hoseLoss > 1 || config?.simulate_hose_leak ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Operacional",
         performance: fmt(Math.max(45, 100 - hoseLoss * 18 - (config?.simulate_hose_leak ? 25 : 0)), "%"),
         reading: `Fator ${fmt(hoseLoss)}`,
-        impact: "Perda de carga, restriÃƒÂ§ÃƒÂ£o de fluxo e tempo de ciclo."
+        impact: "Perda de carga, restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de fluxo e tempo de ciclo."
       },
       {
         type: "Tanque de processo",
         id: tank?.code || tank?.codigo || config?.tank_type || "Tanque simulado",
-        status: risk >= 82 ? "CrÃƒÂ­tico" : risk >= 65 ? "AtenÃƒÂ§ÃƒÂ£o" : "Operacional",
+        status: risk >= 82 ? "CrÃƒÆ’Ã‚Â­tico" : risk >= 65 ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Operacional",
         performance: fmt(Math.max(45, 100 - risk * 0.42), "%"),
         reading: `${fmt(finalPressure, "mbar")} final`,
         impact: `Margem estrutural: ${fmt(safetyMargin, "mbar")}`
       },
       {
-        type: "Sensor de pressÃƒÂ£o",
+        type: "Sensor de pressÃƒÆ’Ã‚Â£o",
         id: `SP-${tank?.code || tank?.codigo || "SIM"}`,
         status: config?.simulate_sensor_failure ? "Falha simulada" : "Online",
         performance: config?.simulate_sensor_failure ? "35%" : "98%",
         reading: fmt(finalPressure, "mbar"),
-        impact: "Leitura (unidade do sensor) usada no diagnÃƒÂ³stico e no histÃƒÂ³rico."
+        impact: "Leitura (unidade do sensor) usada no diagnÃƒÆ’Ã‚Â³stico e no histÃƒÆ’Ã‚Â³rico."
       },
       {
-        type: "Sistema de ÃƒÂ³leo",
-        id: "InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo",
-        status: oilFlow < 1.5 ? "VazÃƒÂ£o baixa" : "Operacional",
+        type: "Sistema de ÃƒÆ’Ã‚Â³leo",
+        id: "InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo",
+        status: oilFlow < 1.5 ? "VazÃƒÆ’Ã‚Â£o baixa" : "Operacional",
         performance: fmt(Math.max(40, Math.min(100, oilFlow * 45)), "%"),
-        reading: `${fmt(oilFlow, "L/min")} Ã‚Â· atraso ${fmt(oilDelay, "s")}`,
-        impact: "VedaÃƒÂ§ÃƒÂ£o, estabilidade e proteÃƒÂ§ÃƒÂ£o do conjunto."
+        reading: `${fmt(oilFlow, "L/min")} Ãƒâ€šÃ‚Â· atraso ${fmt(oilDelay, "s")}`,
+        impact: "VedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, estabilidade e proteÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do conjunto."
       }
     ];
 
     const actions = [
-      { step: "PreparaÃƒÂ§ÃƒÂ£o", status: "ConcluÃƒÂ­da", ref: scenarioName, log: "ParÃƒÂ¢metros carregados e componentes vinculados." },
-      { step: "EvacuaÃƒÂ§ÃƒÂ£o inicial", status: "ConcluÃƒÂ­da", ref: "Bomba primÃƒÂ¡ria", log: "ReduÃƒÂ§ÃƒÂ£o inicial da pressÃƒÂ£o no tanque." },
-      { step: "Acionamento da bomba secundÃƒÂ¡ria", status: secondaryReleased ? "Liberado" : "Bloqueado", ref: `${fmt(secondaryStart, "mbar")}`, log: "Intertravamento avaliado pela pressÃƒÂ£o segura." },
-      { step: "InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo", status: oilFlow < 1.5 ? "RestriÃƒÂ§ÃƒÂ£o" : "Normal", ref: `${fmt(oilFlow, "L/min")}`, log: "CondiÃƒÂ§ÃƒÂ£o aplicada ao cÃƒÂ¡lculo de estabilidade." },
-      { step: "DiagnÃƒÂ³stico final", status: status === "success" ? "Aprovado" : status === "warning" ? "AtenÃƒÂ§ÃƒÂ£o" : "Reprovado", ref: `${fmt(risk, "%")}`, log: recommendation }
+      { step: "PreparaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", status: "ConcluÃƒÆ’Ã‚Â­da", ref: scenarioName, log: "ParÃƒÆ’Ã‚Â¢metros carregados e componentes vinculados." },
+      { step: "EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial", status: "ConcluÃƒÆ’Ã‚Â­da", ref: "Bomba primÃƒÆ’Ã‚Â¡ria", log: "ReduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial da pressÃƒÆ’Ã‚Â£o no tanque." },
+      { step: "Acionamento da bomba secundÃƒÆ’Ã‚Â¡ria", status: secondaryReleased ? "Liberado" : "Bloqueado", ref: `${fmt(secondaryStart, "mbar")}`, log: "Intertravamento avaliado pela pressÃƒÆ’Ã‚Â£o segura." },
+      { step: "InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo", status: oilFlow < 1.5 ? "RestriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Normal", ref: `${fmt(oilFlow, "L/min")}`, log: "CondiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o aplicada ao cÃƒÆ’Ã‚Â¡lculo de estabilidade." },
+      { step: "DiagnÃƒÆ’Ã‚Â³stico final", status: status === "success" ? "Aprovado" : status === "warning" ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Reprovado", ref: `${fmt(risk, "%")}`, log: recommendation }
     ];
 
     return {
@@ -1288,14 +1288,14 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
   }
 
   function runScenario(scenario: any) {
-    persistResult(buildSimulation(scenario.config || scenario, scenario.name || "CenÃƒÂ¡rio manual", scenario.description || ""));
+    persistResult(buildSimulation(scenario.config || scenario, scenario.name || "CenÃƒÆ’Ã‚Â¡rio manual", scenario.description || ""));
   }
 
   function saveScenario() {
     const scenario = {
       id: `CUSTOM-${Date.now().toString(36).toUpperCase()}`,
-      name: form.name || "CenÃƒÂ¡rio personalizado",
-      description: form.description || "CenÃƒÂ¡rio criado pelo usuÃƒÂ¡rio.",
+      name: form.name || "CenÃƒÆ’Ã‚Â¡rio personalizado",
+      description: form.description || "CenÃƒÆ’Ã‚Â¡rio criado pelo usuÃƒÆ’Ã‚Â¡rio.",
       tag: "Personalizado",
       config: { ...form }
     };
@@ -1310,7 +1310,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
   function useAsBase(scenario: any) {
     const config = scenario.config || scenario;
-    setForm({ ...form, ...config, name: `${scenario.name} - cÃƒÂ³pia`, description: scenario.description || "" });
+    setForm({ ...form, ...config, name: `${scenario.name} - cÃƒÆ’Ã‚Â³pia`, description: scenario.description || "" });
     setTab("create");
   }
 
@@ -1330,8 +1330,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         <div className="twinScenarioMeta">
           <span>Tanque: {config.tank_type || "--"}</span>
           <span>Mangueira: {config.hose_id || "--"}</span>
-          <span>PressÃƒÂ£o: {fmt(config.target_pressure_mbar, "mbar")}</span>
-          <span>Ãƒâ€œleo: {fmt(config.oil_flow_l_min, "L/min")}</span>
+          <span>PressÃƒÆ’Ã‚Â£o: {fmt(config.target_pressure_mbar, "mbar")}</span>
+          <span>ÃƒÆ’Ã¢â‚¬Å“leo: {fmt(config.oil_flow_l_min, "L/min")}</span>
         </div>
 
         <div className="twinScenarioActions">
@@ -1348,11 +1348,11 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
       <div className="twinForm">
         {showIdentity && (
           <>
-            <Field label="Nome do cenÃƒÂ¡rio">
+            <Field label="Nome do cenÃƒÆ’Ã‚Â¡rio">
               <input value={data.name || ""} onChange={(e) => setData({ ...data, name: e.target.value })} />
             </Field>
 
-            <Field label="DescriÃƒÂ§ÃƒÂ£o">
+            <Field label="DescriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o">
               <input value={data.description || ""} onChange={(e) => setData({ ...data, description: e.target.value })} />
             </Field>
           </>
@@ -1361,7 +1361,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         <Field label="Tipo de tanque">
           <select value={data.tank_type || "grande"} onChange={(e) => setData({ ...data, tank_type: e.target.value })}>
             <option value="pequeno">Pequeno</option>
-            <option value="medio">MÃƒÂ©dio</option>
+            <option value="medio">MÃƒÆ’Ã‚Â©dio</option>
             <option value="grande">Grande</option>
             <option value="extra_grande">Extra grande</option>
           </select>
@@ -1383,35 +1383,35 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
           </select>
         </Field>
 
-        <Field label="PressÃƒÂ£o final (mbar) desejada (mbar)">
+        <Field label="PressÃƒÆ’Ã‚Â£o final (mbar) desejada (mbar)">
           <input type="number" value={data.target_pressure_mbar ?? 6.5} onChange={(e) => setData({ ...data, target_pressure_mbar: Number(e.target.value) })} />
         </Field>
 
-        <Field label="PressÃƒÂ£o da bomba secundÃƒÂ¡ria (mbar)">
+        <Field label="PressÃƒÆ’Ã‚Â£o da bomba secundÃƒÆ’Ã‚Â¡ria (mbar)">
           <input type="number" value={data.secondary_start_pressure_mbar ?? 50} onChange={(e) => setData({ ...data, secondary_start_pressure_mbar: Number(e.target.value) })} />
         </Field>
 
-        <Field label="VazÃƒÂ£o de ÃƒÂ³leo (L/min)">
+        <Field label="VazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo (L/min)">
           <input type="number" value={data.oil_flow_l_min ?? 2} onChange={(e) => setData({ ...data, oil_flow_l_min: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Atraso do ÃƒÂ³leo (s)">
+        <Field label="Atraso do ÃƒÆ’Ã‚Â³leo (s)">
           <input type="number" value={data.oil_delay_seconds ?? 0} onChange={(e) => setData({ ...data, oil_delay_seconds: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Tempo mÃƒÂ¡ximo (s)">
+        <Field label="Tempo mÃƒÆ’Ã‚Â¡ximo (s)">
           <input type="number" value={data.max_cycle_seconds ?? 900} onChange={(e) => setData({ ...data, max_cycle_seconds: Number(e.target.value) })} />
         </Field>
 
-        <Field label="SaÃƒÂºde bomba primÃƒÂ¡ria (0 a 1)">
+        <Field label="SaÃƒÆ’Ã‚Âºde bomba primÃƒÆ’Ã‚Â¡ria (0 a 1)">
           <input type="number" step="0.01" value={data.primary_pump_health ?? 1} onChange={(e) => setData({ ...data, primary_pump_health: Number(e.target.value) })} />
         </Field>
 
-        <Field label="SaÃƒÂºde bomba secundÃƒÂ¡ria (0 a 1)">
+        <Field label="SaÃƒÆ’Ã‚Âºde bomba secundÃƒÆ’Ã‚Â¡ria (0 a 1)">
           <input type="number" step="0.01" value={data.secondary_pump_health ?? 1} onChange={(e) => setData({ ...data, secondary_pump_health: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Fator de calibraÃƒÂ§ÃƒÂ£o (multiplicador)">
+        <Field label="Fator de calibraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (multiplicador)">
           <input type="number" step="0.01" value={data.calibration_factor ?? 1} onChange={(e) => setData({ ...data, calibration_factor: Number(e.target.value) })} />
         </Field>
       </div>
@@ -1430,7 +1430,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
   function MiniChart({ points }: any) {
     const list = Array.isArray(points) ? points : [];
-    if (!list.length) return <Empty text="Execute uma simulaÃƒÂ§ÃƒÂ£o para gerar a curva." />;
+    if (!list.length) return <Empty text="Execute uma simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o para gerar a curva." />;
 
     const values = list.flatMap((p: any) => [
       Number(p.real_pressure_mbar || 0),
@@ -1471,22 +1471,22 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
   }
 
   function renderTraceability(target: any) {
-    if (!target) return <Empty text="Nenhuma simulaÃƒÂ§ÃƒÂ£o selecionada." />;
+    if (!target) return <Empty text="Nenhuma simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o selecionada." />;
 
     return (
       <div className="twinTraceability">
         <div className="traceHeader">
           <div>
-            <h3>Rastreabilidade da simulaÃƒÂ§ÃƒÂ£o</h3>
-            <p>Registro por mÃƒÂ¡quina, peÃƒÂ§a, sensor, mangueira, ÃƒÂ³leo e aÃƒÂ§ÃƒÂ£o simulada.</p>
+            <h3>Rastreabilidade da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h3>
+            <p>Registro por mÃƒÆ’Ã‚Â¡quina, peÃƒÆ’Ã‚Â§a, sensor, mangueira, ÃƒÆ’Ã‚Â³leo e aÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o simulada.</p>
           </div>
           <Badge value={target.status} />
         </div>
 
         <div className="tracePanel">
-          <h3>MÃƒÂ¡quinas, peÃƒÂ§as e sensores</h3>
+          <h3>MÃƒÆ’Ã‚Â¡quinas, peÃƒÆ’Ã‚Â§as e sensores</h3>
           <Table
-            columns={["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"]}
+            columns={["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"]}
             rows={(target.components || []).map((item: any) => [
               <b>{item.type}</b>,
               item.id,
@@ -1499,9 +1499,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         </div>
 
         <div className="tracePanel">
-          <h3>AÃƒÂ§ÃƒÂµes da operaÃƒÂ§ÃƒÂ£o simulada</h3>
+          <h3>AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes da operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o simulada</h3>
           <Table
-            columns={["Etapa", "Status", "ReferÃƒÂªncia", "Registro tÃƒÂ©cnico"]}
+            columns={["Etapa", "Status", "ReferÃƒÆ’Ã‚Âªncia", "Registro tÃƒÆ’Ã‚Â©cnico"]}
             rows={(target.actions || []).map((item: any) => [
               <b>{item.step}</b>,
               item.status,
@@ -1512,15 +1512,15 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         </div>
 
         <div className="tracePanel">
-          <h3>RelatÃƒÂ³rio tÃƒÂ©cnico da simulaÃƒÂ§ÃƒÂ£o</h3>
+          <h3>RelatÃƒÆ’Ã‚Â³rio tÃƒÆ’Ã‚Â©cnico da simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h3>
           <Table
-            columns={["Item", "Valor", "InterpretaÃƒÂ§ÃƒÂ£o"]}
+            columns={["Item", "Valor", "InterpretaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]}
             rows={[
-              [<b>Status final</b>, <Badge value={target.status} />, target.status === "success" ? "Bem-sucedida" : target.status === "warning" ? "Aprovada com restriÃƒÂ§ÃƒÂ£o" : "Reprovada"],
-              [<b>PressÃƒÂ£o final (mbar)</b>, fmt(target.metrics?.final_real_pressure_mbar, "mbar"), "Valor final previsto pelo modelo."],
-              [<b>Tempo estimado (s)</b>, fmt(target.metrics?.estimated_time_seconds, "s"), "DuraÃƒÂ§ÃƒÂ£o (s) prevista do ciclo."],
-              [<b>Risco mÃƒÂ¡ximo (%)</b>, fmt(target.metrics?.max_collapse_risk_pct, "%"), target.metrics?.max_collapse_risk_pct >= 82 ? "Risco crÃƒÂ­tico" : target.metrics?.max_collapse_risk_pct >= 65 ? "AtenÃƒÂ§ÃƒÂ£o" : "Seguro"],
-              [<b>Margem de seguranÃƒÂ§a (mbar)</b>, fmt(target.metrics?.safety_margin_mbar, "mbar"), "DistÃƒÂ¢ncia estimada atÃƒÂ© o limite do tanque."],
+              [<b>Status final</b>, <Badge value={target.status} />, target.status === "success" ? "Bem-sucedida" : target.status === "warning" ? "Aprovada com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Reprovada"],
+              [<b>PressÃƒÆ’Ã‚Â£o final (mbar)</b>, fmt(target.metrics?.final_real_pressure_mbar, "mbar"), "Valor final previsto pelo modelo."],
+              [<b>Tempo estimado (s)</b>, fmt(target.metrics?.estimated_time_seconds, "s"), "DuraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (s) prevista do ciclo."],
+              [<b>Risco mÃƒÆ’Ã‚Â¡ximo (%)</b>, fmt(target.metrics?.max_collapse_risk_pct, "%"), target.metrics?.max_collapse_risk_pct >= 82 ? "Risco crÃƒÆ’Ã‚Â­tico" : target.metrics?.max_collapse_risk_pct >= 65 ? "AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "Seguro"],
+              [<b>Margem de seguranÃƒÆ’Ã‚Â§a (mbar)</b>, fmt(target.metrics?.safety_margin_mbar, "mbar"), "DistÃƒÆ’Ã‚Â¢ncia estimada atÃƒÆ’Ã‚Â© o limite do tanque."],
               [<b>Motivo principal</b>, target.probableCause || "--", target.recommendation || "--"]
             ]}
           />
@@ -1530,14 +1530,14 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
   }
 
   return (
-    <Section title="GÃƒÂªmeo Digital do processo de vÃƒÂ¡cuo" subtitle="SimulaÃƒÂ§ÃƒÂ£o operacional com cenÃƒÂ¡rios, criaÃƒÂ§ÃƒÂ£o de testes, diagnÃƒÂ³stico, rastreabilidade e histÃƒÂ³rico tÃƒÂ©cnico.">
+    <Section title="GÃƒÆ’Ã‚Âªmeo Digital do processo de vÃƒÆ’Ã‚Â¡cuo" subtitle="SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o operacional com cenÃƒÆ’Ã‚Â¡rios, criaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de testes, diagnÃƒÆ’Ã‚Â³stico, rastreabilidade e histÃƒÆ’Ã‚Â³rico tÃƒÆ’Ã‚Â©cnico.">
 <div className="twin10Tabs">
-        <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>CenÃƒÂ¡rios base</button>
+        <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>CenÃƒÆ’Ã‚Â¡rios base</button>
         <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Personalizados</button>
-        <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenÃƒÂ¡rio</button>
+        <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenÃƒÆ’Ã‚Â¡rio</button>
 <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
-        <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>HistÃƒÂ³rico</button>
-        <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados tÃƒÂ©cnicos</button>
+        <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>HistÃƒÆ’Ã‚Â³rico</button>
+        <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados tÃƒÆ’Ã‚Â©cnicos</button>
 </div>
 
       {tab === "base" && (
@@ -1552,20 +1552,20 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
             {customScenarios.map((scenario) => renderScenarioCard(scenario, true))}
           </div>
         ) : (
-          <Empty text="Nenhum cenÃƒÂ¡rio personalizado salvo. Use a aba Criar cenÃƒÂ¡rio." />
+          <Empty text="Nenhum cenÃƒÆ’Ã‚Â¡rio personalizado salvo. Use a aba Criar cenÃƒÆ’Ã‚Â¡rio." />
         )
       )}
 
       {tab === "create" && (
         <div className="twin10Panel">
-          <h3>Criar cenÃƒÂ¡rio de teste</h3>
-          <p>Monte um cenÃƒÂ¡rio com tanque, mangueira, pressÃƒÂ£o, ÃƒÂ³leo, saÃƒÂºde das bombas e falhas simuladas.</p>
+          <h3>Criar cenÃƒÆ’Ã‚Â¡rio de teste</h3>
+          <p>Monte um cenÃƒÆ’Ã‚Â¡rio com tanque, mangueira, pressÃƒÆ’Ã‚Â£o, ÃƒÆ’Ã‚Â³leo, saÃƒÆ’Ã‚Âºde das bombas e falhas simuladas.</p>
 
           {renderConfigForm(form, setForm, true)}
           {renderChecks(form, setForm)}
 
           <div className="actions">
-            <button onClick={saveScenario}>Salvar cenÃƒÂ¡rio</button>
+            <button onClick={saveScenario}>Salvar cenÃƒÆ’Ã‚Â¡rio</button>
             <button className="secondary" onClick={() => runScenario({ name: form.name, description: form.description, config: form })}>Simular agora</button>
           </div>
         </div>
@@ -1579,9 +1579,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
           <div className="twin10Result">
             <div className="metrics">
               <Metric label="Status" value={<Badge value={result.status} />} detail={result.scenario} />
-              <Metric label="PressÃƒÂ£o final (mbar)" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Resultado previsto" />
-              <Metric label="Tempo estimado (s)" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="DuraÃƒÂ§ÃƒÂ£o (s) do ciclo" />
-              <Metric label="Risco mÃƒÂ¡ximo (%)" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="AvaliaÃƒÂ§ÃƒÂ£o estrutural" />
+              <Metric label="PressÃƒÆ’Ã‚Â£o final (mbar)" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Resultado previsto" />
+              <Metric label="Tempo estimado (s)" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="DuraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (s) do ciclo" />
+              <Metric label="Risco mÃƒÆ’Ã‚Â¡ximo (%)" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="AvaliaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o estrutural" />
             </div>
 
             <div className="diagnosticBox">
@@ -1595,7 +1595,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
             {renderTraceability(result)}
           </div>
         ) : (
-          <Empty text="Execute uma simulaÃƒÂ§ÃƒÂ£o para gerar o resultado." />
+          <Empty text="Execute uma simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o para gerar o resultado." />
         )
       )}
 
@@ -1603,7 +1603,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         history.length ? (
           <div className="twin10History">
             <Table
-              columns={["ID", "Data", "CenÃƒÂ¡rio", "Status", "Risco", "PressÃƒÂ£o", "Detalhes"]}
+              columns={["ID", "Data", "CenÃƒÆ’Ã‚Â¡rio", "Status", "Risco", "PressÃƒÆ’Ã‚Â£o", "Detalhes"]}
               rows={history.map((item) => [
                 <b>{item.id}</b>,
                 new Date(item.created_at).toLocaleString("pt-BR"),
@@ -1630,20 +1630,20 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
             )}
           </div>
         ) : (
-          <Empty text="Nenhuma simulaÃƒÂ§ÃƒÂ£o registrada ainda." />
+          <Empty text="Nenhuma simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o registrada ainda." />
         )
       )}
 
       {tab === "technical" && (
         <div className="twin10Panel">
 <Table
-            columns={["Sistema", "Modelo", "Dado tÃƒÂ©cnico", "FunÃƒÂ§ÃƒÂ£o"]}
+            columns={["Sistema", "Modelo", "Dado tÃƒÆ’Ã‚Â©cnico", "FunÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]}
             rows={[
-              ["Bomba primÃƒÂ¡ria", "Leybold SOGEVAC SV 630 B", "640 mÃ‚Â³/h Ã‚Â· Ã¢â€°Â¤ 0,08 mbar Ã‚Â· 20 L ÃƒÂ³leo Ã‚Â· 15 kW", "EvacuaÃƒÂ§ÃƒÂ£o inicial e sustentaÃƒÂ§ÃƒÂ£o do vÃƒÂ¡cuo."],
-              ["Bomba secundÃƒÂ¡ria", "Leybold RUVAC WSU 2001", "2050 mÃ‚Â³/h Ã‚Â· < 4 Ãƒâ€” 10Ã¢ÂÂ»Ã‚Â² mbar Ã‚Â· ÃŽâ€P 50 mbar", "ReforÃƒÂ§o apÃƒÂ³s faixa segura de pressÃƒÂ£o."],
-              ["Mangueira", "MG-VAC", "Comprimento (m), diÃƒÂ¢metro e fator de perda", "Impacta perda de carga e tempo de ciclo."],
-              ["Tanque", "TQ-REG", "Volume, pressÃƒÂ£o final e limite estrutural", "Base para cÃƒÂ¡lculo de risco e margem."],
-              ["Sensor", "SP-TQ", "PressÃƒÂ£o, status e confiabilidade", "Alimenta diagnÃƒÂ³stico e rastreabilidade."]
+              ["Bomba primÃƒÆ’Ã‚Â¡ria", "Leybold SOGEVAC SV 630 B", "640 mÃƒâ€šÃ‚Â³/h Ãƒâ€šÃ‚Â· ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ 0,08 mbar Ãƒâ€šÃ‚Â· 20 L ÃƒÆ’Ã‚Â³leo Ãƒâ€šÃ‚Â· 15 kW", "EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial e sustentaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do vÃƒÆ’Ã‚Â¡cuo."],
+              ["Bomba secundÃƒÆ’Ã‚Â¡ria", "Leybold RUVAC WSU 2001", "2050 mÃƒâ€šÃ‚Â³/h Ãƒâ€šÃ‚Â· < 4 ÃƒÆ’Ã¢â‚¬â€ 10ÃƒÂ¢Ã‚ÂÃ‚Â»Ãƒâ€šÃ‚Â² mbar Ãƒâ€šÃ‚Â· ÃƒÅ½Ã¢â‚¬ÂP 50 mbar", "ReforÃƒÆ’Ã‚Â§o apÃƒÆ’Ã‚Â³s faixa segura de pressÃƒÆ’Ã‚Â£o."],
+              ["Mangueira", "MG-VAC", "Comprimento (m), diÃƒÆ’Ã‚Â¢metro e fator de perda", "Impacta perda de carga e tempo de ciclo."],
+              ["Tanque", "TQ-REG", "Volume, pressÃƒÆ’Ã‚Â£o final e limite estrutural", "Base para cÃƒÆ’Ã‚Â¡lculo de risco e margem."],
+              ["Sensor", "SP-TQ", "PressÃƒÆ’Ã‚Â£o, status e confiabilidade", "Alimenta diagnÃƒÆ’Ã‚Â³stico e rastreabilidade."]
             ]}
           />
         
@@ -1700,9 +1700,9 @@ function tseaHRReadList(key: string): any[] {
 function tseaHRStatusLabel(status: any) {
   const value = String(status || "").toLowerCase();
 
-  if (["success", "concluido", "concluÃƒÂ­do", "operacional", "ok"].includes(value)) return "Bem-sucedido";
-  if (["warning", "atenÃƒÂ§ÃƒÂ£o", "atencao", "em_andamento"].includes(value)) return "Aprovado com restriÃƒÂ§ÃƒÂ£o";
-  if (["critical", "crÃƒÂ­tico", "critico", "abortado", "falha"].includes(value)) return "Reprovado / CrÃƒÂ­tico";
+  if (["success", "concluido", "concluÃƒÆ’Ã‚Â­do", "operacional", "ok"].includes(value)) return "Bem-sucedido";
+  if (["warning", "atenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "atencao", "em_andamento"].includes(value)) return "Aprovado com restriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o";
+  if (["critical", "crÃƒÆ’Ã‚Â­tico", "critico", "abortado", "falha"].includes(value)) return "Reprovado / CrÃƒÆ’Ã‚Â­tico";
 
   return String(status || "Registrado");
 }
@@ -1884,7 +1884,7 @@ function tseaHRRampSvg(points: any[]) {
       <rect x="0" y="0" width="740" height="360" fill="#ffffff" />
       <line x1="40" y1="300" x2="700" y2="300" stroke="#000" stroke-width="1" />
       <line x1="40" y1="40" x2="40" y2="300" stroke="#000" stroke-width="1" />
-      <text x="40" y="25" font-family="Times New Roman" font-size="14">PressÃƒÂ£o x Tempo</text>
+      <text x="40" y="25" font-family="Times New Roman" font-size="14">PressÃƒÆ’Ã‚Â£o x Tempo</text>
       <text x="610" y="330" font-family="Times New Roman" font-size="12">Tempo</text>
       <text x="5" y="55" font-family="Times New Roman" font-size="12">mbar</text>
       <polyline points="${poly("expected_pressure_mbar")}" fill="none" stroke="#333333" stroke-width="2" />
@@ -1941,12 +1941,12 @@ function tseaHRComponentRows(record: any, allTanks: any[], allHoses: any[]) {
   const pressure = record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal || "--";
 
   return [
-    ["Bomba primÃƒÂ¡ria", "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 mÃ‚Â³/h", "EvacuaÃƒÂ§ÃƒÂ£o inicial e sustentaÃƒÂ§ÃƒÂ£o do vÃƒÂ¡cuo."],
-    ["Bomba secundÃƒÂ¡ria", "Leybold RUVAC WSU 2001", "Conforme intertravamento", "96%", "2050 mÃ‚Â³/h", "ReforÃƒÂ§o do vÃƒÂ¡cuo apÃƒÂ³s faixa segura."],
-    ["Mangueira de vÃƒÂ¡cuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || record?.metrics?.hose_loss_factor || "--"), "Perda de carga e ligaÃƒÂ§ÃƒÂ£o entre bomba/tanque."],
-    ["Tanque de processo", tankCode, tseaHRStatusLabel(record?.status), "--", tseaHRNumber(pressure, "mbar"), "Volume, pressÃƒÂ£o e margem estrutural."],
-    ["Sensor de pressÃƒÂ£o", `SP-${tankCode}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", tseaHRNumber(pressure, "mbar"), "Leitura (unidade do sensor) usada no controle e rastreabilidade."],
-    ["Sistema de ÃƒÂ³leo", "InjeÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "VazÃƒÂ£o baixa" : "Operacional", "--", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min || 2, "L/min"), "VedaÃƒÂ§ÃƒÂ£o, estabilidade e proteÃƒÂ§ÃƒÂ£o do conjunto."]
+    ["Bomba primÃƒÆ’Ã‚Â¡ria", "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 mÃƒâ€šÃ‚Â³/h", "EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial e sustentaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do vÃƒÆ’Ã‚Â¡cuo."],
+    ["Bomba secundÃƒÆ’Ã‚Â¡ria", "Leybold RUVAC WSU 2001", "Conforme intertravamento", "96%", "2050 mÃƒâ€šÃ‚Â³/h", "ReforÃƒÆ’Ã‚Â§o do vÃƒÆ’Ã‚Â¡cuo apÃƒÆ’Ã‚Â³s faixa segura."],
+    ["Mangueira de vÃƒÆ’Ã‚Â¡cuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || record?.metrics?.hose_loss_factor || "--"), "Perda de carga e ligaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o entre bomba/tanque."],
+    ["Tanque de processo", tankCode, tseaHRStatusLabel(record?.status), "--", tseaHRNumber(pressure, "mbar"), "Volume, pressÃƒÆ’Ã‚Â£o e margem estrutural."],
+    ["Sensor de pressÃƒÆ’Ã‚Â£o", `SP-${tankCode}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", tseaHRNumber(pressure, "mbar"), "Leitura (unidade do sensor) usada no controle e rastreabilidade."],
+    ["Sistema de ÃƒÆ’Ã‚Â³leo", "InjeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "VazÃƒÆ’Ã‚Â£o baixa" : "Operacional", "--", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min || 2, "L/min"), "VedaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, estabilidade e proteÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do conjunto."]
   ];
 }
 
@@ -1963,12 +1963,12 @@ function tseaHRActionsRows(record: any) {
   const config = record?.config || record || {};
 
   return [
-    ["PreparaÃƒÂ§ÃƒÂ£o", "ConcluÃƒÂ­da", record?.scenario || record?.recipe || record?.receita || "--", "ParÃƒÂ¢metros carregados no sistema."],
-    ["SeleÃƒÂ§ÃƒÂ£o de tanque", "ConcluÃƒÂ­da", record?.tank || record?.tanque || config?.tank_type || "--", "Tanque vinculado ao ciclo."],
-    ["ConexÃƒÂ£o da mangueira", "ConcluÃƒÂ­da", record?.hose || record?.mangueira || config?.hose_id || "--", "Mangueira associada ao processo de vÃƒÂ¡cuo."],
-    ["EvacuaÃƒÂ§ÃƒÂ£o inicial", "Registrada", "Bomba primÃƒÂ¡ria", "ReduÃƒÂ§ÃƒÂ£o inicial da pressÃƒÂ£o."],
-    ["Acionamento da bomba secundÃƒÂ¡ria", "Avaliado", tseaHRNumber(config?.secondary_start_pressure_mbar || config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento analisado por faixa segura."],
-    ["Fechamento", tseaHRStatusLabel(record?.status), record?.id || "--", record?.recommendation || "Resultado consolidado para relatÃƒÂ³rio."]
+    ["PreparaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "ConcluÃƒÆ’Ã‚Â­da", record?.scenario || record?.recipe || record?.receita || "--", "ParÃƒÆ’Ã‚Â¢metros carregados no sistema."],
+    ["SeleÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de tanque", "ConcluÃƒÆ’Ã‚Â­da", record?.tank || record?.tanque || config?.tank_type || "--", "Tanque vinculado ao ciclo."],
+    ["ConexÃƒÆ’Ã‚Â£o da mangueira", "ConcluÃƒÆ’Ã‚Â­da", record?.hose || record?.mangueira || config?.hose_id || "--", "Mangueira associada ao processo de vÃƒÆ’Ã‚Â¡cuo."],
+    ["EvacuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial", "Registrada", "Bomba primÃƒÆ’Ã‚Â¡ria", "ReduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o inicial da pressÃƒÆ’Ã‚Â£o."],
+    ["Acionamento da bomba secundÃƒÆ’Ã‚Â¡ria", "Avaliado", tseaHRNumber(config?.secondary_start_pressure_mbar || config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento analisado por faixa segura."],
+    ["Fechamento", tseaHRStatusLabel(record?.status), record?.id || "--", record?.recommendation || "Resultado consolidado para relatÃƒÆ’Ã‚Â³rio."]
   ];
 }
 
@@ -1978,18 +1978,18 @@ function tseaHRInfoRows(record: any) {
   return [
     ["ID", record?.id || "--"],
     ["Data/hora", tseaHRDate(record?.created_at || record?.data || record?.started_at)],
-    ["CenÃƒÂ¡rio / operaÃƒÂ§ÃƒÂ£o", record?.scenario || record?.nome || record?.recipe || record?.receita || "--"],
+    ["CenÃƒÆ’Ã‚Â¡rio / operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", record?.scenario || record?.nome || record?.recipe || record?.receita || "--"],
     ["Operador", record?.operator || record?.operador || config?.operator || "--"],
     ["Lote / ordem", record?.lot || record?.lote || config?.lot || "--"],
     ["Tanque", record?.tank || record?.tanque || config?.tank_type || "--"],
     ["Mangueira", record?.hose || record?.mangueira || config?.hose_id || "--"],
-    ["PressÃƒÂ£o final (mbar)", tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
+    ["PressÃƒÆ’Ã‚Â£o final (mbar)", tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
     ["Tempo estimado (s)", tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || config?.max_cycle_seconds, "s")],
-    ["Risco mÃƒÂ¡ximo (%)", tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")],
-    ["VazÃƒÂ£o de ÃƒÂ³leo (L/min)", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "L/min")],
+    ["Risco mÃƒÆ’Ã‚Â¡ximo (%)", tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")],
+    ["VazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo (L/min)", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "L/min")],
     ["Status", tseaHRStatusLabel(record?.status)],
-    ["DiagnÃƒÂ³stico", record?.diagnosis || record?.diagnostico || "--"],
-    ["RecomendaÃƒÂ§ÃƒÂ£o", record?.recommendation || record?.recomendacao || "--"]
+    ["DiagnÃƒÆ’Ã‚Â³stico", record?.diagnosis || record?.diagnostico || "--"],
+    ["RecomendaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", record?.recommendation || record?.recomendacao || "--"]
   ];
 }
 
@@ -2000,17 +2000,17 @@ function tseaHRBuildWordRecord(record: any, kind: string, allTanks: any[], allHo
   const timeline = record?.timeline || record?.ramp || record?.curve || record?.points || [];
 
   const title = kind === "simulation"
-    ? `RelatÃƒÂ³rio TÃƒÂ©cnico da SimulaÃƒÂ§ÃƒÂ£o ${record?.id || ""}`
-    : `RelatÃƒÂ³rio TÃƒÂ©cnico da OperaÃƒÂ§ÃƒÂ£o ${record?.id || ""}`;
+    ? `RelatÃƒÆ’Ã‚Â³rio TÃƒÆ’Ã‚Â©cnico da SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o ${record?.id || ""}`
+    : `RelatÃƒÆ’Ã‚Â³rio TÃƒÆ’Ã‚Â©cnico da OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o ${record?.id || ""}`;
 
   return `
     <div class="cover">
       <h2>TSEA</h2>
-      <h2>SupervisÃƒÂ³rio Digital</h2>
+      <h2>SupervisÃƒÆ’Ã‚Â³rio Digital</h2>
       <h1>${tseaHRText(title)}</h1>
-      <p><strong>Documento:</strong> RelatÃƒÂ³rio tÃƒÂ©cnico</p>
-      <p><strong>Sistema:</strong> Rastreabilidade e GÃƒÂªmeo Digital do processo de vÃƒÂ¡cuo</p>
-      <p><strong>Data de emissÃƒÂ£o:</strong> ${tseaHRDate()}</p>
+      <p><strong>Documento:</strong> RelatÃƒÆ’Ã‚Â³rio tÃƒÆ’Ã‚Â©cnico</p>
+      <p><strong>Sistema:</strong> Rastreabilidade e GÃƒÆ’Ã‚Âªmeo Digital do processo de vÃƒÆ’Ã‚Â¡cuo</p>
+      <p><strong>Data de emissÃƒÆ’Ã‚Â£o:</strong> ${tseaHRDate()}</p>
       <div class="bottom">
         <p>Belo Horizonte</p>
         <p>${new Date().getFullYear()}</p>
@@ -2018,37 +2018,37 @@ function tseaHRBuildWordRecord(record: any, kind: string, allTanks: any[], allHo
     </div>
 
     <div class="page-break sumario">
-      <h1>SumÃƒÂ¡rio</h1>
-      <p>1. IdentificaÃƒÂ§ÃƒÂ£o</p>
-      <p>2. GrÃƒÂ¡fico da rampa de vÃƒÂ¡cuo</p>
-      <p>3. Rastreabilidade de mÃƒÂ¡quinas e peÃƒÂ§as</p>
-      <p>4. AÃƒÂ§ÃƒÂµes registradas</p>
-      <p>5. InformaÃƒÂ§ÃƒÂµes adicionais</p>
-      <p>6. ConclusÃƒÂ£o tÃƒÂ©cnica</p>
+      <h1>SumÃƒÆ’Ã‚Â¡rio</h1>
+      <p>1. IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</p>
+      <p>2. GrÃƒÆ’Ã‚Â¡fico da rampa de vÃƒÆ’Ã‚Â¡cuo</p>
+      <p>3. Rastreabilidade de mÃƒÆ’Ã‚Â¡quinas e peÃƒÆ’Ã‚Â§as</p>
+      <p>4. AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes registradas</p>
+      <p>5. InformaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes adicionais</p>
+      <p>6. ConclusÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica</p>
     </div>
 
     <div class="page-break">
-      <h1>1. IdentificaÃƒÂ§ÃƒÂ£o</h1>
-      ${tseaHRTable(["Campo", "InformaÃƒÂ§ÃƒÂ£o"], infoRows.slice(0, 8))}
+      <h1>1. IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h1>
+      ${tseaHRTable(["Campo", "InformaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"], infoRows.slice(0, 8))}
 
-      <h1>2. GrÃƒÂ¡fico da rampa de vÃƒÂ¡cuo</h1>
+      <h1>2. GrÃƒÆ’Ã‚Â¡fico da rampa de vÃƒÆ’Ã‚Â¡cuo</h1>
       ${tseaHRRampSvg(timeline)}
-      <p class="caption">Figura 1 Ã¢â‚¬â€ Curva da rampa de vÃƒÂ¡cuo: pressÃƒÂ£o simulada/real, curva esperada e carga estrutural.</p>
+      <p class="caption">Figura 1 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Curva da rampa de vÃƒÆ’Ã‚Â¡cuo: pressÃƒÆ’Ã‚Â£o simulada/real, curva esperada e carga estrutural.</p>
 
-      <h1>3. Rastreabilidade de mÃƒÂ¡quinas e peÃƒÂ§as</h1>
-      ${tseaHRTable(["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"], componentRows)}
+      <h1>3. Rastreabilidade de mÃƒÆ’Ã‚Â¡quinas e peÃƒÆ’Ã‚Â§as</h1>
+      ${tseaHRTable(["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"], componentRows)}
 
-      <h1>4. AÃƒÂ§ÃƒÂµes registradas</h1>
-      ${tseaHRTable(["Etapa", "Status", "ReferÃƒÂªncia", "Registro tÃƒÂ©cnico"], actionRows)}
+      <h1>4. AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes registradas</h1>
+      ${tseaHRTable(["Etapa", "Status", "ReferÃƒÆ’Ã‚Âªncia", "Registro tÃƒÆ’Ã‚Â©cnico"], actionRows)}
 
-      <h1>5. InformaÃƒÂ§ÃƒÂµes adicionais</h1>
+      <h1>5. InformaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes adicionais</h1>
       ${tseaHRTable(["Campo", "Valor"], infoRows)}
 
-      <h1>6. ConclusÃƒÂ£o tÃƒÂ©cnica</h1>
+      <h1>6. ConclusÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica</h1>
       <p>
-        O registro apresenta rastreabilidade dos principais componentes envolvidos no processo de vÃƒÂ¡cuo,
-        incluindo bombas, mangueira, tanque, sensores e sistema de ÃƒÂ³leo. As informaÃƒÂ§ÃƒÂµes consolidadas permitem
-        anÃƒÂ¡lise operacional, investigaÃƒÂ§ÃƒÂ£o de falhas, padronizaÃƒÂ§ÃƒÂ£o de procedimentos e suporte ÃƒÂ  tomada de decisÃƒÂ£o tÃƒÂ©cnica.
+        O registro apresenta rastreabilidade dos principais componentes envolvidos no processo de vÃƒÆ’Ã‚Â¡cuo,
+        incluindo bombas, mangueira, tanque, sensores e sistema de ÃƒÆ’Ã‚Â³leo. As informaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes consolidadas permitem
+        anÃƒÆ’Ã‚Â¡lise operacional, investigaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de falhas, padronizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de procedimentos e suporte ÃƒÆ’Ã‚Â  tomada de decisÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica.
       </p>
     </div>
   `;
@@ -2076,11 +2076,11 @@ function tseaHRBuildWordGeneral(operations: any[], simulations: any[]) {
   return `
     <div class="cover">
       <h2>TSEA</h2>
-      <h2>SupervisÃƒÂ³rio Digital</h2>
-      <h1>RelatÃƒÂ³rio Geral de OperaÃƒÂ§ÃƒÂµes e SimulaÃƒÂ§ÃƒÂµes</h1>
-      <p><strong>Documento:</strong> RelatÃƒÂ³rio tÃƒÂ©cnico gerencial</p>
-      <p><strong>Sistema:</strong> Rastreabilidade, operaÃƒÂ§ÃƒÂ£o e GÃƒÂªmeo Digital do processo de vÃƒÂ¡cuo</p>
-      <p><strong>Data de emissÃƒÂ£o:</strong> ${tseaHRDate()}</p>
+      <h2>SupervisÃƒÆ’Ã‚Â³rio Digital</h2>
+      <h1>RelatÃƒÆ’Ã‚Â³rio Geral de OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes e SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes</h1>
+      <p><strong>Documento:</strong> RelatÃƒÆ’Ã‚Â³rio tÃƒÆ’Ã‚Â©cnico gerencial</p>
+      <p><strong>Sistema:</strong> Rastreabilidade, operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o e GÃƒÆ’Ã‚Âªmeo Digital do processo de vÃƒÆ’Ã‚Â¡cuo</p>
+      <p><strong>Data de emissÃƒÆ’Ã‚Â£o:</strong> ${tseaHRDate()}</p>
       <div class="bottom">
         <p>Belo Horizonte</p>
         <p>${new Date().getFullYear()}</p>
@@ -2088,37 +2088,37 @@ function tseaHRBuildWordGeneral(operations: any[], simulations: any[]) {
     </div>
 
     <div class="page-break sumario">
-      <h1>SumÃƒÂ¡rio</h1>
-      <p>1. IntroduÃƒÂ§ÃƒÂ£o</p>
+      <h1>SumÃƒÆ’Ã‚Â¡rio</h1>
+      <p>1. IntroduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</p>
       <p>2. Escopo</p>
-      <p>3. OperaÃƒÂ§ÃƒÂµes registradas</p>
-      <p>4. SimulaÃƒÂ§ÃƒÂµes do GÃƒÂªmeo Digital</p>
-      <p>5. ConclusÃƒÂ£o tÃƒÂ©cnica</p>
+      <p>3. OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes registradas</p>
+      <p>4. SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes do GÃƒÆ’Ã‚Âªmeo Digital</p>
+      <p>5. ConclusÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica</p>
     </div>
 
     <div class="page-break">
-      <h1>1. IntroduÃƒÂ§ÃƒÂ£o</h1>
+      <h1>1. IntroduÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</h1>
       <p>
-        Este relatÃƒÂ³rio consolida registros operacionais e simulaÃƒÂ§ÃƒÂµes executadas no TSEA SupervisÃƒÂ³rio Digital,
-        com foco em rastreabilidade, anÃƒÂ¡lise tÃƒÂ©cnica, controle de processo e apoio ÃƒÂ  padronizaÃƒÂ§ÃƒÂ£o do ciclo de vÃƒÂ¡cuo.
+        Este relatÃƒÆ’Ã‚Â³rio consolida registros operacionais e simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes executadas no TSEA SupervisÃƒÆ’Ã‚Â³rio Digital,
+        com foco em rastreabilidade, anÃƒÆ’Ã‚Â¡lise tÃƒÆ’Ã‚Â©cnica, controle de processo e apoio ÃƒÆ’Ã‚Â  padronizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do ciclo de vÃƒÆ’Ã‚Â¡cuo.
       </p>
 
       <h1>2. Escopo</h1>
       <p>
-        O documento contempla operaÃƒÂ§ÃƒÂµes, simulaÃƒÂ§ÃƒÂµes, status, parÃƒÂ¢metros principais e informaÃƒÂ§ÃƒÂµes tÃƒÂ©cnicas relevantes
-        para avaliaÃƒÂ§ÃƒÂ£o operacional.
+        O documento contempla operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes, simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes, status, parÃƒÆ’Ã‚Â¢metros principais e informaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes tÃƒÆ’Ã‚Â©cnicas relevantes
+        para avaliaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o operacional.
       </p>
 
-      <h1>3. OperaÃƒÂ§ÃƒÂµes registradas</h1>
+      <h1>3. OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes registradas</h1>
       ${tseaHRTable(["ID", "Data", "Operador", "Tanque", "Mangueira", "Status"], opRows)}
 
-      <h1>4. SimulaÃƒÂ§ÃƒÂµes do GÃƒÂªmeo Digital</h1>
-      ${tseaHRTable(["ID", "Data", "CenÃƒÂ¡rio", "Status", "Risco", "PressÃƒÂ£o final (mbar)"], simRows)}
+      <h1>4. SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes do GÃƒÆ’Ã‚Âªmeo Digital</h1>
+      ${tseaHRTable(["ID", "Data", "CenÃƒÆ’Ã‚Â¡rio", "Status", "Risco", "PressÃƒÆ’Ã‚Â£o final (mbar)"], simRows)}
 
-      <h1>5. ConclusÃƒÂ£o tÃƒÂ©cnica</h1>
+      <h1>5. ConclusÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica</h1>
       <p>
-        Os registros permitem acompanhamento tÃƒÂ©cnico, rastreabilidade de processo e base documental para auditoria,
-        melhoria contÃƒÂ­nua e evoluÃƒÂ§ÃƒÂ£o do GÃƒÂªmeo Digital para integraÃƒÂ§ÃƒÂ£o com dados reais da linha de produÃƒÂ§ÃƒÂ£o.
+        Os registros permitem acompanhamento tÃƒÆ’Ã‚Â©cnico, rastreabilidade de processo e base documental para auditoria,
+        melhoria contÃƒÆ’Ã‚Â­nua e evoluÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do GÃƒÆ’Ã‚Âªmeo Digital para integraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o com dados reais da linha de produÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o.
       </p>
     </div>
   `;
@@ -2140,9 +2140,9 @@ function TseaRecordDetail({ record, kind, allTanks, allHoses, onClose }: any) {
     <div className="hrDetailPanel">
       <div className="hrDetailHeader">
         <div>
-          <span>{kind === "simulation" ? "SimulaÃƒÂ§ÃƒÂ£o" : "OperaÃƒÂ§ÃƒÂ£o"}</span>
-          <h3>{record?.scenario || record?.nome || record?.id || "Registro tÃƒÂ©cnico"}</h3>
-          <p>{record?.diagnosis || record?.diagnostico || "Detalhamento tÃƒÂ©cnico do registro selecionado."}</p>
+          <span>{kind === "simulation" ? "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o" : "OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"}</span>
+          <h3>{record?.scenario || record?.nome || record?.id || "Registro tÃƒÆ’Ã‚Â©cnico"}</h3>
+          <p>{record?.diagnosis || record?.diagnostico || "Detalhamento tÃƒÆ’Ã‚Â©cnico do registro selecionado."}</p>
         </div>
 
         <div className="hrActions">
@@ -2153,33 +2153,33 @@ function TseaRecordDetail({ record, kind, allTanks, allHoses, onClose }: any) {
 
       <div className="metrics">
         <Metric label="Status" value={<Badge value={tseaHRStatusBadge(record?.status)} />} detail={tseaHRStatusLabel(record?.status)} />
-        <Metric label="PressÃƒÂ£o final (mbar)" value={tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || record?.config?.target_pressure_mbar, "mbar")} detail="Valor registrado/calculado" />
-        <Metric label="Tempo" value={tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || record?.config?.max_cycle_seconds, "s")} detail="DuraÃƒÂ§ÃƒÂ£o (s) ou estimativa" />
-        <Metric label="Risco" value={tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")} detail="AvaliaÃƒÂ§ÃƒÂ£o tÃƒÂ©cnica" />
+        <Metric label="PressÃƒÆ’Ã‚Â£o final (mbar)" value={tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || record?.config?.target_pressure_mbar, "mbar")} detail="Valor registrado/calculado" />
+        <Metric label="Tempo" value={tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || record?.config?.max_cycle_seconds, "s")} detail="DuraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o (s) ou estimativa" />
+        <Metric label="Risco" value={tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")} detail="AvaliaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica" />
       </div>
 
       <div className="hrBlock">
-        <h3>GrÃƒÂ¡fico da rampa</h3>
+        <h3>GrÃƒÆ’Ã‚Â¡fico da rampa</h3>
         <div className="hrRamp" dangerouslySetInnerHTML={{ __html: tseaHRRampSvg(timeline) }} />
       </div>
 
       <div className="hrBlock">
-        <h3>Rastreabilidade de mÃƒÂ¡quinas e peÃƒÂ§as</h3>
-        <Table columns={["Componente", "IdentificaÃƒÂ§ÃƒÂ£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"]} rows={componentRows} />
+        <h3>Rastreabilidade de mÃƒÆ’Ã‚Â¡quinas e peÃƒÆ’Ã‚Â§as</h3>
+        <Table columns={["Componente", "IdentificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"]} rows={componentRows} />
       </div>
 
       <div className="hrBlock">
-        <h3>AÃƒÂ§ÃƒÂµes registradas</h3>
-        <Table columns={["Etapa", "Status", "ReferÃƒÂªncia", "Registro tÃƒÂ©cnico"]} rows={actionRows} />
+        <h3>AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes registradas</h3>
+        <Table columns={["Etapa", "Status", "ReferÃƒÆ’Ã‚Âªncia", "Registro tÃƒÆ’Ã‚Â©cnico"]} rows={actionRows} />
       </div>
 
       <div className="hrBlock">
-        <h3>InformaÃƒÂ§ÃƒÂµes importantes</h3>
+        <h3>InformaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes importantes</h3>
         <Table columns={["Campo", "Valor"]} rows={infoRows.slice(0, 8)} />
       </div>
 
       <div className="hrBlock">
-        <h3>InformaÃƒÂ§ÃƒÂµes adicionais</h3>
+        <h3>InformaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes adicionais</h3>
         <Table columns={["Campo", "Valor"]} rows={infoRows.slice(8)} />
       </div>
     </div>
@@ -2209,15 +2209,15 @@ function TseaHistoryMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
   return (
     <div className="hrMenu">
-      <Section title="HistÃƒÂ³rico tÃƒÂ©cnico" subtitle="Consulta organizada de operaÃƒÂ§ÃƒÂµes reais e simulaÃƒÂ§ÃƒÂµes do GÃƒÂªmeo Digital.">
+      <Section title="HistÃƒÆ’Ã‚Â³rico tÃƒÆ’Ã‚Â©cnico" subtitle="Consulta organizada de operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes reais e simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes do GÃƒÆ’Ã‚Âªmeo Digital.">
         <div className="hrTabs">
-          <button className={tab === "operations" ? "" : "secondary"} onClick={() => setTab("operations")}>OperaÃƒÂ§ÃƒÂµes</button>
-          <button className={tab === "simulations" ? "" : "secondary"} onClick={() => setTab("simulations")}>SimulaÃƒÂ§ÃƒÂµes do GÃƒÂªmeo</button>
+          <button className={tab === "operations" ? "" : "secondary"} onClick={() => setTab("operations")}>OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes</button>
+          <button className={tab === "simulations" ? "" : "secondary"} onClick={() => setTab("simulations")}>SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes do GÃƒÆ’Ã‚Âªmeo</button>
         </div>
 
         {tab === "operations" && (
           <Table
-            columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "AÃƒÂ§ÃƒÂµes"]}
+            columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes"]}
             rows={(operations || []).map((op: any) => [
               <b>{op.id || "--"}</b>,
               tseaHRDate(op.created_at || op.data || op.started_at),
@@ -2232,7 +2232,7 @@ function TseaHistoryMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
         {tab === "simulations" && (
           <Table
-            columns={["ID", "Data", "CenÃƒÂ¡rio", "Status", "Risco", "PressÃƒÂ£o", "AÃƒÂ§ÃƒÂµes"]}
+            columns={["ID", "Data", "CenÃƒÆ’Ã‚Â¡rio", "Status", "Risco", "PressÃƒÆ’Ã‚Â£o", "AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes"]}
             rows={(simulations || []).map((sim: any) => [
               <b>{sim.id || "--"}</b>,
               tseaHRDate(sim.created_at || sim.data),
@@ -2336,21 +2336,21 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
   return (
     <div className="hrMenu">
-      <Section title="RelatÃƒÂ³rios tÃƒÂ©cnicos" subtitle="GeraÃƒÂ§ÃƒÂ£o organizada de documentos Word para operaÃƒÂ§ÃƒÂµes, simulaÃƒÂ§ÃƒÂµes e registros individuais.">
+      <Section title="RelatÃƒÆ’Ã‚Â³rios tÃƒÆ’Ã‚Â©cnicos" subtitle="GeraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o organizada de documentos Word para operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes, simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes e registros individuais.">
         <div className="hrTabs">
-          <button className={tab === "overview" ? "" : "secondary"} onClick={() => setTab("overview")}>VisÃƒÂ£o geral</button>
-          <button className={tab === "operations" ? "" : "secondary"} onClick={() => setTab("operations")}>OperaÃƒÂ§ÃƒÂµes</button>
-          <button className={tab === "simulations" ? "" : "secondary"} onClick={() => setTab("simulations")}>SimulaÃƒÂ§ÃƒÂµes</button>
-          <button className={tab === "individual" ? "" : "secondary"} onClick={() => setTab("individual")}>RelatÃƒÂ³rio individual</button>
+          <button className={tab === "overview" ? "" : "secondary"} onClick={() => setTab("overview")}>VisÃƒÆ’Ã‚Â£o geral</button>
+          <button className={tab === "operations" ? "" : "secondary"} onClick={() => setTab("operations")}>OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes</button>
+          <button className={tab === "simulations" ? "" : "secondary"} onClick={() => setTab("simulations")}>SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes</button>
+          <button className={tab === "individual" ? "" : "secondary"} onClick={() => setTab("individual")}>RelatÃƒÆ’Ã‚Â³rio individual</button>
         </div>
 
         <div className="hrFilters">
-          <Field label="PerÃƒÂ­odo">
+          <Field label="PerÃƒÆ’Ã‚Â­odo">
             <select value={period} onChange={(event) => setPeriod(event.target.value as any)}>
               <option value="all">Todos</option>
               <option value="today">Hoje</option>
-              <option value="7">ÃƒÅ¡ltimos 7 dias</option>
-              <option value="30">ÃƒÅ¡ltimos 30 dias</option>
+              <option value="7">ÃƒÆ’Ã…Â¡ltimos 7 dias</option>
+              <option value="30">ÃƒÆ’Ã…Â¡ltimos 30 dias</option>
             </select>
           </Field>
 
@@ -2358,34 +2358,34 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
             <select value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="all">Todos</option>
               <option value="success">Bem-sucedido</option>
-              <option value="warning">RestriÃƒÂ§ÃƒÂ£o</option>
-              <option value="critical">CrÃƒÂ­tico</option>
+              <option value="warning">RestriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o</option>
+              <option value="critical">CrÃƒÆ’Ã‚Â­tico</option>
             </select>
           </Field>
         </div>
       </Section>
 
       {tab === "overview" && (
-        <Section title="VisÃƒÂ£o geral dos relatÃƒÂ³rios" subtitle="Resumo dos registros disponÃƒÂ­veis para exportaÃƒÂ§ÃƒÂ£o.">
+        <Section title="VisÃƒÆ’Ã‚Â£o geral dos relatÃƒÆ’Ã‚Â³rios" subtitle="Resumo dos registros disponÃƒÆ’Ã‚Â­veis para exportaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o.">
           <div className="metrics">
-            <Metric label="OperaÃƒÂ§ÃƒÂµes filtradas" value={filteredOperations.length} detail="Registros operacionais" />
-            <Metric label="SimulaÃƒÂ§ÃƒÂµes filtradas" value={filteredSimulations.length} detail="GÃƒÂªmeo Digital" />
-            <Metric label="RelatÃƒÂ³rios Word" value="3 tipos" detail="Geral, por mÃƒÂ³dulo e individual" />
-            <Metric label="Formato" value=".doc" detail="CompatÃƒÂ­vel com Word" />
+            <Metric label="OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes filtradas" value={filteredOperations.length} detail="Registros operacionais" />
+            <Metric label="SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes filtradas" value={filteredSimulations.length} detail="GÃƒÆ’Ã‚Âªmeo Digital" />
+            <Metric label="RelatÃƒÆ’Ã‚Â³rios Word" value="3 tipos" detail="Geral, por mÃƒÆ’Ã‚Â³dulo e individual" />
+            <Metric label="Formato" value=".doc" detail="CompatÃƒÆ’Ã‚Â­vel com Word" />
           </div>
 
           <div className="hrActions">
-            <button onClick={exportGeneral}>Exportar relatÃƒÂ³rio geral Word</button>
-            <button className="secondary" onClick={exportOperations}>Exportar operaÃƒÂ§ÃƒÂµes Word</button>
-            <button className="secondary" onClick={exportSimulations}>Exportar simulaÃƒÂ§ÃƒÂµes Word</button>
+            <button onClick={exportGeneral}>Exportar relatÃƒÆ’Ã‚Â³rio geral Word</button>
+            <button className="secondary" onClick={exportOperations}>Exportar operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes Word</button>
+            <button className="secondary" onClick={exportSimulations}>Exportar simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes Word</button>
           </div>
         </Section>
       )}
 
       {tab === "operations" && (
-        <Section title="RelatÃƒÂ³rio de operaÃƒÂ§ÃƒÂµes" subtitle="Selecione uma operaÃƒÂ§ÃƒÂ£o para visualizar detalhes ou gerar relatÃƒÂ³rio individual.">
+        <Section title="RelatÃƒÆ’Ã‚Â³rio de operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes" subtitle="Selecione uma operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o para visualizar detalhes ou gerar relatÃƒÆ’Ã‚Â³rio individual.">
           <Table
-            columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "AÃƒÂ§ÃƒÂµes"]}
+            columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes"]}
             rows={filteredOperations.map((op: any) => [
               <b>{op.id || "--"}</b>,
               tseaHRDate(op.created_at || op.data || op.started_at),
@@ -2403,9 +2403,9 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
       )}
 
       {tab === "simulations" && (
-        <Section title="RelatÃƒÂ³rio de simulaÃƒÂ§ÃƒÂµes" subtitle="SimulaÃƒÂ§ÃƒÂµes executadas no GÃƒÂªmeo Digital com status, risco e pressÃƒÂ£o final.">
+        <Section title="RelatÃƒÆ’Ã‚Â³rio de simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes" subtitle="SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes executadas no GÃƒÆ’Ã‚Âªmeo Digital com status, risco e pressÃƒÆ’Ã‚Â£o final.">
           <Table
-            columns={["ID", "Data", "CenÃƒÂ¡rio", "Status", "Risco", "PressÃƒÂ£o", "AÃƒÂ§ÃƒÂµes"]}
+            columns={["ID", "Data", "CenÃƒÆ’Ã‚Â¡rio", "Status", "Risco", "PressÃƒÆ’Ã‚Â£o", "AÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes"]}
             rows={filteredSimulations.map((sim: any) => [
               <b>{sim.id || "--"}</b>,
               tseaHRDate(sim.created_at || sim.data),
@@ -2432,7 +2432,7 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
             onClose={() => setSelected(null)}
           />
         ) : (
-          <Section title="RelatÃƒÂ³rio individual" subtitle="Escolha uma operaÃƒÂ§ÃƒÂ£o ou simulaÃƒÂ§ÃƒÂ£o nas abas anteriores para visualizar e exportar.">
+          <Section title="RelatÃƒÆ’Ã‚Â³rio individual" subtitle="Escolha uma operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o ou simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o nas abas anteriores para visualizar e exportar.">
             <Empty text="Nenhum registro selecionado." />
           </Section>
         )
@@ -2460,64 +2460,64 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
 function TseaTechnicalReferenceTables() {
   const unitRows = [
-    ["mbar", "PressÃƒÂ£o / vÃƒÂ¡cuo", "Usado em pressÃƒÂ£o atual, pressÃƒÂ£o final, pressÃƒÂ£o de acionamento e limite estrutural."],
-    ["s", "Tempo em segundos", "Usado em atraso do ÃƒÂ³leo, tempo mÃƒÂ¡ximo, tempo estimado e duraÃƒÂ§ÃƒÂ£o do ciclo."],
-    ["L/min", "VazÃƒÂ£o de ÃƒÂ³leo", "Indica o volume de ÃƒÂ³leo aplicado por minuto no processo."],
-    ["L", "Volume", "Quantidade de ÃƒÂ³leo registrada no tanque ou no sistema."],
-    ["%", "Percentual", "Usado em risco, desempenho, eficiÃƒÂªncia, desvio e margem de erro."],
-    ["0 a 1", "SaÃƒÂºde relativa", "Escala de condiÃƒÂ§ÃƒÂ£o do equipamento. Valor 1 indica condiÃƒÂ§ÃƒÂ£o ideal."],
+    ["mbar", "PressÃƒÆ’Ã‚Â£o / vÃƒÆ’Ã‚Â¡cuo", "Usado em pressÃƒÆ’Ã‚Â£o atual, pressÃƒÆ’Ã‚Â£o final, pressÃƒÆ’Ã‚Â£o de acionamento e limite estrutural."],
+    ["s", "Tempo em segundos", "Usado em atraso do ÃƒÆ’Ã‚Â³leo, tempo mÃƒÆ’Ã‚Â¡ximo, tempo estimado e duraÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do ciclo."],
+    ["L/min", "VazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo", "Indica o volume de ÃƒÆ’Ã‚Â³leo aplicado por minuto no processo."],
+    ["L", "Volume", "Quantidade de ÃƒÆ’Ã‚Â³leo registrada no tanque ou no sistema."],
+    ["%", "Percentual", "Usado em risco, desempenho, eficiÃƒÆ’Ã‚Âªncia, desvio e margem de erro."],
+    ["0 a 1", "SaÃƒÆ’Ã‚Âºde relativa", "Escala de condiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do equipamento. Valor 1 indica condiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o ideal."],
     ["m", "Comprimento", "Comprimento da mangueira."],
-    ["mm", "DiÃƒÂ¢metro", "DiÃƒÂ¢metro interno da mangueira."],
-    ["mÃ‚Â³/h", "VazÃƒÂ£o nominal", "Capacidade nominal das bombas."],
-    ["kW", "PotÃƒÂªncia", "PotÃƒÂªncia nominal de equipamentos."],
-    ["Ã‚Â°C", "Temperatura", "Leitura tÃƒÂ©rmica de bomba, tanque ou ambiente."]
+    ["mm", "DiÃƒÆ’Ã‚Â¢metro", "DiÃƒÆ’Ã‚Â¢metro interno da mangueira."],
+    ["mÃƒâ€šÃ‚Â³/h", "VazÃƒÆ’Ã‚Â£o nominal", "Capacidade nominal das bombas."],
+    ["kW", "PotÃƒÆ’Ã‚Âªncia", "PotÃƒÆ’Ã‚Âªncia nominal de equipamentos."],
+    ["Ãƒâ€šÃ‚Â°C", "Temperatura", "Leitura tÃƒÆ’Ã‚Â©rmica de bomba, tanque ou ambiente."]
   ];
 
   const parameterRows = [
-    ["PressÃƒÂ£o final", "Valor alvo de vÃƒÂ¡cuo ou pressÃƒÂ£o ao final do ciclo.", "mbar"],
-    ["Tempo estimado", "Tempo previsto para conclusÃƒÂ£o da operaÃƒÂ§ÃƒÂ£o.", "s"],
-    ["Atraso do ÃƒÂ³leo", "Intervalo considerado antes da estabilizaÃƒÂ§ÃƒÂ£o/atuaÃƒÂ§ÃƒÂ£o do ÃƒÂ³leo no processo.", "s"],
-    ["VazÃƒÂ£o de ÃƒÂ³leo", "Fluxo de ÃƒÂ³leo aplicado durante a operaÃƒÂ§ÃƒÂ£o.", "L/min"],
-    ["SaÃƒÂºde da bomba", "Indicador relativo da condiÃƒÂ§ÃƒÂ£o operacional da bomba.", "0 a 1"],
-    ["Fator de perda da mangueira", "Multiplicador usado para representar perda de eficiÃƒÂªncia pela mangueira.", "multiplicador"],
-    ["Risco operacional", "ÃƒÂndice tÃƒÂ©cnico usado para representar criticidade da operaÃƒÂ§ÃƒÂ£o.", "%"],
-    ["Leitura do sensor", "Valor medido usado para diagnÃƒÂ³stico e rastreabilidade.", "depende da variÃƒÂ¡vel medida"]
+    ["PressÃƒÆ’Ã‚Â£o final", "Valor alvo de vÃƒÆ’Ã‚Â¡cuo ou pressÃƒÆ’Ã‚Â£o ao final do ciclo.", "mbar"],
+    ["Tempo estimado", "Tempo previsto para conclusÃƒÆ’Ã‚Â£o da operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o.", "s"],
+    ["Atraso do ÃƒÆ’Ã‚Â³leo", "Intervalo considerado antes da estabilizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o/atuaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do ÃƒÆ’Ã‚Â³leo no processo.", "s"],
+    ["VazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo", "Fluxo de ÃƒÆ’Ã‚Â³leo aplicado durante a operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o.", "L/min"],
+    ["SaÃƒÆ’Ã‚Âºde da bomba", "Indicador relativo da condiÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o operacional da bomba.", "0 a 1"],
+    ["Fator de perda da mangueira", "Multiplicador usado para representar perda de eficiÃƒÆ’Ã‚Âªncia pela mangueira.", "multiplicador"],
+    ["Risco operacional", "ÃƒÆ’Ã‚Ândice tÃƒÆ’Ã‚Â©cnico usado para representar criticidade da operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o.", "%"],
+    ["Leitura do sensor", "Valor medido usado para diagnÃƒÆ’Ã‚Â³stico e rastreabilidade.", "depende da variÃƒÆ’Ã‚Â¡vel medida"]
   ];
 
   const marginRows = [
-    ["Desvio percentual", "|valor medido - valor esperado| / valor esperado Ãƒâ€” 100", "Calcula o quanto o valor real/simulado se afastou do esperado."],
-    ["Dentro da margem", "desvio Ã¢â€°Â¤ margem permitida", "Status Operacional / semÃƒÂ¡foro verde."],
-    ["Faixa de atenÃƒÂ§ÃƒÂ£o", "margem < desvio Ã¢â€°Â¤ 2 Ãƒâ€” margem", "Status AtenÃƒÂ§ÃƒÂ£o / semÃƒÂ¡foro amarelo."],
-    ["Faixa crÃƒÂ­tica", "desvio > 2 Ãƒâ€” margem", "Status CrÃƒÂ­tico / semÃƒÂ¡foro vermelho."],
-    ["Status geral", "se qualquer parÃƒÂ¢metro essencial for crÃƒÂ­tico, o processo fica crÃƒÂ­tico", "Regra conservadora para seguranÃƒÂ§a operacional."],
-    ["AplicaÃƒÂ§ÃƒÂ£o futura", "pressÃƒÂ£o, tempo, vazÃƒÂ£o de ÃƒÂ³leo, sensor e desempenho das bombas", "A margem de erro poderÃƒÂ¡ padronizar os alertas do sistema e do semÃƒÂ¡foro fÃƒÂ­sico."]
+    ["Desvio percentual", "|valor medido - valor esperado| / valor esperado ÃƒÆ’Ã¢â‚¬â€ 100", "Calcula o quanto o valor real/simulado se afastou do esperado."],
+    ["Dentro da margem", "desvio ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ margem permitida", "Status Operacional / semÃƒÆ’Ã‚Â¡foro verde."],
+    ["Faixa de atenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "margem < desvio ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ 2 ÃƒÆ’Ã¢â‚¬â€ margem", "Status AtenÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o / semÃƒÆ’Ã‚Â¡foro amarelo."],
+    ["Faixa crÃƒÆ’Ã‚Â­tica", "desvio > 2 ÃƒÆ’Ã¢â‚¬â€ margem", "Status CrÃƒÆ’Ã‚Â­tico / semÃƒÆ’Ã‚Â¡foro vermelho."],
+    ["Status geral", "se qualquer parÃƒÆ’Ã‚Â¢metro essencial for crÃƒÆ’Ã‚Â­tico, o processo fica crÃƒÆ’Ã‚Â­tico", "Regra conservadora para seguranÃƒÆ’Ã‚Â§a operacional."],
+    ["AplicaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o futura", "pressÃƒÆ’Ã‚Â£o, tempo, vazÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo, sensor e desempenho das bombas", "A margem de erro poderÃƒÆ’Ã‚Â¡ padronizar os alertas do sistema e do semÃƒÆ’Ã‚Â¡foro fÃƒÆ’Ã‚Â­sico."]
   ];
 
   return (
     <div className="technicalReferenceTables">
       <div className="technicalReferenceBlock">
         <h3>Unidades de medida utilizadas</h3>
-        <p>ReferÃƒÂªncia para interpretaÃƒÂ§ÃƒÂ£o dos campos numÃƒÂ©ricos do sistema.</p>
+        <p>ReferÃƒÆ’Ã‚Âªncia para interpretaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o dos campos numÃƒÆ’Ã‚Â©ricos do sistema.</p>
         <Table
-          columns={["Unidade", "AplicaÃƒÂ§ÃƒÂ£o", "DescriÃƒÂ§ÃƒÂ£o"]}
+          columns={["Unidade", "AplicaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "DescriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]}
           rows={unitRows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
         />
       </div>
 
       <div className="technicalReferenceBlock">
-        <h3>DescriÃƒÂ§ÃƒÂ£o tÃƒÂ©cnica dos principais parÃƒÂ¢metros</h3>
-        <p>Resumo do significado dos parÃƒÂ¢metros usados na operaÃƒÂ§ÃƒÂ£o e na anÃƒÂ¡lise tÃƒÂ©cnica.</p>
+        <h3>DescriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o tÃƒÆ’Ã‚Â©cnica dos principais parÃƒÆ’Ã‚Â¢metros</h3>
+        <p>Resumo do significado dos parÃƒÆ’Ã‚Â¢metros usados na operaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o e na anÃƒÆ’Ã‚Â¡lise tÃƒÆ’Ã‚Â©cnica.</p>
         <Table
-          columns={["ParÃƒÂ¢metro", "DescriÃƒÂ§ÃƒÂ£o", "Unidade"]}
+          columns={["ParÃƒÆ’Ã‚Â¢metro", "DescriÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "Unidade"]}
           rows={parameterRows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
         />
       </div>
 
       <div className="technicalReferenceBlock">
-        <h3>CritÃƒÂ©rios de margem de erro e semÃƒÂ¡foro operacional</h3>
-        <p>A margem de erro define a tolerÃƒÂ¢ncia entre valor esperado e valor medido/simulado.</p>
+        <h3>CritÃƒÆ’Ã‚Â©rios de margem de erro e semÃƒÆ’Ã‚Â¡foro operacional</h3>
+        <p>A margem de erro define a tolerÃƒÆ’Ã‚Â¢ncia entre valor esperado e valor medido/simulado.</p>
         <Table
-          columns={["CritÃƒÂ©rio", "Regra / FÃƒÂ³rmula", "InterpretaÃƒÂ§ÃƒÂ£o"]}
+          columns={["CritÃƒÆ’Ã‚Â©rio", "Regra / FÃƒÆ’Ã‚Â³rmula", "InterpretaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o"]}
           rows={marginRows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
         />
       </div>
@@ -2627,7 +2627,7 @@ function App() {
     setApiOnline(health.ok);
 
     if (!health.ok) {
-      setError(health.error || "API indisponÃƒÂ­vel.");
+      setError(health.error || "API indisponÃƒÆ’Ã‚Â­vel.");
       return;
     }
 
@@ -2734,7 +2734,7 @@ function App() {
     await safe("/records/simulations", {
       method: "POST",
       body: JSON.stringify({
-        name: options?.presets?.[key]?.name || "SimulaÃƒÂ§ÃƒÂ£o Operacional",
+        name: options?.presets?.[key]?.name || "SimulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o Operacional",
         config,
       }),
     });
@@ -2765,22 +2765,22 @@ function App() {
 
   function askAssistant() {
     const q = assistantQuestion.toLowerCase();
-    const status = simulationResult?.status ? statusLabel(simulationResult.status) : "sem simulaÃƒÂ§ÃƒÂ£o executada";
+    const status = simulationResult?.status ? statusLabel(simulationResult.status) : "sem simulaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o executada";
     const risk = simulationResult?.metrics?.max_collapse_risk_pct;
     const pressure = simulationResult?.metrics?.final_real_pressure_mbar;
 
-    let answer = `Estado atual: ${status}. Risco mÃƒÂ¡ximo (%): ${fmt(risk, "%")}. PressÃƒÂ£o final (mbar): ${fmt(pressure, "mbar")}.`;
+    let answer = `Estado atual: ${status}. Risco mÃƒÆ’Ã‚Â¡ximo (%): ${fmt(risk, "%")}. PressÃƒÆ’Ã‚Â£o final (mbar): ${fmt(pressure, "mbar")}.`;
 
-    if (q.includes("ÃƒÂ³leo") || q.includes("oleo")) {
-      answer += " Verifique vazÃƒÂ£o de injeÃƒÂ§ÃƒÂ£o, atraso de entrada e compensaÃƒÂ§ÃƒÂ£o de ÃƒÂ³leo. Baixa vazÃƒÂ£o ou atraso elevam a carga estrutural.";
+    if (q.includes("ÃƒÆ’Ã‚Â³leo") || q.includes("oleo")) {
+      answer += " Verifique vazÃƒÆ’Ã‚Â£o de injeÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o, atraso de entrada e compensaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de ÃƒÆ’Ã‚Â³leo. Baixa vazÃƒÆ’Ã‚Â£o ou atraso elevam a carga estrutural.";
     } else if (q.includes("mangueira") || q.includes("mangueira")) {
-      answer += " Verifique comprimento, diÃƒÂ¢metro e fator de perda da mangueira de vÃƒÂ¡cuo. Perda elevada altera a curva esperada.";
+      answer += " Verifique comprimento, diÃƒÆ’Ã‚Â¢metro e fator de perda da mangueira de vÃƒÆ’Ã‚Â¡cuo. Perda elevada altera a curva esperada.";
     } else if (q.includes("roots") || q.includes("bomba")) {
-      answer += " Confirme a pressÃƒÂ£o de acionamento da bomba secundÃƒÂ¡ria e o ÃƒÂ­ndice de integridade da bomba. Acionamento fora da faixa aumenta risco operacional.";
+      answer += " Confirme a pressÃƒÆ’Ã‚Â£o de acionamento da bomba secundÃƒÆ’Ã‚Â¡ria e o ÃƒÆ’Ã‚Â­ndice de integridade da bomba. Acionamento fora da faixa aumenta risco operacional.";
     } else if (q.includes("risco")) {
-      answer += " O ÃƒÂ­ndice de risco deve ser comparado ao limite estrutural definido para o tanque e ÃƒÂ  margem operacional de seguranÃƒÂ§a.";
+      answer += " O ÃƒÆ’Ã‚Â­ndice de risco deve ser comparado ao limite estrutural definido para o tanque e ÃƒÆ’Ã‚Â  margem operacional de seguranÃƒÆ’Ã‚Â§a.";
     } else {
-      answer += " Analise curva esperada, curva real/simulada, mangueira de vÃƒÂ¡cuo, ÃƒÂ³leo e acionamento da bomba secundÃƒÂ¡ria antes de liberar a execuÃƒÂ§ÃƒÂ£o.";
+      answer += " Analise curva esperada, curva real/simulada, mangueira de vÃƒÆ’Ã‚Â¡cuo, ÃƒÆ’Ã‚Â³leo e acionamento da bomba secundÃƒÆ’Ã‚Â¡ria antes de liberar a execuÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o.";
     }
 
     setAssistantAnswer(answer);
@@ -2867,10 +2867,10 @@ function App() {
     if (paramTab === "formulas") {
       const item = {
         id: `LF-${Date.now()}`,
-        name: form.name || "FÃƒÂ³rmula Operacional",
+        name: form.name || "FÃƒÆ’Ã‚Â³rmula Operacional",
         expression: form.expression || "dP/dt = -(S/V)P",
-        variable: form.variable || "PressÃƒÂ£o",
-        description: form.description || "Modelo operacional padrÃƒÂ£o",
+        variable: form.variable || "PressÃƒÆ’Ã‚Â£o",
+        description: form.description || "Modelo operacional padrÃƒÆ’Ã‚Â£o",
       };
       setLocalFormulas((list) => [...list, item]);
     }
@@ -2880,7 +2880,7 @@ function App() {
         id: `LO-${Date.now()}`,
         name: form.name || "Operador",
         registration: form.registration || "N/A",
-        role: form.role || "OperaÃƒÂ§ÃƒÂ£o",
+        role: form.role || "OperaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o",
         status: form.status || "Ativo",
       };
       setLocalOperators((list) => [...list, item]);

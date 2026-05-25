@@ -176,7 +176,7 @@ class GatewayState:
         self.status = "PRONTO"
         self.stage = "PREPARO"
         self.mode = "SIMULADO"
-        self.recipe = RECIPES[0] if RECIPES else EMPTY_RECIPE
+        self.recipe = RECIPES[0] if RECIPES else EMPTY_RECIPE if RECIPES else EMPTY_RECIPE
         self.tank_count = 1
         self.hose = HOSES["MG-02"]
         self.oil_reservoir_l = 50.0
