@@ -64,6 +64,23 @@ DEFAULT_RECIPES: list[dict[str, Any]] = [
     },
 ]
 
+
+EMPTY_RECIPE: dict[str, Any] = {
+    "id": "__SEM_RECEITA__",
+    "title": "Nenhuma receita cadastrada",
+    "name": "Nenhuma receita cadastrada",
+    "tank_type": "Nao definido",
+    "estimated_seconds": 0,
+    "max_cycle_seconds": 0,
+    "target_pressure_mbar": 1013.0,
+    "roots_start_pressure_mbar": 0.0,
+    "b2_start_seconds": 0,
+    "oil_start_seconds": 0,
+    "stabilization_seconds": 0,
+    "oil_per_tank_l": 0.0,
+    "min_oil_flow_l_min": 0.0,
+    "note": "Cadastre uma receita no sistema do gerente para iniciar uma operacao.",
+}
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 RECIPES_FILE = DATA_DIR / "recipes.json"
 
@@ -74,12 +91,12 @@ def load_recipes() -> list[dict[str, Any]]:
     if RECIPES_FILE.exists():
         try:
             data = json.loads(RECIPES_FILE.read_text(encoding="utf-8"))
-            if isinstance(data, list) and data:
+            if isinstance(data, list):
                 return data
         except Exception:
             pass
 
-    return list(DEFAULT_RECIPES)
+    return []
 
 
 def save_recipes(recipes: list[dict[str, Any]]) -> None:
@@ -159,7 +176,7 @@ class GatewayState:
         self.status = "PRONTO"
         self.stage = "PREPARO"
         self.mode = "SIMULADO"
-        self.recipe = RECIPES[0]
+        self.recipe = RECIPES[0] if RECIPES else EMPTY_RECIPE
         self.tank_count = 1
         self.hose = HOSES["MG-02"]
         self.oil_reservoir_l = 50.0
@@ -860,9 +877,9 @@ async def create_recipe(payload: RecipePayload) -> dict[str, Any]:
 @app.post("/api/recipes/reset")
 async def reset_recipes() -> list[dict[str, Any]]:
     RECIPES.clear()
-    RECIPES.extend(list(DEFAULT_RECIPES))
+    
     save_recipes(RECIPES)
-    STATE.event("Receitas restauradas para o padrao inicial.", "WARN")
+    STATE.event("Receitas limpas. Cadastre novas receitas pelo sistema do gerente.", "WARN")
     await broadcast()
     return RECIPES
 

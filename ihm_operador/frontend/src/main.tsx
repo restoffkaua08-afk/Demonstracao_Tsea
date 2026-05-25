@@ -56,11 +56,7 @@ type Recipe = {
 type Hose = { id: HoseKey; descricao: string; perdaBase: number };
 type Registro = { id: string; horario: string; status: string; qtdTanques: number; receita: string; mangueira: string };
 
-const defaultRecipes: Recipe[] = [
-  { id: "PAD-001", title: "Operacao Padrao", tipoTanque: "Comum", tempoEstimado: 205, pressaoAlvo: 8, b2StartSeg: 24, oilStartSeg: 90, estabilizacaoSeg: 165, observacao: "Ciclo padrao" },
-  { id: "GRA-002", title: "Tanque Grande", tipoTanque: "Grande", tempoEstimado: 225, pressaoAlvo: 12, b2StartSeg: 32, oilStartSeg: 100, estabilizacaoSeg: 178, observacao: "Acompanhar rampa" },
-  { id: "CRI-003", title: "Tanque Critico", tipoTanque: "Critico", tempoEstimado: 255, pressaoAlvo: 35, b2StartSeg: 45, oilStartSeg: 120, estabilizacaoSeg: 195, observacao: "Vacuo conservador" }
-];
+const defaultRecipes: Recipe[] = [];
 
 const GATEWAY_API = "http://127.0.0.1:8020/api";
 
@@ -93,6 +89,17 @@ function gatewayToRecipe(raw: any): Recipe {
     observacao: String(raw?.note || raw?.observacao || "Receita recebida do Gateway"),
   };
 }
+const EMPTY_RECIPE: Recipe = {
+  id: "__SEM_RECEITA__",
+  title: "Nenhuma receita cadastrada",
+  tipoTanque: "Nao definido",
+  tempoEstimado: 0,
+  pressaoAlvo: 1013,
+  b2StartSeg: 0,
+  oilStartSeg: 0,
+  estabilizacaoSeg: 0,
+  observacao: "Cadastre uma receita no sistema do gerente.",
+};
 function App() {
   const [phase, setPhase] = useState<Phase>("boot");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -163,7 +170,7 @@ function App() {
     }
   }, [gatewayRecipes, recipeId]);
 
-  const recipe = recipes.find(r=>r.id===recipeId) || recipes[0] || defaultRecipes[0];
+  const recipe = recipes.find(r=>r.id===recipeId) || recipes[0] || EMPTY_RECIPE;
   const hose = hoses.find(h=>h.id===hoseId) || hoses[1] || hoses[0];
 
   useEffect(() => {
@@ -291,7 +298,7 @@ function App() {
 
   const menu = () => (
     <div className={`drawer ${drawerOpen?"open":""}`}>
-      <div><button onClick={()=>setDrawerOpen(false)}>âœ•</button></div>
+      <div><button onClick={()=>setDrawerOpen(false)}>Ã¢Å“â€¢</button></div>
       <button disabled={phase!=="operacao" || status!=="FINALIZADO"} onClick={()=>setPhase("finalizacao")}>FINALIZAR OPERACAO</button>
       <button onClick={()=>{setDrawerOpen(false); setPhase("alarmes");}}>ALARMES</button>
       <button disabled={phase==="operacao" && status!=="FINALIZADO"} onClick={reiniciar}>INICIO</button>
@@ -310,7 +317,7 @@ function App() {
   );
   if (phase==="registros_dia") return (
     <div className="registros-dia">
-      <button onClick={()=>setPhase("inicial")}>â† VOLTAR</button>
+      <button onClick={()=>setPhase("inicial")}>Ã¢â€ Â VOLTAR</button>
       <h2>REGISTROS DO DIA</h2>
       <ul>{registros.map(r=><li key={r.id}>{r.horario} | {r.status} | {r.qtdTanques} tanque(s)</li>)}</ul>
       {menu()}
@@ -320,7 +327,7 @@ function App() {
     <div className="preparo">
       <h2>ESCOLHA A RECEITA</h2>
       <div className="recipes">
-        {recipes.map(r=>(<div key={r.id} className={`recipe-card ${recipeId===r.id?"selected":""}`} onClick={()=>setRecipeId(r.id)}>
+        {recipes.length === 0 ? (<div className="oil-warning">Nenhuma receita cadastrada no Gateway. Cadastre uma receita no sistema do gerente.</div>) : recipes.map(r=>(<div key={r.id} className={`recipe-card ${recipeId===r.id?"selected":""}`} onClick={()=>setRecipeId(r.id)}>
           <div className="recipe-title">{r.title}</div>
           <div>Tanque: {r.tipoTanque}</div>
           <div>Tempo: {r.tempoEstimado}s</div>
@@ -328,7 +335,7 @@ function App() {
           <div className="recipe-note">{r.observacao}</div>
         </div>))}
       </div>
-      <button className="next-btn" onClick={()=>setPhase("preparar_dados")}>CONTINUAR</button>
+      <button className="next-btn" disabled={!recipes.length} onClick={()=>setPhase("preparar_dados")}>CONTINUAR</button>
       {menu()}
     </div>
   );
@@ -362,14 +369,14 @@ function App() {
         <p>Receita: {recipe.title}</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Oleo colocado: {oleoColocado} L</p><p>Oleo necessario: {oilNeeded} L</p>{oilInsuficiente && <p className="warn-text">Volume de oleo insuficiente para iniciar.</p>}
       </div>
       <button className="cancel-btn" onClick={()=>setPhase("inicial")}>CANCELAR</button>
-      <button className="start-btn" disabled={oilInsuficiente || !allCheckedPre} onClick={iniciarOperacao}>INICIAR</button>
+      <button className="start-btn" disabled={oilInsuficiente || !allCheckedPre || !recipes.length} onClick={iniciarOperacao}>INICIAR</button>
       {menu()}
     </div>
   );
   if (phase==="operacao") return (
     <div className="operacao">
       <div className="topbar">
-        <button className="menu-btn" onClick={()=>setDrawerOpen(true)}>â˜°</button>
+        <button className="menu-btn" onClick={()=>setDrawerOpen(true)}>Ã¢ËœÂ°</button>
         <div><span>STATUS</span><strong>{status}</strong></div>
         <div><span>ETAPA</span><strong>{etapaAtual}</strong></div>
         <div className={alarmText === "NORMAL" || alarmText === "FINALIZADO" ? "alarm-mini ok" : "alarm-mini bad"}><span>ALARME</span><strong>{alarmText}</strong></div>
@@ -378,7 +385,7 @@ function App() {
       <div className="content-area">
         {tab==="reguladores" && <div className="tanks-grid">{tanques.map(t=><div key={t.id} className="tank-card"><div>{t.id}</div><div>{fmt(t.pressao,"mbar")}</div><div>Perda: {fmt(t.perda,"mbar")}</div><div>Oleo: {fmt(t.oleo,"L")}</div><div className="ok">OK</div></div>)}</div>}
         {tab==="bombas" && <div className="bombas-grid"><div>B1 PRIMARIA: {status==="EM CICLO"?"LIGADA":"DESLIGADA"}</div><div>B2 ROOTS: {b2Ligada?"LIGADA":"AGUARDANDO"}</div><div>PRESSAO MAQUINA: {fmt(pressaoMaquina,"mbar")}</div><div>PRESSAO MEDIA: {fmt(pressaoMedia,"mbar")}</div><div>SENSOR: COMUNICANDO</div><div>VACUO: ATIVO</div></div>}
-        {tab==="oleo" && <div className="oleo-grid"><div>RESERVATORIO: {oleoColocado} L</div><div>SAINDO: {fmt(oilInjetado,"L")}</div><div>RESTANTE: {fmt(oilRestante,"L")}</div><div>VAZAO: {oilLigada?"NORMAL":"AGUARDANDO"}</div><div>TEMP: 60Â°C</div><div>LINHA: CONECTADA</div><div>OLEO POR TANQUE:</div>{tanques.map(t=><div key={t.id}>{t.id}: {fmt(t.oleo,"L")}</div>)}</div>}
+        {tab==="oleo" && <div className="oleo-grid"><div>RESERVATORIO: {oleoColocado} L</div><div>SAINDO: {fmt(oilInjetado,"L")}</div><div>RESTANTE: {fmt(oilRestante,"L")}</div><div>VAZAO: {oilLigada?"NORMAL":"AGUARDANDO"}</div><div>TEMP: 60Ã‚Â°C</div><div>LINHA: CONECTADA</div><div>OLEO POR TANQUE:</div>{tanques.map(t=><div key={t.id}>{t.id}: {fmt(t.oleo,"L")}</div>)}</div>}
         {tab==="informacoes" && <div className="info-grid"><div className="etapas">{["Preparo","VACUO INICIAL","VACUO PROFUNDO","INJECAO DE OLEO","ESTABILIZACAO","FINALIZACAO"].map(e=><div key={e} className={etapa()===e?"active":(elapsed>recipe.b2StartSeg&&e==="VACUO INICIAL"?"done":(elapsed>recipe.oilStartSeg&&e==="VACUO PROFUNDO"?"done":(elapsed>recipe.estabilizacaoSeg&&e==="INJECAO DE OLEO"?"done":(elapsed>=recipe.tempoEstimado&&e==="ESTABILIZACAO"?"done":""))))}>{e}</div>)}</div><div><p>ID: {operationId}</p><p>Receita: {recipe.title}</p><p>Operador: OPERADOR 01</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Tempo: {timeFmt(elapsed)}</p></div><div className="logs">{logs.slice(0,8).map(l=><div key={l.time}>[{l.time}] {l.msg}</div>)}</div></div>}
       </div>
       <div className="bottom-tabs">
