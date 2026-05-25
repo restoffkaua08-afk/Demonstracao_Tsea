@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -23,7 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-RECIPES: list[dict[str, Any]] = [
+DEFAULT_RECIPES: list[dict[str, Any]] = [
     {
         "id": "PAD-001",
         "title": "Operacao Padrao",
@@ -61,6 +63,73 @@ RECIPES: list[dict[str, Any]] = [
         "note": "Vacuo conservador para reduzir risco estrutural.",
     },
 ]
+
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+RECIPES_FILE = DATA_DIR / "recipes.json"
+
+
+def load_recipes() -> list[dict[str, Any]]:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    if RECIPES_FILE.exists():
+        try:
+            data = json.loads(RECIPES_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, list) and data:
+                return data
+        except Exception:
+            pass
+
+    return list(DEFAULT_RECIPES)
+
+
+def save_recipes(recipes: list[dict[str, Any]]) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    RECIPES_FILE.write_text(json.dumps(recipes, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+RECIPES: list[dict[str, Any]] = load_recipes()
+
+
+class RecipePayload(BaseModel):
+    id: str | None = None
+    title: str | None = None
+    name: str | None = None
+    tank_type: str | None = None
+    estimated_seconds: int | None = None
+    max_cycle_seconds: int | None = None
+    target_pressure_mbar: float | None = None
+    roots_start_pressure_mbar: float | None = None
+    b2_start_seconds: int | None = None
+    oil_start_seconds: int | None = None
+    stabilization_seconds: int | None = None
+    oil_per_tank_l: float | None = None
+    min_oil_flow_l_min: float | None = None
+    note: str | None = None
+
+
+def normalize_recipe(payload: RecipePayload) -> dict[str, Any]:
+    timestamp = datetime.now().strftime("%H%M%S")
+    estimated_seconds = int(payload.estimated_seconds or payload.max_cycle_seconds or 205)
+    oil_start = int(payload.oil_start_seconds or max(70, min(120, estimated_seconds * 0.45)))
+    stabilization = int(payload.stabilization_seconds or max(oil_start + 40, estimated_seconds * 0.78))
+
+    oil_per_tank = payload.oil_per_tank_l
+    if oil_per_tank is None:
+        oil_per_tank = max(30.0, float(payload.min_oil_flow_l_min or 2.0) * 25.0)
+
+    return {
+        "id": payload.id or f"REC-{timestamp}",
+        "title": payload.title or payload.name or "Receita cadastrada pelo gerente",
+        "tank_type": payload.tank_type or "Comum",
+        "estimated_seconds": estimated_seconds,
+        "target_pressure_mbar": float(payload.target_pressure_mbar or 8.0),
+        "roots_start_pressure_mbar": float(payload.roots_start_pressure_mbar or 50.0),
+        "b2_start_seconds": int(payload.b2_start_seconds or 24),
+        "oil_start_seconds": oil_start,
+        "stabilization_seconds": stabilization,
+        "oil_per_tank_l": float(oil_per_tank),
+        "note": payload.note or "Receita cadastrada pelo sistema do gerente.",
+    }
 
 HOSES: dict[str, dict[str, Any]] = {
     "MG-01": {"id": "MG-01", "label": "Mangueira curta", "length_m": 5, "loss_base_mbar": 0.7},
@@ -418,6 +487,34 @@ def get_state() -> dict[str, Any]:
 
 @app.get("/api/recipes")
 def get_recipes() -> list[dict[str, Any]]:
+    return RECIPES
+
+
+@app.post("/api/recipes")
+async def create_recipe(payload: RecipePayload) -> dict[str, Any]:
+    item = normalize_recipe(payload)
+
+    existing_index = next((index for index, recipe in enumerate(RECIPES) if str(recipe.get("id")) == str(item["id"])), None)
+
+    if existing_index is None:
+        RECIPES.append(item)
+        STATE.event(f"Receita cadastrada pelo gerente: {item['id']} - {item['title']}", "INFO")
+    else:
+        RECIPES[existing_index] = item
+        STATE.event(f"Receita atualizada pelo gerente: {item['id']} - {item['title']}", "INFO")
+
+    save_recipes(RECIPES)
+    await broadcast()
+    return item
+
+
+@app.post("/api/recipes/reset")
+async def reset_recipes() -> list[dict[str, Any]]:
+    RECIPES.clear()
+    RECIPES.extend(list(DEFAULT_RECIPES))
+    save_recipes(RECIPES)
+    STATE.event("Receitas restauradas para o padrao inicial.", "WARN")
+    await broadcast()
     return RECIPES
 
 
