@@ -244,20 +244,24 @@ function PumpCard({ name, subtitle, on, detail }: { name: string; subtitle: stri
       <div className="pump-head">
         <div className={`machine-led ${on ? "on" : "off"}`}>
           {on && (
-            <>
-              <span />
-              <span />
-              <span />
-            </>
+            <div className="led-dots" aria-hidden="true">
+              {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
+            </div>
           )}
         </div>
+
         <div>
           <strong>{name}</strong>
           <small>{subtitle}</small>
         </div>
       </div>
+
       <p>{detail}</p>
-      <b>{on ? "LIGADA" : "DESLIGADA"}</b>
+
+      <div className="pump-state-row">
+        <b>{on ? "LIGADA" : "DESLIGADA"}</b>
+        <small>{on ? "Sinal ativo" : "Aguardando comando"}</small>
+      </div>
     </article>
   );
 }
@@ -850,9 +854,9 @@ function App() {
           {tab === "bombas" && (
             <div className="machines-layout">
               <div className="pump-stack">
-                <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Responsavel pela evacuacao inicial e sustentacao do vacuo." />
-                <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Entra apos a faixa segura para reforcar o vacuo." />
-                <PumpCard name="OLEO" subtitle="Linha de injecao" on={oilLigada} detail="Representa a etapa de entrada controlada de oleo." />
+                <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Evacuacao inicial do tanque e manutencao da linha de vacuo." />
+                <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Reforco de vacuo acionado somente dentro da faixa permitida." />
+                <PumpCard name="OLEO" subtitle="Linha de injecao" on={oilLigada} detail="Simula a entrada controlada de oleo apos a etapa de vacuo." />
               </div>
 
               <div className="machine-info-grid">

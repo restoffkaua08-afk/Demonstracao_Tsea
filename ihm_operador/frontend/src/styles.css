@@ -1449,3 +1449,383 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   PATCH FIX BOMBAS INDUSTRIAIS E ALARMES ESTAVEIS
+========================================================= */
+
+/* Evita que modais de alarme entrem no grid da tela e quebrem a IHM */
+.alarm-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 24px !important;
+  pointer-events: auto !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+}
+
+.alarm-overlay.yellow {
+  background:
+    radial-gradient(circle at center, rgba(255, 205, 43, 0.34), rgba(0, 0, 0, 0.22) 68%) !important;
+}
+
+.alarm-overlay.red {
+  background:
+    radial-gradient(circle at center, rgba(229, 35, 35, 0.40), rgba(0, 0, 0, 0.30) 68%) !important;
+}
+
+.alarm-modal {
+  width: min(520px, calc(100vw - 48px)) !important;
+  max-height: min(520px, calc(100vh - 48px)) !important;
+  overflow: auto !important;
+  background: #fff !important;
+  border: 8px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 22px !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: start !important;
+  gap: 14px !important;
+  text-align: center !important;
+  transform: none !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.42) !important;
+}
+
+.alarm-overlay.yellow .alarm-modal {
+  background: #fff3b2 !important;
+}
+
+.alarm-overlay.red .alarm-modal {
+  background: #ffd0d0 !important;
+}
+
+.alarm-modal h2 {
+  margin: 0 !important;
+  padding: 0 0 10px !important;
+  width: 100% !important;
+  border-bottom: 5px solid #111 !important;
+  color: #111 !important;
+  font-size: 1.18rem !important;
+  font-weight: 950 !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+.alarm-modal p {
+  margin: 0 !important;
+  font-size: 0.92rem !important;
+  font-weight: 900 !important;
+  line-height: 1.35 !important;
+  color: #111 !important;
+}
+
+.alarm-actions {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.alarm-actions button {
+  min-height: 46px !important;
+  min-width: 190px !important;
+  border: 4px solid #111 !important;
+  background: #fff !important;
+  color: #111 !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+.alarm-actions .secondary {
+  background: #e5e5e5 !important;
+}
+
+.emergency-round {
+  width: 138px !important;
+  height: 138px !important;
+  border-radius: 50% !important;
+  border: 8px solid #111 !important;
+  background: radial-gradient(circle at 35% 26%, #ff9a9a, #e00000 58%, #790000) !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.05 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  box-shadow: 0 0 0 8px rgba(255,0,0,0.18), 0 14px 28px rgba(0,0,0,0.38) !important;
+}
+
+/* Sombreamento de alarme sem deformar o tablet */
+.alarm-shadow-yellow::before {
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 38px rgba(255, 205, 43, 0.88),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+.alarm-shadow-red::before {
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 54px rgba(229, 35, 35, 0.94),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+/* Menu bombas: layout industrial e sem cortes */
+.content-area {
+  overflow: auto !important;
+}
+
+.machines-layout {
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 250px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  overflow: auto !important;
+  align-items: stretch !important;
+}
+
+.pump-stack {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: repeat(3, minmax(105px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.pump-card {
+  min-height: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(229,234,229,0.92)),
+    #e9eee9 !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 9px !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
+  box-shadow:
+    inset 0 -8px 0 rgba(0,0,0,0.08),
+    inset 0 0 0 2px rgba(255,255,255,0.65) !important;
+}
+
+.pump-card::before {
+  content: "ACIONAMENTO" !important;
+  display: block !important;
+  justify-self: end !important;
+  background: #111 !important;
+  color: #fff !important;
+  font-size: 0.52rem !important;
+  font-weight: 950 !important;
+  padding: 3px 6px !important;
+  letter-spacing: 0.06em !important;
+}
+
+.pump-head {
+  display: grid !important;
+  grid-template-columns: 64px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.pump-head strong {
+  display: block !important;
+  font-size: 1.12rem !important;
+  font-weight: 950 !important;
+  color: #111 !important;
+  line-height: 1 !important;
+}
+
+.pump-head small {
+  display: block !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  color: #38433b !important;
+  line-height: 1.15 !important;
+}
+
+.pump-card p {
+  margin: 0 !important;
+  font-size: 0.68rem !important;
+  font-weight: 850 !important;
+  line-height: 1.18 !important;
+  color: #182019 !important;
+  overflow: hidden !important;
+}
+
+.pump-state-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  border-top: 3px solid #111 !important;
+  padding-top: 5px !important;
+}
+
+.pump-state-row b {
+  border: 3px solid #111 !important;
+  background: #fff !important;
+  padding: 3px 8px !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+}
+
+.pump-state-row small {
+  font-size: 0.62rem !important;
+  font-weight: 900 !important;
+  color: #3c453d !important;
+}
+
+/* Bolinha da bomba mais simples e industrial */
+.machine-led {
+  position: relative !important;
+  width: 52px !important;
+  height: 52px !important;
+  border: 5px solid #111 !important;
+  border-radius: 50% !important;
+  flex: none !important;
+}
+
+.machine-led.off {
+  background: #1247d9 !important;
+  box-shadow: inset 0 8px 0 rgba(255,255,255,0.28) !important;
+}
+
+.machine-led.on {
+  background: #18d232 !important;
+  box-shadow:
+    inset 0 8px 0 rgba(255,255,255,0.28),
+    0 0 18px rgba(24, 210, 50, 0.78) !important;
+}
+
+/* Pontos simples em volta da bolinha, piscando juntos */
+.led-dots {
+  position: absolute !important;
+  inset: -17px !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+}
+
+.led-dots span {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 5px !important;
+  height: 5px !important;
+  margin-left: -2.5px !important;
+  margin-top: -2.5px !important;
+  border-radius: 50% !important;
+  background: #19ff3c !important;
+  box-shadow: 0 0 8px rgba(25, 255, 60, 0.95) !important;
+  animation: simplePumpBlink 1s infinite step-end !important;
+}
+
+.led-dots span:nth-child(1)  { transform: rotate(0deg) translate(39px); }
+.led-dots span:nth-child(2)  { transform: rotate(30deg) translate(39px); }
+.led-dots span:nth-child(3)  { transform: rotate(60deg) translate(39px); }
+.led-dots span:nth-child(4)  { transform: rotate(90deg) translate(39px); }
+.led-dots span:nth-child(5)  { transform: rotate(120deg) translate(39px); }
+.led-dots span:nth-child(6)  { transform: rotate(150deg) translate(39px); }
+.led-dots span:nth-child(7)  { transform: rotate(180deg) translate(39px); }
+.led-dots span:nth-child(8)  { transform: rotate(210deg) translate(39px); }
+.led-dots span:nth-child(9)  { transform: rotate(240deg) translate(39px); }
+.led-dots span:nth-child(10) { transform: rotate(270deg) translate(39px); }
+.led-dots span:nth-child(11) { transform: rotate(300deg) translate(39px); }
+.led-dots span:nth-child(12) { transform: rotate(330deg) translate(39px); }
+
+@keyframes simplePumpBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.15;
+  }
+}
+
+/* Cards técnicos do lado direito */
+.machine-info-grid {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: minmax(86px, 1fr) !important;
+  gap: 8px !important;
+  overflow: auto !important;
+}
+
+.machine-info-grid article {
+  min-height: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(231,236,231,0.92)),
+    #edf1ed !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 9px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.08) !important;
+}
+
+.machine-info-grid article span {
+  font-size: 0.62rem !important;
+  font-weight: 950 !important;
+  color: #3e4941 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+.machine-info-grid article b {
+  font-size: 0.92rem !important;
+  font-weight: 950 !important;
+  color: #111 !important;
+  line-height: 1.05 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+.machine-info-grid article small {
+  font-size: 0.62rem !important;
+  font-weight: 850 !important;
+  color: #4c554d !important;
+  line-height: 1.15 !important;
+}
+
+/* Reduz risco de corte em telas menores */
+@media (max-width: 1120px), (max-height: 720px) {
+  .machines-layout {
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+  }
+
+  .pump-stack {
+    grid-template-rows: repeat(3, minmax(92px, 1fr)) !important;
+  }
+
+  .machine-info-grid {
+    grid-auto-rows: minmax(76px, 1fr) !important;
+  }
+
+  .pump-card p,
+  .machine-info-grid article small {
+    display: none !important;
+  }
+
+  .machine-led {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .led-dots span:nth-child(n) {
+    transform-origin: center !important;
+  }
+}
