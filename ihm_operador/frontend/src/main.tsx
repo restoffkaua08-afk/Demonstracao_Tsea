@@ -242,13 +242,7 @@ function PumpCard({ name, subtitle, on, detail }: { name: string; subtitle: stri
   return (
     <article className={`pump-card ${on ? "on" : "off"}`}>
       <div className="pump-head">
-        <div className={`machine-led ${on ? "on" : "off"}`}>
-          {on && (
-            <div className="led-dots" aria-hidden="true">
-              {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
-            </div>
-          )}
-        </div>
+        <div className={`machine-led ${on ? "on" : "off"}`} aria-hidden="true" />
 
         <div>
           <strong>{name}</strong>
@@ -703,6 +697,8 @@ function App() {
   }
 
   function renderAlarm() {
+    if (phase === "alarmes") return null;
+
     return (
       <AlarmOverlay
         alarm={visibleAlarm}
