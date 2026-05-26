@@ -54,7 +54,7 @@ body {
   isolation: isolate;
   overflow: hidden;
 
-  /* menos borda desperdiÃ§ada, mais tela Ãºtil */
+  /* menos borda desperdiÃƒÂ§ada, mais tela ÃƒÂºtil */
   padding: 92px 172px 74px;
 
   border-radius: 88px 100px 88px 100px;
@@ -1750,7 +1750,7 @@ button:disabled {
   }
 }
 
-/* Cards tÃ©cnicos do lado direito */
+/* Cards tÃƒÂ©cnicos do lado direito */
 .machine-info-grid {
   min-height: 0 !important;
   display: grid !important;
@@ -2003,7 +2003,7 @@ button:disabled {
   }
 }
 
-/* Cards tÃ©cnicos sem cortar texto importante */
+/* Cards tÃƒÂ©cnicos sem cortar texto importante */
 .machine-info-grid {
   min-height: 0 !important;
   display: grid !important;
@@ -2313,5 +2313,174 @@ button:disabled {
   .screen,
   .boot-screen {
     transform: scale(0.9) !important;
+  }
+}
+
+
+/* =========================================================
+   PATCH TABLET PADRAO 16 10 IHM
+   Ajusta o tablet para proporcao horizontal de tablet.
+   Apenas CSS. Nao altera logica, Gateway ou rastreabilidade.
+========================================================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+
+body {
+  display: grid !important;
+  place-items: center !important;
+  background:
+    radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #eef0ed, #cbd3cd) !important;
+  background-size: 18px 18px, auto !important;
+}
+
+/*
+  Tablet horizontal em proporcao 16:10.
+  Em telas grandes fica 1500 x 937.
+  Em telas menores, ele reduz mantendo proporcao.
+*/
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao,
+.screen,
+.boot-screen {
+  width: min(1500px, calc(100vw - 16px)) !important;
+  aspect-ratio: 16 / 10 !important;
+  height: auto !important;
+  max-height: calc(100vh - 16px) !important;
+  min-height: 760px !important;
+  margin: 8px auto !important;
+
+  /*
+    Moldura de tablet com tela maior.
+    Borda ainda aparece, mas desperdiça menos espaço.
+  */
+  padding: 78px 126px 62px !important;
+
+  border-radius: 86px 98px 86px 98px !important;
+}
+
+/* Se a altura da tela for menor, mantém proporção e reduz tudo sem esmagar */
+@media (max-height: 900px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    width: min(calc((100vh - 16px) * 1.6), calc(100vw - 16px)) !important;
+    min-height: unset !important;
+  }
+}
+
+/* Tela interna do tablet maior e mais alta */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operacao::before,
+.finalizacao::before,
+.screen::before,
+.boot-screen::before {
+  left: 108px !important;
+  right: 108px !important;
+  top: 52px !important;
+  bottom: 42px !important;
+}
+
+/* Reposiciona luzes e detalhes laterais para a nova proporção */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao,
+.screen,
+.boot-screen {
+  background:
+    radial-gradient(circle at 54px 50%, #e8ffff 0 24px, #59fff1 25px 31px, #0d8c80 32px 39px, #111 40px 46px, transparent 47px),
+    radial-gradient(circle at calc(100% - 54px) 50%, #ff3340 0 26px, #d20d18 27px 35px, #111 36px 44px, transparent 45px),
+
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) left 108px / 112px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) left 166px / 112px 7px no-repeat,
+
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) right 108px / 112px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) right 166px / 112px 7px no-repeat,
+
+    radial-gradient(ellipse at 50% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.25) 48%, transparent 72%),
+    linear-gradient(145deg, #fafbf6 0%, #e3e7e0 48%, #cad1cb 100%) !important;
+}
+
+/* Conteúdo interno acompanha a altura maior */
+.operacao {
+  grid-template-rows: 68px minmax(0, 1fr) 72px !important;
+  gap: 10px !important;
+}
+
+.topbar {
+  height: 68px !important;
+}
+
+.bottom-tabs,
+.tabs {
+  height: 72px !important;
+}
+
+.bottom-tabs button,
+.tabs button {
+  height: 72px !important;
+}
+
+/* Footer das telas de preparo/finalizacao na nova moldura */
+.footer-actions {
+  left: 126px !important;
+  right: 126px !important;
+  bottom: 62px !important;
+}
+
+/* Alarme fica dentro da área útil do tablet */
+.alarm-overlay {
+  left: 126px !important;
+  right: 126px !important;
+  top: 78px !important;
+  bottom: 62px !important;
+}
+
+/* Mais altura útil para grids */
+.recipe-grid,
+.checklist,
+.check-grid,
+.records-list {
+  max-height: calc(100% - 118px) !important;
+}
+
+.operation-content {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+/* Evita escala antiga acumulada de outros patches */
+@media (max-width: 1360px), (max-height: 800px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: none !important;
   }
 }
