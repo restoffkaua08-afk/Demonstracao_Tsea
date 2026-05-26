@@ -83,6 +83,14 @@ type AlarmInfo = {
 
 const GATEWAY_API = "http://127.0.0.1:8020/api";
 
+const LIMITS = {
+  tankMin: 1,
+  tankMax: 3,
+  oilMinL: 0,
+  oilMaxL: 300,
+  oilStepL: 1,
+};
+
 const defaultRecipes: Recipe[] = [];
 
 const hoses: Hose[] = [
@@ -194,6 +202,15 @@ function timeFmt(s: number) {
 
 function now() {
   return new Date().toLocaleTimeString("pt-BR");
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
+function clampInteger(value: number, min: number, max: number) {
+  return Math.round(clampNumber(value, min, max));
 }
 
 function humanStage(stage: string) {
@@ -506,7 +523,10 @@ function App() {
   const allCheckedPre = Object.values(checklistPre).every((v) => v === true);
   const allCheckedPos = Object.entries(checklistPos).filter(([k]) => k !== "observacao").every(([, v]) => v === true);
   const oilNeeded = qtdTanques * recipe.oleoPorTanque;
+  const receitaExcedeLimiteOleo = recipes.length > 0 && oilNeeded > LIMITS.oilMaxL;
   const oilInsuficiente = recipes.length > 0 && oleoColocado < oilNeeded;
+  const gatewayBloqueado = !gatewayOnline;
+  const inicioBloqueado = gatewayBloqueado || receitaExcedeLimiteOleo || oilInsuficiente || !allCheckedPre || !recipes.length;
 
   const alarmInfo = useMemo<AlarmInfo | null>(() => {
     if (status === "BLOQUEADO" || gatewayState?.hardware?.emergency || gatewayState?.alarm) {
@@ -567,8 +587,18 @@ function App() {
       return;
     }
 
+    if (gatewayBloqueado) {
+      addLog("Inicio bloqueado: Gateway offline.");
+      return;
+    }
+
+    if (receitaExcedeLimiteOleo) {
+      addLog(`Inicio bloqueado: receita exige ${oilNeeded} L, acima do limite de ${LIMITS.oilMaxL} L da IHM.`);
+      return;
+    }
+
     if (oilInsuficiente || !allCheckedPre) {
-      addLog("Inicio bloqueado por checklist ou oleo insuficiente.");
+      addLog("Inicio bloqueado por checklist incompleto ou oleo insuficiente.");
       return;
     }
 
@@ -774,12 +804,17 @@ function App() {
         {renderAlarm()}
         <h2>DADOS DA OPERACAO</h2>
         <div className="form-grid">
-          <div className="field"><label>Quantidade de tanques</label><input type="number" min={1} max={3} value={qtdTanques} onChange={(e) => setQtdTanques(Math.max(1, Math.min(3, Number(e.target.value) || 1)))} /></div>
+          <div className="field"><label>Quantidade de tanques</label><input type="number" min={LIMITS.tankMin} max={LIMITS.tankMax} step={1} value={qtdTanques} onChange={(e) => setQtdTanques(clampInteger(Number(e.target.value), LIMITS.tankMin, LIMITS.tankMax))} /></div>
           <div className="field"><label>Mangueira</label><select value={hoseId} onChange={(e) => setHoseId(e.target.value as HoseKey)}>{hoses.map((h) => <option key={h.id} value={h.id}>{h.descricao}</option>)}</select></div>
-          <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" min={0} value={oleoColocado} onChange={(e) => setOleoColocado(Math.max(0, Number(e.target.value) || 0))} /></div>
-          <div className={oilInsuficiente ? "oil-warning" : "oil-ok"}>Oleo necessario para esta operacao: {oilNeeded} L</div>
+          <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" min={LIMITS.oilMinL} max={LIMITS.oilMaxL} step={LIMITS.oilStepL} value={oleoColocado} onChange={(e) => setOleoColocado(clampNumber(Number(e.target.value), LIMITS.oilMinL, LIMITS.oilMaxL))} /></div>
+          <div className={oilInsuficiente || receitaExcedeLimiteOleo ? "oil-warning limit-box" : "oil-ok limit-box"}>
+            <b>Oleo necessario: {oilNeeded} L</b>
+            <span>Limite operacional da IHM: {LIMITS.oilMinL} a {LIMITS.oilMaxL} L.</span>
+            {receitaExcedeLimiteOleo && <span>Receita acima do limite demonstrativo. Ajuste a receita no gerente.</span>}
+            {gatewayBloqueado && <span>Gateway offline: inicio bloqueado ate normalizar a comunicacao.</span>}
+          </div>
         </div>
-        <button className="next-btn standard-btn compact" disabled={oilInsuficiente || !recipes.length} onClick={() => setPhase("checklist_pre")}>CONTINUAR</button>
+        <button className="next-btn standard-btn compact" disabled={oilInsuficiente || receitaExcedeLimiteOleo || !recipes.length} onClick={() => setPhase("checklist_pre")}>CONTINUAR</button>
         {renderMenu()}
       </div>
     );
@@ -817,10 +852,12 @@ function App() {
           <p><b>Oleo necessario:</b> {oilNeeded} L</p>
           <p><b>Pressao alvo:</b> {recipe.pressaoAlvo} mbar</p>
           {oilInsuficiente && <p className="warn-text">Volume de oleo insuficiente para iniciar.</p>}
+          {receitaExcedeLimiteOleo && <p className="warn-text">Receita exige mais oleo que o limite operacional da IHM.</p>}
+          {gatewayBloqueado && <p className="warn-text">Gateway offline. Inicio bloqueado ate normalizar a comunicacao.</p>}
         </div>
         <div className="button-row">
           <button className="cancel-btn standard-btn compact" onClick={() => setPhase("inicial")}>CANCELAR</button>
-          <button className="start-btn standard-btn compact" disabled={oilInsuficiente || !allCheckedPre || !recipes.length} onClick={iniciarOperacao}>INICIAR</button>
+          <button className="start-btn standard-btn compact" disabled={inicioBloqueado} onClick={iniciarOperacao}>INICIAR</button>
         </div>
         {renderMenu()}
       </div>

@@ -2749,3 +2749,104 @@ body {
   }
 }
 
+
+
+
+/* =========================================================
+   PATCH LIMITES OPERACIONAIS E MENU IHM
+   Ajuste pontual: validação visual e botão MENU.
+========================================================= */
+
+.limit-box {
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 5px !important;
+  line-height: 1.15 !important;
+}
+
+.limit-box b {
+  font-size: 0.95rem !important;
+  font-weight: 950 !important;
+}
+
+.limit-box span {
+  display: block !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+}
+
+.warn-text {
+  color: #8a0000 !important;
+  background: #ffd4d4 !important;
+  border: 4px solid #111 !important;
+  padding: 8px !important;
+  font-weight: 950 !important;
+}
+
+/* Corrige de vez o botão MENU dentro da barra superior */
+.operacao .topbar {
+  grid-template-columns: minmax(84px, 98px) repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.operacao .topbar > div,
+.operacao .topbar > button {
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+.menu-btn {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  border: 5px solid #111 !important;
+  background: #f7fbf7 !important;
+  color: #111 !important;
+  font-size: 0.78rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1 !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.10) !important;
+  position: relative !important;
+  z-index: 50 !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+}
+
+.menu-btn:hover {
+  background: #e5f7e5 !important;
+}
+
+/* Drawer acima da tela e clicável */
+.drawer {
+  z-index: 9000 !important;
+  pointer-events: auto !important;
+}
+
+.drawer.open {
+  left: 0 !important;
+}
+
+.drawer button {
+  pointer-events: auto !important;
+}
+
+/* Evita texto espremido nos cards da topbar */
+.topbar div span,
+.topbar div strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.topbar div strong {
+  white-space: nowrap !important;
+}
+
