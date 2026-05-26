@@ -460,6 +460,274 @@ class GatewayState:
 STATE = GatewayState()
 CLIENTS: set[WebSocket] = set()
 
+# TSEA_OPERATION_TRACEABILITY_START
+
+OPERATION_RECORDS_FILE = DATA_DIR / "operation_records.json"
+
+
+def load_operation_records() -> list[dict[str, Any]]:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    if OPERATION_RECORDS_FILE.exists():
+        try:
+            data = json.loads(OPERATION_RECORDS_FILE.read_text(encoding="utf-8"))
+            return data if isinstance(data, list) else []
+        except Exception:
+            return []
+
+    return []
+
+
+def save_operation_records() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    OPERATION_RECORDS_FILE.write_text(
+        json.dumps(OPERATION_RECORDS[:150], indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+OPERATION_RECORDS: list[dict[str, Any]] = load_operation_records()
+
+
+def _safe_recipe() -> dict[str, Any]:
+    return public_recipe(STATE.recipe) if "public_recipe" in globals() else STATE.recipe
+
+
+def _safe_hose() -> dict[str, Any]:
+    return public_hose(STATE.hose) if "public_hose" in globals() else STATE.hose
+
+
+def _operation_status_label() -> str:
+    if STATE.status == "EM_CICLO":
+        return "Em andamento"
+    if STATE.status == "PAUSADO":
+        return "Atenção"
+    if STATE.status == "FINALIZADO":
+        return "Operacional"
+    if STATE.status == "BLOQUEADO":
+        return "Crítico"
+    return "Registrado"
+
+
+def _operation_result_text() -> str:
+    if STATE.status == "EM_CICLO":
+        return "Operação em execução e monitorada em tempo real pelo Gateway."
+    if STATE.status == "PAUSADO":
+        return "Operação pausada com registro mantido para rastreabilidade."
+    if STATE.status == "FINALIZADO":
+        return "Operação finalizada e consolidada no histórico técnico."
+    if STATE.status == "BLOQUEADO":
+        return "Operação bloqueada por evento crítico."
+    return "Operação registrada pelo Gateway."
+
+
+def _operation_observation_text(max_risk: float) -> str:
+    if max_risk >= 82:
+        return "Risco crítico. Verificar pressão, mangueira, sensores, bomba e condição estrutural."
+    if max_risk >= 65:
+        return "Operação com atenção. Monitorar perda de carga, óleo e estabilidade da curva."
+    return "Operação dentro da faixa demonstrativa esperada."
+
+
+def current_operation_record(extra: dict[str, Any] | None = None, forced_status: str | None = None) -> dict[str, Any] | None:
+    if not STATE.operation_id:
+        return None
+
+    now = datetime.now().isoformat(timespec="seconds")
+    payload = STATE.payload()
+    recipe = _safe_recipe()
+    hose = _safe_hose()
+
+    tanks = payload.get("tanks", [])
+    pressure_avg = float(payload.get("pressure_avg_tank_mbar") or 0)
+    target_pressure = float(recipe.get("target_pressure_mbar") or 0)
+
+    oil_payload = payload.get("oil", {})
+    pump_payload = payload.get("pumps", {})
+    hardware_payload = payload.get("hardware", {})
+
+    max_risk = max([float(tank.get("risk_pct") or 0) for tank in tanks], default=0.0)
+    tank_codes = ", ".join(str(tank.get("code") or tank.get("id") or "TQ") for tank in tanks) or "TQ-01"
+
+    existing = next(
+        (item for item in OPERATION_RECORDS if str(item.get("id")) == str(STATE.operation_id)),
+        None,
+    )
+
+    timeline = list(existing.get("timeline", [])) if existing else []
+    timeline.append({
+        "second": STATE.elapsed_seconds,
+        "time": now,
+        "real_pressure_mbar": round(pressure_avg, 3),
+        "expected_pressure_mbar": round(target_pressure, 3),
+        "effective_pressure_mbar": round(pressure_avg, 3),
+        "machine_pressure_mbar": payload.get("pressure_machine_mbar"),
+        "stage": STATE.stage,
+        "oil_injected_l": oil_payload.get("injected_l"),
+        "oil_flow_l_min": oil_payload.get("flow_l_min"),
+        "risk_pct": round(max_risk, 2),
+        "pump_b1": pump_payload.get("b1"),
+        "pump_b2": pump_payload.get("b2"),
+        "pump_oil": pump_payload.get("oil"),
+    })
+    timeline = timeline[-240:]
+
+    event_messages = [
+        str(event.get("message") or "")
+        for event in STATE.events
+        if event.get("message")
+    ][:30]
+
+    components = [
+        {
+            "type": "Bomba primária",
+            "id": "B1",
+            "status": "Ligada" if pump_payload.get("b1") else "Desligada",
+            "performance": "96%",
+            "reading": "Mini bomba de vácuo / bomba primária",
+            "impact": "Evacuação inicial e sustentação do ciclo de vácuo.",
+        },
+        {
+            "type": "Bomba secundária / Roots simulada",
+            "id": "B2",
+            "status": "Ligada" if pump_payload.get("b2") else "Aguardando",
+            "performance": "94%" if pump_payload.get("b2") else "Aguardando faixa",
+            "reading": "Lâmpada simulando B2/Roots",
+            "impact": "Representa o reforço de vácuo após faixa segura.",
+        },
+        {
+            "type": "Linha de óleo",
+            "id": "OIL-01",
+            "status": "Ativa" if pump_payload.get("oil") else "Aguardando",
+            "performance": f"{oil_payload.get('flow_l_min', 0)} L/min",
+            "reading": f"{oil_payload.get('injected_l', 0)} L injetados",
+            "impact": "Representa a etapa de impregnação/enchimento monitorado.",
+        },
+        {
+            "type": "Sensor de pressão",
+            "id": f"SP-{tank_codes}",
+            "status": "Online" if hardware_payload.get("sensor_online") else "Falha",
+            "performance": "98%" if hardware_payload.get("sensor_online") else "0%",
+            "reading": f"{round(pressure_avg, 3)} mbar",
+            "impact": "Base de leitura para painel, rastreabilidade e alarmes.",
+        },
+        {
+            "type": "Mangueira",
+            "id": hose.get("code") or hose.get("id") or "MG-02",
+            "status": "Vinculada",
+            "performance": str(hose.get("loss_base_mbar", hose.get("loss_factor", "--"))),
+            "reading": "Perda de carga simulada",
+            "impact": "Afeta diferença entre pressão da máquina e pressão estimada no tanque.",
+        },
+        {
+            "type": "PLC / Gateway",
+            "id": "PLC-SIM",
+            "status": "Online" if hardware_payload.get("plc_online") else "Offline",
+            "performance": "Simulado",
+            "reading": STATE.stage,
+            "impact": "Centraliza comando, estado operacional, intertravamentos e eventos.",
+        },
+    ]
+
+    actions = [
+        {
+            "step": event.get("time"),
+            "status": event.get("level"),
+            "ref": STATE.stage,
+            "log": event.get("message"),
+        }
+        for event in STATE.events[:30]
+    ]
+
+    record = {
+        "id": STATE.operation_id,
+        "operation_id": STATE.operation_id,
+        "type": "Operação",
+        "name": f"{recipe.get('title', recipe.get('name', 'Receita operacional'))} - {STATE.operation_id}",
+        "title": f"{recipe.get('title', recipe.get('name', 'Receita operacional'))} - {STATE.operation_id}",
+        "created_at": existing.get("created_at") if existing else now,
+        "started_at": existing.get("started_at") if existing else now,
+        "updated_at": now,
+        "finished_at": now if STATE.status == "FINALIZADO" else (existing.get("finished_at") if existing else None),
+        "operator": STATE.operator,
+        "user": STATE.operator,
+        "shift": STATE.shift,
+        "status": forced_status or _operation_status_label(),
+        "stage": STATE.stage,
+        "tank": tank_codes,
+        "tank_count": STATE.tank_count,
+        "hose": hose.get("code") or hose.get("id") or "MG-02",
+        "recipe": recipe.get("title") or recipe.get("name") or recipe.get("id"),
+        "recipe_id": recipe.get("id"),
+        "initial_pressure_mbar": 1013.0,
+        "final_pressure_mbar": round(pressure_avg, 3),
+        "pressure_mbar": round(pressure_avg, 3),
+        "target_pressure_mbar": target_pressure,
+        "cycle_time": f"{STATE.elapsed_seconds}s",
+        "duration": f"{STATE.elapsed_seconds}s",
+        "elapsed_seconds": STATE.elapsed_seconds,
+        "oil": f"{oil_payload.get('injected_l', 0)} L · {oil_payload.get('flow_l_min', 0)} L/min",
+        "oil_volume_liters": oil_payload.get("injected_l", 0),
+        "oil_flow_l_min": oil_payload.get("flow_l_min", 0),
+        "risk": round(max_risk, 2),
+        "collapse_risk_pct": round(max_risk, 2),
+        "result": _operation_result_text(),
+        "observations": _operation_observation_text(max_risk),
+        "events": event_messages or ["Operação registrada no Gateway."],
+        "tanks": tanks,
+        "timeline": timeline,
+        "raw_state": payload,
+        "components": components,
+        "actions": actions,
+    }
+
+    if existing:
+        if existing.get("checklist_pre") and not (extra and "checklist_pre" in extra):
+            record["checklist_pre"] = existing.get("checklist_pre")
+        if existing.get("checklist_final") and not (extra and "checklist_final" in extra):
+            record["checklist_final"] = existing.get("checklist_final")
+
+    if extra:
+        record.update(extra)
+
+    return record
+
+
+def upsert_operation_record(extra: dict[str, Any] | None = None, forced_status: str | None = None) -> dict[str, Any] | None:
+    record = current_operation_record(extra=extra, forced_status=forced_status)
+
+    if record is None:
+        return None
+
+    index = next(
+        (idx for idx, item in enumerate(OPERATION_RECORDS) if str(item.get("id")) == str(record.get("id"))),
+        None,
+    )
+
+    if index is None:
+        OPERATION_RECORDS.insert(0, record)
+    else:
+        OPERATION_RECORDS[index] = record
+        OPERATION_RECORDS.insert(0, OPERATION_RECORDS.pop(index))
+
+    save_operation_records()
+    STATE.history_today = OPERATION_RECORDS[:50]
+    return record
+
+
+def find_operation_record(record_id: str) -> dict[str, Any] | None:
+    if STATE.operation_id and str(STATE.operation_id) == str(record_id):
+        upsert_operation_record()
+
+    return next(
+        (item for item in OPERATION_RECORDS if str(item.get("id")) == str(record_id)),
+        None,
+    )
+
+# TSEA_OPERATION_TRACEABILITY_END
+
+
+
 
 async def broadcast() -> None:
     payload = STATE.payload()
@@ -478,6 +746,8 @@ async def broadcast() -> None:
 async def simulation_loop() -> None:
     while True:
         STATE.update_simulation()
+        if STATE.operation_id:
+            upsert_operation_record()
         await broadcast()
         await asyncio.sleep(1)
 
@@ -677,6 +947,7 @@ async def legacy_operation_start(payload: dict[str, Any]) -> dict[str, Any]:
     )
 
     STATE.start(command)
+    upsert_operation_record()
     await broadcast()
     return legacy_state_payload()
 
@@ -684,6 +955,7 @@ async def legacy_operation_start(payload: dict[str, Any]) -> dict[str, Any]:
 @app.post("/api/operation/pause")
 async def legacy_operation_pause() -> dict[str, Any]:
     STATE.pause()
+    upsert_operation_record()
     await broadcast()
     return legacy_state_payload()
 
@@ -691,6 +963,7 @@ async def legacy_operation_pause() -> dict[str, Any]:
 @app.post("/api/operation/stop")
 async def legacy_operation_stop() -> dict[str, Any]:
     STATE.stop()
+    upsert_operation_record(forced_status="Operacional")
     await broadcast()
     return legacy_state_payload()
 
@@ -705,6 +978,7 @@ async def legacy_operation_reset() -> dict[str, Any]:
 @app.post("/api/operation/emergency")
 async def legacy_operation_emergency() -> dict[str, Any]:
     STATE.emergency_stop()
+    upsert_operation_record(forced_status="Crítico")
     await broadcast()
     return legacy_state_payload()
 
@@ -744,9 +1018,12 @@ def digital_twin_config_options() -> dict[str, Any]:
 
 @app.get("/api/reports/operational")
 def reports_operational() -> dict[str, Any]:
+    if STATE.operation_id:
+        upsert_operation_record()
+
     return {
         "summary": legacy_state_payload(),
-        "history_today": STATE.history_today,
+        "history_today": OPERATION_RECORDS,
     }
 
 
@@ -778,8 +1055,26 @@ def maintenance_prediction() -> list[dict[str, Any]]:
 
 @app.get("/api/records/operations")
 def records_operations() -> dict[str, Any]:
+    if STATE.operation_id:
+        upsert_operation_record()
+
     return {
-        "items": STATE.history_today,
+        "items": OPERATION_RECORDS,
+    }
+
+
+@app.get("/api/records/operations/{record_id}")
+def records_operation_detail(record_id: str) -> dict[str, Any]:
+    record = find_operation_record(record_id)
+
+    if record is None:
+        return {
+            "record": None,
+            "error": "Registro nao encontrado.",
+        }
+
+    return {
+        "record": record,
     }
 
 
@@ -891,12 +1186,16 @@ def get_hoses() -> list[dict[str, Any]]:
 
 @app.get("/api/history/today")
 def get_history_today() -> list[dict[str, Any]]:
-    return STATE.history_today
+    if STATE.operation_id:
+        upsert_operation_record()
+
+    return OPERATION_RECORDS
 
 
 @app.post("/api/command/start")
 async def command_start(command: StartCommand) -> dict[str, Any]:
     payload = STATE.start(command)
+    upsert_operation_record()
     await broadcast()
     return payload
 
@@ -904,6 +1203,7 @@ async def command_start(command: StartCommand) -> dict[str, Any]:
 @app.post("/api/command/pause")
 async def command_pause() -> dict[str, Any]:
     payload = STATE.pause()
+    upsert_operation_record()
     await broadcast()
     return payload
 
@@ -911,6 +1211,7 @@ async def command_pause() -> dict[str, Any]:
 @app.post("/api/command/resume")
 async def command_resume() -> dict[str, Any]:
     payload = STATE.resume()
+    upsert_operation_record()
     await broadcast()
     return payload
 
@@ -918,6 +1219,7 @@ async def command_resume() -> dict[str, Any]:
 @app.post("/api/command/stop")
 async def command_stop() -> dict[str, Any]:
     payload = STATE.stop()
+    upsert_operation_record(forced_status="Operacional")
     await broadcast()
     return payload
 
@@ -925,6 +1227,7 @@ async def command_stop() -> dict[str, Any]:
 @app.post("/api/command/emergency")
 async def command_emergency() -> dict[str, Any]:
     payload = STATE.emergency_stop()
+    upsert_operation_record(forced_status="Crítico")
     await broadcast()
     return payload
 
@@ -939,6 +1242,7 @@ async def command_reset() -> dict[str, Any]:
 @app.post("/api/checklist/pre")
 async def checklist_pre(payload: ChecklistPayload) -> dict[str, Any]:
     STATE.event("Checklist inicial recebido.", "INFO")
+    upsert_operation_record(extra={"checklist_pre": payload.model_dump()})
     await broadcast()
     return {
         "ok": True,
@@ -949,6 +1253,7 @@ async def checklist_pre(payload: ChecklistPayload) -> dict[str, Any]:
 @app.post("/api/checklist/final")
 async def checklist_final(payload: ChecklistPayload) -> dict[str, Any]:
     STATE.event("Checklist final recebido.", "INFO")
+    upsert_operation_record(extra={"checklist_final": payload.model_dump()})
     await broadcast()
     return {
         "ok": True,

@@ -239,6 +239,53 @@ function App() {
     }
   };
 
+
+  const enviarChecklistPre = async () => {
+    try {
+      await fetch(`${GATEWAY_API}/checklist/pre`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operation_id: operationId || "",
+          items: checklistPre,
+          observation: "Checklist pre-operacional confirmado na IHM."
+        })
+      });
+
+      addLog("Checklist inicial enviado ao Gateway.");
+    } catch (error) {
+      addLog(`Falha ao enviar checklist inicial: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    setPhase("revisao");
+  };
+
+  const finalizarOperacaoCompleta = async () => {
+    try {
+      await fetch(`${GATEWAY_API}/checklist/final`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operation_id: operationId,
+          items: checklistPos,
+          observation: checklistPos.observacao || "Checklist final confirmado na IHM."
+        })
+      });
+
+      await fetch(`${GATEWAY_API}/command/stop`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+
+      addLog("Checklist final e STOP enviados ao Gateway.");
+    } catch (error) {
+      addLog(`Falha ao enviar finalizacao ao Gateway: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    registrar("CONCLUIDO");
+    reiniciar();
+  };
+
   const reiniciar = () => {
     setPhase("boot");
     setDrawerOpen(false);
@@ -358,7 +405,7 @@ function App() {
       <div className="checklist">
         {Object.entries(checklistPre).map(([k,v])=><label key={k}><input type="checkbox" checked={v} onChange={e=>setChecklistPre(prev=>({...prev,[k]:e.target.checked}))}/> {k.toUpperCase()}</label>)}
       </div>
-      <button className="next-btn" disabled={!allCheckedPre} onClick={()=>setPhase("revisao")}>CONTINUAR</button>
+      <button className="next-btn" disabled={!allCheckedPre} onClick={enviarChecklistPre}>CONTINUAR</button>
       {menu()}
     </div>
   );
@@ -423,7 +470,7 @@ function App() {
         {Object.entries(checklistPos).map(([k,v])=>k!=="observacao"&&<label key={k}><input type="checkbox" checked={v as boolean} onChange={e=>setChecklistPos(prev=>({...prev,[k]:e.target.checked}))}/> {k.toUpperCase()}</label>)}
         <label>Observacao:</label><textarea value={checklistPos.observacao} onChange={e=>setChecklistPos(prev=>({...prev,observacao:e.target.value}))}/>
       </div>
-      <button disabled={!allCheckedPos} onClick={()=>{registrar("CONCLUIDO"); reiniciar();}}>FINALIZAR</button>
+      <button disabled={!allCheckedPos} onClick={finalizarOperacaoCompleta}>FINALIZAR</button>
       {menu()}
     </div>
   );
