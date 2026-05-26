@@ -2484,3 +2484,268 @@ body {
     transform: none !important;
   }
 }
+
+
+
+/* =========================================================
+   PATCH PONTUAL TABLET OLEO BOMBAS
+   Ajuste pequeno:
+   - aumenta tablet de verdade
+   - remove card isolado do reservatorio
+   - prioriza bombas
+   - nao altera logica, checklist, Gateway ou rastreabilidade
+========================================================= */
+
+/* Aumenta largura E altura sem forcar proporcao que reduza o tablet */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao,
+.screen,
+.boot-screen {
+  width: min(1580px, calc(100vw - 4px)) !important;
+  height: min(940px, calc(100vh - 4px)) !important;
+  max-height: calc(100vh - 4px) !important;
+  min-height: min(860px, calc(100vh - 4px)) !important;
+  aspect-ratio: auto !important;
+  margin: 2px auto !important;
+
+  /* borda menor para ganhar area interna */
+  padding: 66px 104px 52px !important;
+}
+
+/* Tela interna maior */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operacao::before,
+.finalizacao::before,
+.screen::before,
+.boot-screen::before {
+  left: 88px !important;
+  right: 88px !important;
+  top: 42px !important;
+  bottom: 34px !important;
+}
+
+/* Corrige qualquer escala antiga que tenha ficado acumulada */
+@media (max-width: 1360px), (max-height: 800px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: none !important;
+  }
+}
+
+/* Operacao aproveita melhor a nova altura */
+.operacao {
+  grid-template-rows: 62px minmax(0, 1fr) 66px !important;
+  gap: 8px !important;
+}
+
+.topbar {
+  height: 62px !important;
+}
+
+.content-area {
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.bottom-tabs,
+.tabs {
+  height: 66px !important;
+}
+
+.bottom-tabs button,
+.tabs button {
+  height: 66px !important;
+}
+
+/* Footer e alarme ajustados à moldura maior */
+.footer-actions {
+  left: 104px !important;
+  right: 104px !important;
+  bottom: 52px !important;
+}
+
+.alarm-overlay {
+  left: 104px !important;
+  right: 104px !important;
+  top: 66px !important;
+  bottom: 52px !important;
+}
+
+/* =========================================================
+   BOMBAS: bombas primeiro, informações secundárias compactas
+========================================================= */
+
+.machines-layout.machines-priority {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(470px, 1.65fr) minmax(260px, 0.7fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.pump-stack-priority {
+  display: grid !important;
+  grid-template-rows: repeat(3, 1fr) !important;
+  gap: 12px !important;
+  min-height: 0 !important;
+}
+
+.pump-stack-priority .pump-card {
+  min-height: 0 !important;
+  padding: 14px !important;
+  border-width: 5px !important;
+}
+
+.pump-stack-priority .pump-head strong {
+  font-size: 1.25rem !important;
+}
+
+.pump-stack-priority .pump-head small {
+  font-size: 0.78rem !important;
+}
+
+.pump-stack-priority .pump-card p {
+  font-size: 0.78rem !important;
+  line-height: 1.2 !important;
+}
+
+.pump-info-compact {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.pump-info-compact article {
+  min-height: 0 !important;
+  padding: 10px !important;
+}
+
+.pump-info-compact article span {
+  font-size: 0.66rem !important;
+}
+
+.pump-info-compact article b {
+  font-size: 0.98rem !important;
+}
+
+.pump-info-compact article small {
+  font-size: 0.62rem !important;
+  line-height: 1.05 !important;
+}
+
+/* =========================================================
+   ÓLEO: sem card separado de reservatório
+========================================================= */
+
+.oil-layout.oil-layout-focused {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.55fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.oil-flow-card.oil-flow-main {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 34px 62px minmax(0, 1fr) 26px !important;
+  gap: 10px !important;
+  padding: 12px !important;
+}
+
+.oil-inline-metrics {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.oil-inline-metrics div {
+  border: 4px solid #111 !important;
+  background: #f7fbf7 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  padding: 5px !important;
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,0.08) !important;
+}
+
+.oil-inline-metrics span {
+  color: #4c554d !important;
+  font-size: 0.58rem !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.oil-inline-metrics b {
+  font-size: 0.82rem !important;
+  font-weight: 950 !important;
+}
+
+.oil-source-with-level {
+  position: relative !important;
+}
+
+.oil-source-with-level::after {
+  display: none !important;
+}
+
+.pipe-reservoir-oil {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(180deg, #ffd16d, #c47a19) !important;
+  transition: height 0.8s ease !important;
+}
+
+.oil-metrics-focused {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.oil-metrics-focused article {
+  min-height: 0 !important;
+  padding: 10px !important;
+}
+
+.oil-reservoir-card {
+  display: none !important;
+}
+
+/* Se a tela for menor, ainda prioriza bombas e óleo sem quebrar */
+@media (max-width: 1100px), (max-height: 720px) {
+  .machines-layout.machines-priority {
+    grid-template-columns: minmax(390px, 1.4fr) minmax(220px, 0.6fr) !important;
+  }
+
+  .oil-layout.oil-layout-focused {
+    grid-template-columns: minmax(0, 1.3fr) minmax(210px, 0.55fr) !important;
+  }
+
+  .oil-inline-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+

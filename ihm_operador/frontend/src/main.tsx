@@ -848,51 +848,50 @@ function App() {
           )}
 
           {tab === "bombas" && (
-            <div className="machines-layout">
-              <div className="pump-stack">
+            <div className="machines-layout machines-priority">
+              <div className="pump-stack pump-stack-priority">
                 <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Evacuacao inicial do tanque e manutencao da linha de vacuo." />
                 <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Reforco de vacuo acionado somente dentro da faixa permitida." />
-                <PumpCard name="OLEO" subtitle="Linha de injecao" on={oilLigada} detail="Simula a entrada controlada de oleo apos a etapa de vacuo." />
+                <PumpCard name="OLEO" subtitle="Linha de injecao" on={oilLigada} detail="Entrada controlada de oleo conforme etapa da receita." />
               </div>
 
-              <div className="machine-info-grid">
-                <article><span>Pressao maquina</span><b>{fmt(pressaoMaquina, "mbar")}</b><small>Leitura base do conjunto de vacuo</small></article>
-                <article><span>Pressao media tanque</span><b>{fmt(pressaoMedia, "mbar")}</b><small>Considera perda simulada da mangueira</small></article>
-                <article><span>Sensor</span><b>{gatewayState?.hardware?.sensor_online === false ? "FALHA" : "ONLINE"}</b><small>Leitura enviada ao Gateway</small></article>
-                <article><span>PLC / Gateway</span><b>{gatewayOnline ? "ONLINE" : "OFFLINE"}</b><small>Comunica IHM e sistema do gerente</small></article>
-                <article><span>Intertravamento</span><b>{alarmInfo?.severity === "red" ? "BLOQUEADO" : "LIBERADO"}</b><small>Protecao logica do ciclo</small></article>
-                <article><span>Receita</span><b>{recipe.title}</b><small>{recipe.tipoTanque}</small></article>
+              <div className="machine-info-grid pump-info-compact">
+                <article><span>Pressao geral</span><b>{fmt(pressaoMaquina, "mbar")}</b><small>Antes da perda da linha</small></article>
+                <article><span>Pressao no regulador</span><b>{fmt(pressaoMedia, "mbar")}</b><small>Valor compensado no tanque</small></article>
+                <article><span>Gateway</span><b>{gatewayOnline ? "ONLINE" : "OFFLINE"}</b><small>Comunicacao com gerente</small></article>
+                <article><span>Seguranca</span><b>{alarmInfo?.severity === "red" ? "BLOQUEADO" : "LIBERADO"}</b><small>Intertravamento</small></article>
               </div>
             </div>
           )}
 
           {tab === "oleo" && (
-            <div className="oil-layout">
-              <article className="oil-reservoir-card">
-                <h3>Reservatorio de oleo</h3>
-                <div className="oil-reservoir">
-                  <div className="oil-fill" style={{ height: `${Math.max(6, Math.min(92, (oilRestante / Math.max(oleoColocado, 1)) * 100))}%` }} />
-                </div>
-                <p>Restante: <b>{fmt(oilRestante, "L")}</b></p>
-              </article>
+            <div className="oil-layout oil-layout-focused">
+              <article className="oil-flow-card oil-flow-main">
+                <h3>Linha de injecao de oleo</h3>
 
-              <article className="oil-flow-card">
-                <h3>Linha de injecao</h3>
+                <div className="oil-inline-metrics">
+                  <div><span>Reservatorio</span><b>{fmt(oilRestante, "L")}</b></div>
+                  <div><span>Pressao tanque</span><b>{fmt(pressaoMedia, "mbar")}</b></div>
+                  <div><span>Injetado</span><b>{fmt(oilInjetado, "L")}</b></div>
+                  <div><span>Vazao</span><b>{fmt(oilFlow, "L/min")}</b></div>
+                </div>
+
                 <div className={`oil-demo-line ${oilLigada ? "active" : ""}`}>
-                  <div className="pipe-reservoir" />
+                  <div className="pipe-reservoir oil-source-with-level">
+                    <div className="pipe-reservoir-oil" style={{ height: `${Math.max(6, Math.min(92, (oilRestante / Math.max(oleoColocado, 1)) * 100))}%` }} />
+                  </div>
                   <div className="pipe-hose">{oilLigada && <><span /><span /><span /><span /></>}</div>
                   <div className="pipe-tank">
                     <div className="pipe-tank-oil" style={{ height: `${Math.max(4, Math.min(80, oilInjetado / Math.max(oilNeeded, 1) * 80))}%` }} />
                   </div>
                 </div>
+
                 <p>{oilLigada ? "Injetando oleo na etapa atual" : "Linha aguardando etapa de oleo"}</p>
               </article>
 
-              <div className="oil-metrics">
-                <article><span>Oleo colocado</span><b>{fmt(oleoColocado, "L")}</b></article>
+              <div className="oil-metrics oil-metrics-focused">
+                <article><span>Oleo inicial</span><b>{fmt(oleoColocado, "L")}</b></article>
                 <article><span>Oleo necessario</span><b>{fmt(oilNeeded, "L")}</b></article>
-                <article><span>Oleo injetado</span><b>{fmt(oilInjetado, "L")}</b></article>
-                <article><span>Vazao atual</span><b>{fmt(oilFlow, "L/min")}</b></article>
                 <article><span>Temperatura</span><b>{fmt(Number(gatewayState?.oil?.temperature_c ?? 60), "C")}</b></article>
                 <article><span>Status da linha</span><b>{oilLigada ? "ATIVA" : "AGUARDANDO"}</b></article>
               </div>
