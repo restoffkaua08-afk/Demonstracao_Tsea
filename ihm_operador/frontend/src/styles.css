@@ -54,7 +54,7 @@ body {
   isolation: isolate;
   overflow: hidden;
 
-  /* menos borda desperdiçada, mais tela útil */
+  /* menos borda desperdiÃ§ada, mais tela Ãºtil */
   padding: 92px 172px 74px;
 
   border-radius: 88px 100px 88px 100px;
@@ -1750,7 +1750,7 @@ button:disabled {
   }
 }
 
-/* Cards técnicos do lado direito */
+/* Cards tÃ©cnicos do lado direito */
 .machine-info-grid {
   min-height: 0 !important;
   display: grid !important;
@@ -2003,7 +2003,7 @@ button:disabled {
   }
 }
 
-/* Cards técnicos sem cortar texto importante */
+/* Cards tÃ©cnicos sem cortar texto importante */
 .machine-info-grid {
   min-height: 0 !important;
   display: grid !important;
@@ -2185,5 +2185,133 @@ button:disabled {
 
   .machine-info-grid {
     grid-auto-rows: minmax(68px, 1fr) !important;
+  }
+}
+
+
+/* =========================================================
+   PATCH AUMENTA TABLET IHM
+   Apenas aumenta o tablet e a tela interna.
+   Nao altera logica, bloqueios, Gateway ou rastreabilidade.
+========================================================= */
+
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao,
+.screen,
+.boot-screen {
+  width: min(1500px, calc(100vw - 8px)) !important;
+  height: min(890px, calc(100vh - 8px)) !important;
+  min-height: min(780px, calc(100vh - 8px)) !important;
+  margin: 4px auto !important;
+
+  /*
+    Antes a borda consumia muito espaco.
+    Mantem o tablet, mas deixa a tela interna maior.
+  */
+  padding: 72px 122px 58px !important;
+}
+
+/* Tela interna maior dentro da moldura */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operacao::before,
+.finalizacao::before,
+.screen::before,
+.boot-screen::before {
+  left: 104px !important;
+  right: 104px !important;
+  top: 48px !important;
+  bottom: 38px !important;
+}
+
+/* Ajusta botao/luz lateral para a borda menor */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao,
+.screen,
+.boot-screen {
+  background:
+    radial-gradient(circle at 52px 50%, #e8ffff 0 23px, #59fff1 24px 30px, #0d8c80 31px 38px, #111 39px 45px, transparent 46px),
+    radial-gradient(circle at calc(100% - 52px) 50%, #ff3340 0 25px, #d20d18 26px 34px, #111 35px 43px, transparent 44px),
+
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) left 98px / 108px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) left 154px / 108px 7px no-repeat,
+
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) right 98px / 108px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) right 154px / 108px 7px no-repeat,
+
+    radial-gradient(ellipse at 50% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.25) 48%, transparent 72%),
+    linear-gradient(145deg, #fafbf6 0%, #e3e7e0 48%, #cad1cb 100%) !important;
+}
+
+/* Garante que a operacao usa melhor o espaco interno */
+.operacao {
+  grid-template-rows: 64px minmax(0, 1fr) 68px !important;
+  gap: 10px !important;
+}
+
+.topbar {
+  height: 64px !important;
+}
+
+.bottom-tabs,
+.tabs {
+  height: 68px !important;
+}
+
+.bottom-tabs button,
+.tabs button {
+  height: 68px !important;
+}
+
+/* Footer das telas de preparo/finalizacao acompanha a nova borda */
+.footer-actions {
+  left: 122px !important;
+  right: 122px !important;
+  bottom: 58px !important;
+}
+
+/* Alarme fica dentro da nova tela interna maior */
+.alarm-overlay {
+  left: 122px !important;
+  right: 122px !important;
+  top: 72px !important;
+  bottom: 58px !important;
+}
+
+/* Escala mais suave em telas menores, sem esmagar tanto */
+@media (max-width: 1360px), (max-height: 800px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: scale(0.96) !important;
+    transform-origin: center center !important;
+  }
+}
+
+@media (max-width: 1180px), (max-height: 700px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: scale(0.9) !important;
   }
 }
