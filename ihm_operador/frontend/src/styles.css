@@ -2187,3 +2187,394 @@ button:disabled {
     grid-auto-rows: minmax(68px, 1fr) !important;
   }
 }
+
+
+/* =========================================================
+   PATCH FULLSCREEN IHM E REVISAO FINAL DE LAYOUT
+========================================================= */
+
+/* Remove a carcaça do tablet: agora a tela do navegador é a própria IHM */
+html,
+body,
+#root {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  background: #cfd6d1 !important;
+}
+
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 18px !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.16), transparent 34%),
+    var(--screen) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operacao::before,
+.finalizacao::before {
+  display: none !important;
+  content: none !important;
+}
+
+.boot > *,
+.inicial > *,
+.preparo > *,
+.registros-dia > *,
+.operacao > *,
+.finalizacao > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Barra superior corrigida */
+.operacao {
+  display: grid !important;
+  grid-template-rows: 64px minmax(0, 1fr) 72px !important;
+  gap: 12px !important;
+}
+
+.topbar {
+  min-height: 0 !important;
+  height: 64px !important;
+  grid-template-columns: 94px 0.8fr 1.5fr 0.85fr 0.9fr !important;
+  gap: 8px !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+}
+
+.menu-btn {
+  width: 78px !important;
+  height: 46px !important;
+  font-size: 0.82rem !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.topbar span {
+  font-size: 0.58rem !important;
+}
+
+.topbar strong {
+  font-size: 0.84rem !important;
+}
+
+/* Barra de submenus */
+.bottom-tabs {
+  height: 72px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px !important;
+}
+
+.bottom-tabs button {
+  min-height: 0 !important;
+  height: 72px !important;
+  border: 5px solid #111 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  font-size: 0.92rem !important;
+  font-weight: 950 !important;
+  overflow: hidden !important;
+}
+
+.bottom-tabs button.active {
+  background: #0b5cff !important;
+  color: #fff !important;
+  border-color: #06143a !important;
+  box-shadow:
+    0 0 0 5px rgba(11,92,255,0.22),
+    inset 0 -8px 0 rgba(0,0,0,0.22) !important;
+  transform: none !important;
+}
+
+.content-area {
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+}
+
+/* Drawer ajustado para fullscreen */
+.drawer {
+  width: 292px !important;
+  left: -312px !important;
+  border-right: 6px solid #111 !important;
+}
+
+.drawer.open {
+  left: 0 !important;
+}
+
+/* Aba reguladores */
+.tanks-grid.animated {
+  height: 100% !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 12px !important;
+  overflow: auto !important;
+}
+
+.process-tank-card {
+  min-height: 0 !important;
+  grid-template-rows: 38px minmax(170px, 1fr) auto !important;
+  padding: 10px !important;
+}
+
+.tank-name {
+  font-size: 1.05rem !important;
+}
+
+.process-visual {
+  min-height: 170px !important;
+}
+
+.process-tank {
+  width: 96px !important;
+  height: 156px !important;
+}
+
+.tank-readings.detailed {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 5px 8px !important;
+  font-size: 0.76rem !important;
+  line-height: 1.1 !important;
+}
+
+.tank-readings.detailed span {
+  font-weight: 900 !important;
+  color: #39443c !important;
+}
+
+.tank-readings.detailed b {
+  font-weight: 950 !important;
+  text-align: right !important;
+}
+
+/* Aba Bombas enxuta */
+.machines-layout.clean {
+  height: 100% !important;
+  grid-template-columns: 285px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.machine-info-grid.compact {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.machine-info-grid.compact article {
+  padding: 14px !important;
+}
+
+.machine-info-grid.compact article span {
+  font-size: 0.72rem !important;
+}
+
+.machine-info-grid.compact article b {
+  font-size: 1.1rem !important;
+}
+
+.machine-info-grid.compact article small {
+  font-size: 0.72rem !important;
+}
+
+/* Bomba simples e industrial */
+.pump-stack {
+  gap: 10px !important;
+}
+
+.pump-card {
+  padding: 12px !important;
+  gap: 8px !important;
+}
+
+.pump-card p {
+  font-size: 0.74rem !important;
+  line-height: 1.2 !important;
+}
+
+.machine-led.on {
+  animation: pumpLampBlink 1s infinite step-end !important;
+}
+
+.machine-led.off {
+  animation: none !important;
+}
+
+/* Aba óleo sem card isolado de reservatório */
+.oil-layout.clean {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.oil-flow-card.main {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 34px 54px minmax(0, 1fr) 32px !important;
+  gap: 10px !important;
+  padding: 12px !important;
+}
+
+.oil-summary-strip {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto 1fr auto 1fr !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 4px solid #111 !important;
+  background: #f7fbf7 !important;
+  padding: 7px 10px !important;
+  font-size: 0.82rem !important;
+  font-weight: 950 !important;
+}
+
+.oil-summary-strip span {
+  color: #3d493f !important;
+  text-transform: uppercase !important;
+  font-size: 0.62rem !important;
+}
+
+.oil-summary-strip b {
+  text-align: right !important;
+}
+
+.oil-demo-line {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+.pipe-reservoir {
+  position: relative !important;
+}
+
+.pipe-reservoir::after {
+  display: none !important;
+}
+
+.pipe-reservoir-oil {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(180deg, #ffd16d, #c47a19) !important;
+  transition: height 0.8s ease !important;
+}
+
+.oil-metrics.compact {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-auto-rows: 1fr !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.oil-metrics.compact article {
+  padding: 14px !important;
+}
+
+.oil-reservoir-card {
+  display: none !important;
+}
+
+/* Telas de preparo/registros em fullscreen */
+.preparo,
+.registros-dia,
+.finalizacao {
+  grid-template-rows: 54px minmax(0, 1fr) 64px !important;
+}
+
+.preparo h2,
+.registros-dia h2,
+.finalizacao h2 {
+  font-size: 1.28rem !important;
+}
+
+.recipes,
+.checklist,
+.resumo,
+.logs,
+.registros-dia ul {
+  overflow: auto !important;
+}
+
+/* Alarme em fullscreen sem quebrar grid */
+.alarm-overlay {
+  position: absolute !important;
+  inset: 18px !important;
+  z-index: 9999 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 18px !important;
+}
+
+.alarm-modal {
+  width: min(520px, 92vw) !important;
+  max-height: calc(100vh - 72px) !important;
+}
+
+/* Responsivo sem escala antiga */
+@media (max-width: 1240px), (max-height: 760px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao {
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  .machines-layout.clean {
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+  }
+
+  .oil-layout.clean {
+    grid-template-columns: 1fr 300px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .machines-layout.clean,
+  .oil-layout.clean {
+    grid-template-columns: 1fr !important;
+    overflow: auto !important;
+  }
+
+  .machine-info-grid.compact {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bottom-tabs {
+    gap: 6px !important;
+  }
+
+  .bottom-tabs button {
+    font-size: 0.72rem !important;
+  }
+}
