@@ -261,18 +261,15 @@ function PumpCard({ name, subtitle, on, detail }: { name: string; subtitle: stri
 }
 
 function ProcessTank({ tank, index, oilActive }: { tank: any; index: number; oilActive: boolean }) {
-  const pressureCompensated = Number(tank.pressaoCompensada ?? tank.pressao ?? tank.pressure_mbar ?? 1013);
+  const pressure = Number(tank.pressao ?? tank.pressure_mbar ?? 1013);
   const loss = Number(tank.perda ?? tank.hose_loss_mbar ?? 0);
-  const pressureGeneral = Number(tank.pressaoGeral ?? tank.machine_pressure_mbar ?? Math.max(0, pressureCompensated - loss));
   const oil = Number(tank.oleo ?? tank.oil_in_l ?? 0);
-  const risk = Number(tank.risco ?? tank.risk_pct ?? 0);
-
   const oilHeight = Math.max(4, Math.min(78, oil * 2.2));
-  const vacuumHeight = Math.max(10, Math.min(84, 92 - Math.log10(Math.max(pressureCompensated, 1)) * 24));
+  const vacuumHeight = Math.max(10, Math.min(84, 92 - Math.log10(Math.max(pressure, 1)) * 24));
 
   return (
     <article className="process-tank-card">
-      <div className="tank-name">REGULADOR {index + 1}</div>
+      <div className="tank-name">T{index + 1}</div>
 
       <div className="process-visual">
         <div className="vacuum-line" />
@@ -292,12 +289,10 @@ function ProcessTank({ tank, index, oilActive }: { tank: any; index: number; oil
         </div>
       </div>
 
-      <div className="tank-readings detailed">
-        <span>Pressao geral</span><b>{fmt(pressureGeneral, "mbar")}</b>
-        <span>Perda mangueira</span><b>{fmt(loss, "mbar")}</b>
-        <span>Pressao regulador</span><b>{fmt(pressureCompensated, "mbar")}</b>
-        <span>Oleo recebido</span><b>{fmt(oil, "L")}</b>
-        <span>Risco</span><b>{risk.toFixed(0)}%</b>
+      <div className="tank-readings">
+        <span>Pressao</span><b>{fmt(pressure, "mbar")}</b>
+        <span>Perda</span><b>{fmt(loss, "mbar")}</b>
+        <span>Oleo</span><b>{fmt(oil, "L")}</b>
       </div>
     </article>
   );
@@ -493,36 +488,20 @@ function App() {
   const oilFlow = Number(gatewayState?.oil?.flow_l_min ?? (oilLigada ? qtdTanques * 1.5 : 0));
 
   const tanques = Array.isArray(gatewayState?.tanks) && gatewayState.tanks.length
-    ? gatewayState.tanks.map((t: any, index: number) => {
-        const perda = Number(t.hose_loss_mbar || hose.perdaBase);
-        const pressaoCompensada = Number(t.pressure_mbar || pressaoMedia);
-        const pressaoGeral = Number(t.machine_pressure_mbar || Math.max(0, pressaoCompensada - perda));
-
-        return {
-          id: t.id || `T${index + 1}`,
-          pressaoGeral,
-          pressaoCompensada,
-          pressao: pressaoCompensada,
-          perda,
-          oleo: Number(t.oil_in_l || 0),
-          risco: Number(t.risk_pct || 0),
-        };
-      })
-    : Array.from({ length: qtdTanques }).map((_, index) => {
-        const perda = hose.perdaBase + index * 0.2;
-        const pressaoGeral = pressaoMaquina + index * 0.2;
-        const pressaoCompensada = pressaoGeral + perda;
-
-        return {
-          id: `T${index + 1}`,
-          pressaoGeral,
-          pressaoCompensada,
-          pressao: pressaoCompensada,
-          perda,
-          oleo: oilLigada ? Math.max(0, elapsedLive - recipe.oilStartSeg) / 2 : 0,
-          risco: 18,
-        };
-      });
+    ? gatewayState.tanks.map((t: any, index: number) => ({
+        id: t.id || `T${index + 1}`,
+        pressao: Number(t.pressure_mbar || pressaoMedia),
+        perda: Number(t.hose_loss_mbar || hose.perdaBase),
+        oleo: Number(t.oil_in_l || 0),
+        risco: Number(t.risk_pct || 0),
+      }))
+    : Array.from({ length: qtdTanques }).map((_, index) => ({
+        id: `T${index + 1}`,
+        pressao: pressaoMedia + index * 0.5,
+        perda: hose.perdaBase + index * 0.2,
+        oleo: oilLigada ? Math.max(0, elapsedLive - recipe.oilStartSeg) / 2 : 0,
+        risco: 18,
+      }));
 
   const allCheckedPre = Object.values(checklistPre).every((v) => v === true);
   const allCheckedPos = Object.entries(checklistPos).filter(([k]) => k !== "observacao").every(([, v]) => v === true);
@@ -869,51 +848,53 @@ function App() {
           )}
 
           {tab === "bombas" && (
-            <div className="machines-layout clean">
+            <div className="machines-layout">
               <div className="pump-stack">
-                <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Aplicacao inicial do vacuo no conjunto." />
-                <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Reforco de vacuo dentro da faixa permitida." />
-                <PumpCard name="OLEO" subtitle="Linha de injecao" on={oilLigada} detail="Entrada de oleo conforme a etapa da receita." />
+                <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Evacuacao inicial do tanque e manutencao da linha de vacuo." />
+                <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Reforco de vacuo acionado somente dentro da faixa permitida." />
+                <PumpCard name="OLEO" subtitle="Linha de injecao" on={oilLigada} detail="Simula a entrada controlada de oleo apos a etapa de vacuo." />
               </div>
 
-              <div className="machine-info-grid compact">
-                <article><span>Etapa atual</span><b>{etapaAtual}</b><small>Sequencia automatizada pela receita</small></article>
-                <article><span>Pressao geral</span><b>{fmt(pressaoMaquina, "mbar")}</b><small>Antes da compensacao por perda</small></article>
-                <article><span>Pressao regulador</span><b>{fmt(pressaoMedia, "mbar")}</b><small>Leitura compensada pela linha</small></article>
-                <article><span>Intertravamento</span><b>{alarmInfo?.severity === "red" ? "BLOQUEADO" : "LIBERADO"}</b><small>Seguranca operacional</small></article>
+              <div className="machine-info-grid">
+                <article><span>Pressao maquina</span><b>{fmt(pressaoMaquina, "mbar")}</b><small>Leitura base do conjunto de vacuo</small></article>
+                <article><span>Pressao media tanque</span><b>{fmt(pressaoMedia, "mbar")}</b><small>Considera perda simulada da mangueira</small></article>
+                <article><span>Sensor</span><b>{gatewayState?.hardware?.sensor_online === false ? "FALHA" : "ONLINE"}</b><small>Leitura enviada ao Gateway</small></article>
+                <article><span>PLC / Gateway</span><b>{gatewayOnline ? "ONLINE" : "OFFLINE"}</b><small>Comunica IHM e sistema do gerente</small></article>
+                <article><span>Intertravamento</span><b>{alarmInfo?.severity === "red" ? "BLOQUEADO" : "LIBERADO"}</b><small>Protecao logica do ciclo</small></article>
+                <article><span>Receita</span><b>{recipe.title}</b><small>{recipe.tipoTanque}</small></article>
               </div>
             </div>
           )}
 
           {tab === "oleo" && (
-            <div className="oil-layout clean">
-              <article className="oil-flow-card main">
-                <h3>Linha de injecao de oleo</h3>
-
-                <div className="oil-summary-strip">
-                  <span>Reservatorio</span><b>{fmt(oilRestante, "L")}</b>
-                  <span>Injetado</span><b>{fmt(oilInjetado, "L")}</b>
-                  <span>Vazao</span><b>{fmt(oilFlow, "L/min")}</b>
+            <div className="oil-layout">
+              <article className="oil-reservoir-card">
+                <h3>Reservatorio de oleo</h3>
+                <div className="oil-reservoir">
+                  <div className="oil-fill" style={{ height: `${Math.max(6, Math.min(92, (oilRestante / Math.max(oleoColocado, 1)) * 100))}%` }} />
                 </div>
+                <p>Restante: <b>{fmt(oilRestante, "L")}</b></p>
+              </article>
 
+              <article className="oil-flow-card">
+                <h3>Linha de injecao</h3>
                 <div className={`oil-demo-line ${oilLigada ? "active" : ""}`}>
-                  <div className="pipe-reservoir">
-                    <div className="pipe-reservoir-oil" style={{ height: `${Math.max(6, Math.min(92, (oilRestante / Math.max(oleoColocado, 1)) * 100))}%` }} />
-                  </div>
+                  <div className="pipe-reservoir" />
                   <div className="pipe-hose">{oilLigada && <><span /><span /><span /><span /></>}</div>
                   <div className="pipe-tank">
                     <div className="pipe-tank-oil" style={{ height: `${Math.max(4, Math.min(80, oilInjetado / Math.max(oilNeeded, 1) * 80))}%` }} />
                   </div>
                 </div>
-
-                <p>{oilLigada ? "Injetando oleo conforme a receita." : "Linha aguardando etapa de injecao."}</p>
+                <p>{oilLigada ? "Injetando oleo na etapa atual" : "Linha aguardando etapa de oleo"}</p>
               </article>
 
-              <div className="oil-metrics compact">
-                <article><span>Oleo inicial</span><b>{fmt(oleoColocado, "L")}</b></article>
+              <div className="oil-metrics">
+                <article><span>Oleo colocado</span><b>{fmt(oleoColocado, "L")}</b></article>
                 <article><span>Oleo necessario</span><b>{fmt(oilNeeded, "L")}</b></article>
+                <article><span>Oleo injetado</span><b>{fmt(oilInjetado, "L")}</b></article>
+                <article><span>Vazao atual</span><b>{fmt(oilFlow, "L/min")}</b></article>
                 <article><span>Temperatura</span><b>{fmt(Number(gatewayState?.oil?.temperature_c ?? 60), "C")}</b></article>
-                <article><span>Status</span><b>{oilLigada ? "ATIVA" : "AGUARDANDO"}</b></article>
+                <article><span>Status da linha</span><b>{oilLigada ? "ATIVA" : "AGUARDANDO"}</b></article>
               </div>
             </div>
           )}
