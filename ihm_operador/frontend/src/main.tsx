@@ -83,6 +83,52 @@ type AlarmInfo = {
 
 const GATEWAY_API = "http://127.0.0.1:8020/api";
 
+const OPERATIONAL_LIMITS = {
+  tankMin: 1,
+  tankMax: 3,
+  oilMinL: 0,
+  oilMaxL: 300,
+  oilStepL: 1,
+  pressureMinMbar: 0.01,
+  pressureMaxMbar: 1013,
+  maxCycleSeconds: 3600,
+  minCycleSeconds: 30,
+  maxHoseLossMbar: 15,
+};
+
+const ALARM_TEXT = {
+  gatewayOffline: {
+    code: "ALM-001",
+    title: "GATEWAY OFFLINE",
+    message: "A IHM perdeu comunicação com o Gateway. Verifique servidor, cabo, Wi-Fi ou rede local.",
+  },
+  oilShortage: {
+    code: "ALM-002",
+    title: "ÓLEO INSUFICIENTE",
+    message: "O volume informado não cobre a receita selecionada.",
+  },
+  sensorOffline: {
+    code: "ALM-003",
+    title: "SENSOR DE PRESSÃO OFFLINE",
+    message: "O sensor de pressão/vácuo não está comunicando corretamente.",
+  },
+  emergency: {
+    code: "ALM-004",
+    title: "EMERGÊNCIA / PARADA CRÍTICA",
+    message: "Condição crítica detectada. O ciclo deve ser bloqueado e os atuadores devem ser desligados.",
+  },
+  recipeInvalid: {
+    code: "ALM-005",
+    title: "RECEITA FORA DOS LIMITES",
+    message: "A receita selecionada possui parâmetros fora do limite permitido para a demonstração.",
+  },
+  operationState: {
+    code: "ALM-006",
+    title: "ESTADO OPERACIONAL INVÁLIDO",
+    message: "A operação não pode avançar no estado atual.",
+  },
+};
+
 const LIMITS = {
   tankMin: 1,
   tankMax: 3,
@@ -523,18 +569,48 @@ function App() {
   const allCheckedPre = Object.values(checklistPre).every((v) => v === true);
   const allCheckedPos = Object.entries(checklistPos).filter(([k]) => k !== "observacao").every(([, v]) => v === true);
   const oilNeeded = qtdTanques * recipe.oleoPorTanque;
-  const receitaExcedeLimiteOleo = recipes.length > 0 && oilNeeded > LIMITS.oilMaxL;
+  const receitaExcedeLimiteOleo = recipes.length > 0 && oilNeeded > OPERATIONAL_LIMITS.oilMaxL;
   const oilInsuficiente = recipes.length > 0 && oleoColocado < oilNeeded;
+
+  const recipeTimeInvalid = recipes.length > 0 && (
+    recipe.tempoEstimado < OPERATIONAL_LIMITS.minCycleSeconds ||
+    recipe.tempoEstimado > OPERATIONAL_LIMITS.maxCycleSeconds
+  );
+
+  const pressureTargetInvalid = recipes.length > 0 && (
+    recipe.pressaoAlvo < OPERATIONAL_LIMITS.pressureMinMbar ||
+    recipe.pressaoAlvo > OPERATIONAL_LIMITS.pressureMaxMbar
+  );
+
+  const recipeSequenceInvalid = recipes.length > 0 && (
+    recipe.b2StartSeg < 0 ||
+    recipe.oilStartSeg < recipe.b2StartSeg ||
+    recipe.estabilizacaoSeg < recipe.oilStartSeg ||
+    recipe.tempoEstimado < recipe.estabilizacaoSeg
+  );
+
+  const recipeInvalid = receitaExcedeLimiteOleo || recipeTimeInvalid || pressureTargetInvalid || recipeSequenceInvalid;
   const gatewayBloqueado = !gatewayOnline;
-  const inicioBloqueado = gatewayBloqueado || receitaExcedeLimiteOleo || oilInsuficiente || !allCheckedPre || !recipes.length;
+  const sensorBloqueado = gatewayState?.hardware?.sensor_online === false;
+  const emergencyBloqueada = status === "BLOQUEADO" || gatewayState?.hardware?.emergency === true;
+  const inicioBloqueado = gatewayBloqueado || sensorBloqueado || emergencyBloqueada || recipeInvalid || oilInsuficiente || !allCheckedPre || !recipes.length;
 
   const alarmInfo = useMemo<AlarmInfo | null>(() => {
-    if (status === "BLOQUEADO" || gatewayState?.hardware?.emergency || gatewayState?.alarm) {
+    if (emergencyBloqueada) {
       return {
         key: "emergencia",
         severity: "red",
-        title: "ALARME VERMELHO - PARADA CRITICA",
-        message: "Condicao critica detectada. O ciclo deve ser bloqueado e os atuadores devem ser desligados.",
+        title: `${ALARM_TEXT.emergency.code} - ${ALARM_TEXT.emergency.title}`,
+        message: ALARM_TEXT.emergency.message,
+      };
+    }
+
+    if (sensorBloqueado) {
+      return {
+        key: "sensor_offline",
+        severity: "red",
+        title: `${ALARM_TEXT.sensorOffline.code} - ${ALARM_TEXT.sensorOffline.title}`,
+        message: ALARM_TEXT.sensorOffline.message,
       };
     }
 
@@ -542,8 +618,17 @@ function App() {
       return {
         key: "gateway_offline",
         severity: "yellow",
-        title: "ALARME AMARELO - GATEWAY OFFLINE",
-        message: "A IHM perdeu comunicacao com o Gateway. Verifique cabo, servidor ou rede local.",
+        title: `${ALARM_TEXT.gatewayOffline.code} - ${ALARM_TEXT.gatewayOffline.title}`,
+        message: ALARM_TEXT.gatewayOffline.message,
+      };
+    }
+
+    if (recipeInvalid) {
+      return {
+        key: "recipe_invalid",
+        severity: "yellow",
+        title: `${ALARM_TEXT.recipeInvalid.code} - ${ALARM_TEXT.recipeInvalid.title}`,
+        message: ALARM_TEXT.recipeInvalid.message,
       };
     }
 
@@ -551,13 +636,13 @@ function App() {
       return {
         key: "oleo_insuficiente",
         severity: "yellow",
-        title: "ALARME AMARELO - OLEO INSUFICIENTE",
-        message: "O volume informado nao cobre a receita selecionada. Corrija antes de iniciar.",
+        title: `${ALARM_TEXT.oilShortage.code} - ${ALARM_TEXT.oilShortage.title}`,
+        message: ALARM_TEXT.oilShortage.message,
       };
     }
 
     return null;
-  }, [gatewayOnline, gatewayState, oilInsuficiente, phase, status]);
+  }, [emergencyBloqueada, sensorBloqueado, gatewayOnline, phase, recipeInvalid, oilInsuficiente]);
 
   const visibleAlarm = alarmInfo && alarmInfo.key !== silencedAlarmKey ? alarmInfo : null;
   const screenClass = visibleAlarm ? `alarm-shadow-${visibleAlarm.severity}` : "";
@@ -593,7 +678,7 @@ function App() {
     }
 
     if (receitaExcedeLimiteOleo) {
-      addLog(`Inicio bloqueado: receita exige ${oilNeeded} L, acima do limite de ${LIMITS.oilMaxL} L da IHM.`);
+      addLog(`Inicio bloqueado: receita exige ${oilNeeded} L, acima do limite de ${OPERATIONAL_LIMITS.oilMaxL} L da IHM.`);
       return;
     }
 
@@ -721,6 +806,7 @@ function App() {
         <div><button onClick={() => setDrawerOpen(false)}>FECHAR</button></div>
         <button disabled={phase !== "operacao" || status !== "FINALIZADO"} onClick={() => setPhase("finalizacao")}>FINALIZAR OPERACAO</button>
         <button onClick={() => { setDrawerOpen(false); setPhase("alarmes"); }}>ALARMES</button>
+        <button onClick={() => { setDrawerOpen(false); setPhase("operacao"); setTab("informacoes"); }}>DIAGNOSTICO</button>
         <button disabled={phase === "operacao" && status !== "FINALIZADO"} onClick={reiniciar}>INICIO</button>
       </div>
     );
@@ -804,12 +890,12 @@ function App() {
         {renderAlarm()}
         <h2>DADOS DA OPERACAO</h2>
         <div className="form-grid">
-          <div className="field"><label>Quantidade de tanques</label><input type="number" min={LIMITS.tankMin} max={LIMITS.tankMax} step={1} value={qtdTanques} onChange={(e) => setQtdTanques(clampInteger(Number(e.target.value), LIMITS.tankMin, LIMITS.tankMax))} /></div>
+          <div className="field"><label>Quantidade de tanques</label><input type="number" min={OPERATIONAL_LIMITS.tankMin} max={OPERATIONAL_LIMITS.tankMax} step={1} value={qtdTanques} onChange={(e) => setQtdTanques(clampInteger(Number(e.target.value), OPERATIONAL_LIMITS.tankMin, OPERATIONAL_LIMITS.tankMax))} /></div>
           <div className="field"><label>Mangueira</label><select value={hoseId} onChange={(e) => setHoseId(e.target.value as HoseKey)}>{hoses.map((h) => <option key={h.id} value={h.id}>{h.descricao}</option>)}</select></div>
-          <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" min={LIMITS.oilMinL} max={LIMITS.oilMaxL} step={LIMITS.oilStepL} value={oleoColocado} onChange={(e) => setOleoColocado(clampNumber(Number(e.target.value), LIMITS.oilMinL, LIMITS.oilMaxL))} /></div>
+          <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" min={OPERATIONAL_LIMITS.oilMinL} max={OPERATIONAL_LIMITS.oilMaxL} step={OPERATIONAL_LIMITS.oilStepL} value={oleoColocado} onChange={(e) => setOleoColocado(clampNumber(Number(e.target.value), OPERATIONAL_LIMITS.oilMinL, OPERATIONAL_LIMITS.oilMaxL))} /></div>
           <div className={oilInsuficiente || receitaExcedeLimiteOleo ? "oil-warning limit-box" : "oil-ok limit-box"}>
             <b>Oleo necessario: {oilNeeded} L</b>
-            <span>Limite operacional da IHM: {LIMITS.oilMinL} a {LIMITS.oilMaxL} L.</span>
+            <span>Limite operacional da IHM: {OPERATIONAL_LIMITS.oilMinL} a {OPERATIONAL_LIMITS.oilMaxL} L.</span>
             {receitaExcedeLimiteOleo && <span>Receita acima do limite demonstrativo. Ajuste a receita no gerente.</span>}
             {gatewayBloqueado && <span>Gateway offline: inicio bloqueado ate normalizar a comunicacao.</span>}
           </div>
@@ -851,7 +937,13 @@ function App() {
           <p><b>Oleo colocado:</b> {oleoColocado} L</p>
           <p><b>Oleo necessario:</b> {oilNeeded} L</p>
           <p><b>Pressao alvo:</b> {recipe.pressaoAlvo} mbar</p>
-          {oilInsuficiente && <p className="warn-text">Volume de oleo insuficiente para iniciar.</p>}
+          {oilInsuficiente && <p className="warn-text">Volume de óleo insuficiente para iniciar.</p>}
+          {gatewayBloqueado && <p className="warn-text">Gateway offline. Início bloqueado.</p>}
+          {sensorBloqueado && <p className="warn-text">Sensor de pressão offline. Início bloqueado.</p>}
+          {recipeTimeInvalid && <p className="warn-text">Tempo da receita fora do limite operacional.</p>}
+          {pressureTargetInvalid && <p className="warn-text">Pressão alvo fora da faixa permitida.</p>}
+          {recipeSequenceInvalid && <p className="warn-text">Sequência da receita inválida: revise B2, óleo, estabilização e tempo final.</p>}
+          {receitaExcedeLimiteOleo && <p className="warn-text">Receita exige mais óleo que o limite demonstrativo.</p>}
           {receitaExcedeLimiteOleo && <p className="warn-text">Receita exige mais oleo que o limite operacional da IHM.</p>}
           {gatewayBloqueado && <p className="warn-text">Gateway offline. Inicio bloqueado ate normalizar a comunicacao.</p>}
         </div>
@@ -943,7 +1035,7 @@ function App() {
                 ))}
               </div>
 
-              <div>
+              <div className="diagnostic-panel">
                 <p><b>ID:</b> {operationId || "--"}</p>
                 <p><b>Receita:</b> {recipe.title}</p>
                 <p><b>Operador:</b> OPERADOR 01</p>
@@ -951,6 +1043,10 @@ function App() {
                 <p><b>Mangueira:</b> {hose.descricao}</p>
                 <p><b>Tempo:</b> {timeFmt(elapsedLive)}</p>
                 <p><b>Gateway:</b> {gatewayOnline ? "Online" : "Offline"}</p>
+                <p><b>Sensor pressão:</b> {sensorBloqueado ? "Falha" : "Online"}</p>
+                <p><b>Emergência:</b> {emergencyBloqueada ? "Ativa/Bloqueada" : "Normal"}</p>
+                <p><b>Limites:</b> {recipeInvalid ? "Receita inválida" : "Conforme"}</p>
+                <p><b>Início:</b> {inicioBloqueado ? "Bloqueado" : "Liberado"}</p>
               </div>
 
               <div className="logs">
@@ -981,6 +1077,8 @@ function App() {
           <p><b>Status:</b> {status}</p>
           <p><b>Etapa:</b> {etapaAtual}</p>
           <p><b>Alarme:</b> {alarmInfo ? alarmInfo.title : "Sem alarme ativo"}</p>
+          <p><b>Causa provável:</b> {alarmInfo ? alarmInfo.message : "Nenhuma condição crítica detectada."}</p>
+          <p><b>Ação recomendada:</b> {alarmInfo?.severity === "red" ? "Parar o ciclo, verificar bancada e reconhecer a falha." : alarmInfo ? "Verificar condição indicada e corrigir antes de iniciar." : "Operação liberada."}</p>
           <p><b>Pressao maquina:</b> {fmt(pressaoMaquina, "mbar")}</p>
           <p><b>Pressao media:</b> {fmt(pressaoMedia, "mbar")}</p>
           <p><b>Oleo colocado:</b> {oleoColocado} L</p>

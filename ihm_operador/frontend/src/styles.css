@@ -2850,3 +2850,150 @@ body {
   white-space: nowrap !important;
 }
 
+
+
+
+/* =========================================================
+   PATCH PROFISSIONAL CHAO DE FABRICA IHM
+   Validação, menu, diagnóstico e alarmes.
+========================================================= */
+
+.limit-box {
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 5px !important;
+  line-height: 1.15 !important;
+}
+
+.limit-box b {
+  font-size: 0.95rem !important;
+  font-weight: 950 !important;
+}
+
+.limit-box span {
+  display: block !important;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+}
+
+.warn-text {
+  color: #8a0000 !important;
+  background: #ffd4d4 !important;
+  border: 4px solid #111 !important;
+  padding: 8px !important;
+  font-weight: 950 !important;
+}
+
+.operacao .topbar {
+  grid-template-columns: minmax(84px, 98px) repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.menu-btn {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  border: 5px solid #111 !important;
+  background: #f7fbf7 !important;
+  color: #111 !important;
+  font-size: 0.78rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1 !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.10) !important;
+  position: relative !important;
+  z-index: 50 !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+}
+
+.menu-btn:hover {
+  background: #e5f7e5 !important;
+}
+
+.drawer {
+  z-index: 9000 !important;
+  pointer-events: auto !important;
+}
+
+.drawer.open {
+  left: 0 !important;
+}
+
+.drawer button {
+  pointer-events: auto !important;
+}
+
+.diagnostic-panel {
+  background: var(--panel, #f7fbf7) !important;
+  border: 5px solid #111 !important;
+  padding: 12px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 6px 12px !important;
+  align-content: start !important;
+  overflow: auto !important;
+}
+
+.diagnostic-panel p {
+  margin: 0 !important;
+  padding: 6px !important;
+  background: rgba(255,255,255,0.55) !important;
+  border: 2px solid rgba(0,0,0,0.18) !important;
+  font-size: 0.74rem !important;
+  font-weight: 850 !important;
+}
+
+.alarm-summary p {
+  border-bottom: 2px solid rgba(0,0,0,0.15) !important;
+  padding-bottom: 5px !important;
+}
+
+.alarm-summary p b {
+  color: #111 !important;
+}
+
+.alarm-screen .logs,
+.alarm-log {
+  max-height: 230px !important;
+  overflow: auto !important;
+}
+
+/* Topbar sem texto quebrando */
+.topbar div span,
+.topbar div strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.topbar div strong {
+  white-space: nowrap !important;
+}
+
+/* Botões críticos com leitura industrial */
+.start-btn:disabled,
+.next-btn:disabled,
+.standard-btn:disabled {
+  background: #d4d8d3 !important;
+  color: #606660 !important;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08) !important;
+}
+
+.start-btn:not(:disabled) {
+  background: #22d34a !important;
+}
+
+.emergency-inline {
+  min-height: 54px !important;
+  border: 5px solid #111 !important;
+  font-weight: 950 !important;
+}
+
