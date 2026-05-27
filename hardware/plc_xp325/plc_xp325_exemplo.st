@@ -1,13 +1,12 @@
 (*
 Programa exemplo em Structured Text para PLC XP325/In-Tech/InPi.
 
-Este código é genérico IEC 61131-3.
-Ajuste nomes das variáveis e endereços conforme o software real da bancada.
+Ajuste nomes das variaveis e enderecos conforme o software real da bancada.
 
 Regra:
 - O Gateway manda comandos desejados via Modbus.
-- O PLC aplica saídas somente se não houver emergência.
-- O PLC devolve estados físicos por entradas/feedbacks.
+- O PLC aplica saidas somente se nao houver emergencia.
+- O PLC devolve estados fisicos por entradas/feedbacks.
 *)
 
 VAR

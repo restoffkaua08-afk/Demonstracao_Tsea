@@ -504,7 +504,7 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
     status = getattr(state, "status", "PRONTO")
     stage = getattr(state, "stage", "PREPARO")
 
-    critical_alarms = {"EMERGENCIA_FISICA", "PLC_AGUARDANDO_INGEST", "PLC_OFFLINE", "SENSOR_OFFLINE"}
+    critical_alarms = {"EMERGENCIA_FISICA", "PLC_AGUARDANDO_INGEST", "PLC_OFFLINE", "SENSOR_OFFLINE", "PLC_MODBUS_ERRO", "FORCE_SAFE_PLC"}
     blocked = emergency or not plc_online or not sensor_online or status == "BLOQUEADO" or alarm in critical_alarms
 
     pump_b1 = False if blocked else bool(getattr(state, "pump_b1", False))
@@ -550,9 +550,11 @@ def normalize_hardware_tanks(payload: HardwareIngestPayload) -> list[dict[str, A
         normalized: list[dict[str, Any]] = []
 
         for index, tank in enumerate(payload.tanks[:3]):
+            raw_pressure = tank.get("pressure_mbar")
+            numeric_available = raw_pressure is not None
             pressure_machine = _clamp_float(tank.get("machine_pressure_mbar", payload.pressure_machine_mbar), 0.001, 1013.0, 1013.0)
             hose_loss = _clamp_float(tank.get("hose_loss_mbar"), 0.0, 200.0, 0.0)
-            pressure_tank = _clamp_float(tank.get("pressure_mbar"), 0.001, 1013.0, pressure_machine + hose_loss)
+            pressure_tank = _clamp_float(raw_pressure, 0.001, 1013.0, pressure_machine + hose_loss) if numeric_available else None
             oil_in_l = _clamp_float(tank.get("oil_in_l"), 0.0, 10000.0, 0.0)
             risk_pct = _clamp_float(tank.get("risk_pct"), 0.0, 100.0, 0.0)
 
@@ -560,12 +562,16 @@ def normalize_hardware_tanks(payload: HardwareIngestPayload) -> list[dict[str, A
                 {
                     "id": str(tank.get("id") or f"T{index + 1}"),
                     "code": str(tank.get("code") or tank.get("id") or f"T{index + 1}"),
-                    "pressure_mbar": round(pressure_tank, 3),
-                    "machine_pressure_mbar": round(pressure_machine, 3),
-                    "hose_loss_mbar": round(hose_loss, 3),
+                    "pressure_mbar": round(pressure_tank, 3) if pressure_tank is not None else None,
+                    "machine_pressure_mbar": round(pressure_machine, 3) if numeric_available else None,
+                    "hose_loss_mbar": round(hose_loss, 3) if numeric_available else 0.0,
                     "oil_in_l": round(oil_in_l, 3),
                     "risk_pct": round(risk_pct, 2),
-                    "status": "ATENCAO" if risk_pct >= 65 else "OK",
+                    "status": str(tank.get("status") or ("ATENCAO" if risk_pct >= 65 else "OK")),
+                    "pressure_numeric_available": numeric_available,
+                    "pressure_display": f"{round(pressure_tank, 3)} mbar" if pressure_tank is not None else "Indisponível — sensor digital OUT1/OUT2",
+                    "sensor_out1_npn": bool(tank.get("sensor_out1_npn", False)),
+                    "sensor_out2_pnp": bool(tank.get("sensor_out2_pnp", False)),
                 }
             )
 

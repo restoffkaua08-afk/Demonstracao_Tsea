@@ -326,6 +326,8 @@ def apply_inputs_to_gateway(inputs: dict[str, bool], plc_map: dict[str, Any]) ->
         "sensor_model": plc_map.get("sensor", {}).get("model", "GHPC SCD-020-01"),
         "sensor_type": plc_map.get("sensor", {}).get("type", "DIGITAL_PRESSURE_SWITCH"),
         "numeric_pressure_available": bool(plc_map.get("sensor", {}).get("numeric_pressure_available", False)),
+        "pressure_numeric_available": False,
+        "pressure_display": "Indisponível — sensor digital OUT1/OUT2",
         "sensor_out1_npn": out1,
         "sensor_out2_pnp": out2,
         "emergency": emergency,
@@ -351,8 +353,10 @@ def apply_inputs_to_gateway(inputs: dict[str, bool], plc_map: dict[str, Any]) ->
         state.alarm = "SENSOR_OFFLINE"
     elif out2:
         state.alarm = "SENSOR_OUT2_ATIVO"
-    elif state.alarm in {"EMERGENCIA_FISICA", "PLC_OFFLINE", "SENSOR_OFFLINE", "SENSOR_OUT2_ATIVO"}:
+    elif state.alarm in {"EMERGENCIA_FISICA", "PLC_OFFLINE", "SENSOR_OFFLINE", "SENSOR_OUT2_ATIVO", "PLC_MODBUS_ERRO"}:
         state.alarm = None
+
+    state.external_pressure_machine_mbar = None
 
     state.external_tanks_payload = [
         {
@@ -366,6 +370,9 @@ def apply_inputs_to_gateway(inputs: dict[str, bool], plc_map: dict[str, Any]) ->
             "status": "LIMITE_2" if out2 else "LIMITE_1" if out1 else "AGUARDANDO_LIMITE",
             "sensor_out1_npn": out1,
             "sensor_out2_pnp": out2,
+            "pressure_numeric_available": False,
+            "pressure_display": "Indisponível — sensor digital OUT1/OUT2",
+            "sensor_mode": "DIGITAL_PRESSURE_SWITCH",
         }
     ]
 
@@ -469,6 +476,9 @@ async def plc_sync_once() -> dict[str, Any]:
         save_runtime(runtime)
 
         core.STATE.plc_online = False
+        core.STATE.pump_b1 = False
+        core.STATE.pump_b2 = False
+        core.STATE.pump_oil = False
         core.STATE.alarm = "PLC_MODBUS_ERRO"
         await core.broadcast()
 

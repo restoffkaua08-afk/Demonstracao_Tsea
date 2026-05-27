@@ -306,7 +306,20 @@ class GatewayState:
     def payload(self) -> dict[str, Any]:
         pressure_machine = self.current_pressure_machine()
         tanks = self.tanks_payload()
-        pressure_avg = sum(t["pressure_mbar"] for t in tanks) / max(len(tanks), 1)
+
+        numeric_pressures: list[float] = []
+
+        for tank in tanks:
+            value = tank.get("pressure_mbar")
+
+            try:
+                if value is not None:
+                    numeric_pressures.append(float(value))
+            except Exception:
+                pass
+
+        pressure_avg = sum(numeric_pressures) / max(len(numeric_pressures), 1) if numeric_pressures else None
+        pressure_avg_payload = round(pressure_avg, 3) if pressure_avg is not None else None
 
         return {
             "timestamp": datetime.now().isoformat(timespec="seconds"),
@@ -320,8 +333,10 @@ class GatewayState:
             "recipe": self.recipe,
             "hose": self.hose,
             "tank_count": self.tank_count,
-            "pressure_machine_mbar": round(pressure_machine, 3),
-            "pressure_avg_tank_mbar": round(pressure_avg, 3),
+            "pressure_machine_mbar": round(pressure_machine, 3) if pressure_machine is not None else None,
+            "pressure_avg_tank_mbar": pressure_avg_payload,
+            "pressure_numeric_available": pressure_avg is not None,
+            "pressure_display": f"{pressure_avg_payload} mbar" if pressure_avg is not None else "Indisponível — sensor digital OUT1/OUT2",
             "tanks": tanks,
             "pumps": {
                 "b1": self.pump_b1,
@@ -532,7 +547,11 @@ def current_operation_record(extra: dict[str, Any] | None = None, forced_status:
     hose = _safe_hose()
 
     tanks = payload.get("tanks", [])
-    pressure_avg = float(payload.get("pressure_avg_tank_mbar") or 0)
+    pressure_avg_raw = payload.get("pressure_avg_tank_mbar")
+    try:
+        pressure_avg = float(pressure_avg_raw) if pressure_avg_raw is not None else 0.0
+    except Exception:
+        pressure_avg = 0.0
     target_pressure = float(recipe.get("target_pressure_mbar") or 0)
 
     oil_payload = payload.get("oil", {})
@@ -540,7 +559,7 @@ def current_operation_record(extra: dict[str, Any] | None = None, forced_status:
     hardware_payload = payload.get("hardware", {})
 
     max_risk = max([float(tank.get("risk_pct") or 0) for tank in tanks], default=0.0)
-    tank_codes = ", ".join(str(tank.get("code") or tank.get("id") or "TQ") for tank in tanks) or "TQ-01"
+    tank_codes = ", ".join(str(tank.get("code") or tank.get("id") or "TQ") for tank in tanks) or "TQ"
 
     existing = next(
         (item for item in OPERATION_RECORDS if str(item.get("id")) == str(STATE.operation_id)),
@@ -601,12 +620,12 @@ def current_operation_record(extra: dict[str, Any] | None = None, forced_status:
             "id": f"SP-{tank_codes}",
             "status": "Online" if hardware_payload.get("sensor_online") else "Falha",
             "performance": "98%" if hardware_payload.get("sensor_online") else "0%",
-            "reading": f"{round(pressure_avg, 3)} mbar",
+            "reading": payload.get("pressure_display") or (f"{round(pressure_avg, 3)} mbar" if pressure_avg else "Indisponível"),
             "impact": "Base de leitura para painel, rastreabilidade e alarmes.",
         },
         {
             "type": "Mangueira",
-            "id": hose.get("code") or hose.get("id") or "MG-02",
+            "id": hose.get("code") or hose.get("id") or "__SEM_MANGUEIRA__",
             "status": "Vinculada",
             "performance": str(hose.get("loss_base_mbar", hose.get("loss_factor", "--"))),
             "reading": "Perda de carga simulada",
