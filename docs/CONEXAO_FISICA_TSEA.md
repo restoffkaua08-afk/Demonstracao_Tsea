@@ -11,17 +11,21 @@ Sistema do Gerente
 
 Endpoints principais:
 
-GET  /api/parameters
-GET  /api/tanks
-POST /api/tanks
-DELETE /api/tanks/{tank_id}
+GET  /api/real/parameters
+GET  /api/real/recipes
+POST /api/real/recipes
+DELETE /api/real/recipes/{recipe_id}
 
-GET  /api/hoses
-POST /api/hoses
-DELETE /api/hoses/{hose_id}
+GET  /api/real/tanks
+POST /api/real/tanks
+DELETE /api/real/tanks/{tank_id}
 
-GET  /api/limits
-POST /api/limits
+GET  /api/real/hoses
+POST /api/real/hoses
+DELETE /api/real/hoses/{hose_id}
+
+GET  /api/real/limits
+POST /api/real/limits
 
 GET  /api/hardware/schema
 GET  /api/hardware/state
@@ -29,39 +33,4 @@ POST /api/hardware/mode
 POST /api/hardware/ingest
 POST /api/hardware/reset
 
-POST /api/admin/clear-data
-
-Payload esperado para /api/hardware/ingest:
-
-{
-  "status": "EM_CICLO",
-  "stage": "VACUO_INICIAL",
-  "elapsed_seconds": 12,
-  "pressure_machine_mbar": 82.4,
-  "pumps": {
-    "b1": true,
-    "b2": false,
-    "oil": false
-  },
-  "oil": {
-    "injected_l": 0,
-    "remaining_l": 120,
-    "flow_l_min": 0
-  },
-  "hardware": {
-    "sensor_online": true,
-    "plc_online": true,
-    "emergency": false
-  },
-  "tanks": [
-    {
-      "id": "T1",
-      "pressure_mbar": 83.6,
-      "machine_pressure_mbar": 82.4,
-      "hose_loss_mbar": 1.2,
-      "oil_in_l": 0,
-      "risk_pct": 18
-    }
-  ],
-  "alarm": null
-}
+POST /api/real/admin/clear-data

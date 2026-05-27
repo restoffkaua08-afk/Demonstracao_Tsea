@@ -17,7 +17,6 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 TANKS_FILE = DATA_DIR / "tanks.json"
 HOSES_FILE = DATA_DIR / "hoses.json"
 LIMITS_FILE = DATA_DIR / "limits.json"
-OPERATIONS_FILE = DATA_DIR / "operation_records.json"
 
 DEFAULT_LIMITS: dict[str, Any] = {
     "tank_count_min": 1,
@@ -82,6 +81,22 @@ class HosePayload(BaseModel):
     calibrated_loss_mbar: float | None = None
     loss_base_mbar: float | None = None
     status: str | None = None
+    note: str | None = None
+
+
+class RecipePayloadReal(BaseModel):
+    id: str | None = None
+    title: str | None = None
+    name: str | None = None
+    tank_type: str | None = None
+    estimated_seconds: int | None = None
+    max_cycle_seconds: int | None = None
+    target_pressure_mbar: float | None = None
+    roots_start_pressure_mbar: float | None = None
+    b2_start_seconds: int | None = None
+    oil_start_seconds: int | None = None
+    stabilization_seconds: int | None = None
+    oil_per_tank_l: float | None = None
     note: str | None = None
 
 
@@ -187,6 +202,7 @@ def _clamp_float(value: Any, minimum: float, maximum: float, fallback: float) ->
         number = float(value)
     except Exception:
         number = fallback
+
     return max(minimum, min(maximum, number))
 
 
@@ -195,6 +211,7 @@ def _to_bool(value: Any, default: bool = False) -> bool:
         return value
     if value is None:
         return default
+
     return str(value).strip().lower() in {"1", "true", "sim", "on", "ligado", "ligada"}
 
 
@@ -204,8 +221,7 @@ def hose_internal_volume_liters(length_m: float, internal_diameter_mm: float) ->
     return volume_m3 * 1000.0
 
 
-def get_limits() -> dict[str, Any]:
-    raw = _read_json(LIMITS_FILE, DEFAULT_LIMITS)
+def normalize_limits(raw: dict[str, Any] | None = None) -> dict[str, Any]:
     merged = {**DEFAULT_LIMITS, **(raw if isinstance(raw, dict) else {})}
 
     out: dict[str, Any] = {}
@@ -246,20 +262,8 @@ def get_limits() -> dict[str, Any]:
     return out
 
 
-def get_tanks() -> list[dict[str, Any]]:
-    data = _read_json(TANKS_FILE, [])
-    return [normalize_tank(item) for item in data if isinstance(item, dict)]
-
-
-def get_hoses() -> list[dict[str, Any]]:
-    data = _read_json(HOSES_FILE, [])
-    return [normalize_hose(item) for item in data if isinstance(item, dict)]
-
-
-def get_recipes() -> list[dict[str, Any]]:
-    core = _core()
-    recipes = getattr(core, "RECIPES", [])
-    return recipes if isinstance(recipes, list) else []
+def get_limits() -> dict[str, Any]:
+    return normalize_limits(_read_json(LIMITS_FILE, DEFAULT_LIMITS))
 
 
 def normalize_tank(raw: dict[str, Any]) -> dict[str, Any]:
@@ -329,38 +333,78 @@ def normalize_hose(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def validate_recipe_dict(recipe: dict[str, Any]) -> dict[str, Any]:
-    limits = get_limits()
-
-    estimated = _strict_int(recipe.get("estimated_seconds") or recipe.get("max_cycle_seconds"), "estimated_seconds", limits["cycle_min_seconds"], limits["cycle_max_seconds"], 205)
-    target = _strict_float(recipe.get("target_pressure_mbar"), "target_pressure_mbar", limits["pressure_min_mbar"], limits["pressure_max_mbar"], 8.0)
-    roots = _strict_float(recipe.get("roots_start_pressure_mbar"), "roots_start_pressure_mbar", limits["pressure_min_mbar"], limits["pressure_max_mbar"], 50.0)
-
-    b2 = _strict_int(recipe.get("b2_start_seconds"), "b2_start_seconds", 0, estimated, 24)
-    oil = _strict_int(recipe.get("oil_start_seconds"), "oil_start_seconds", b2, estimated, max(b2, int(estimated * 0.45)))
-    stabilization = _strict_int(recipe.get("stabilization_seconds"), "stabilization_seconds", oil, estimated, max(oil, int(estimated * 0.78)))
-    oil_per_tank = _strict_float(recipe.get("oil_per_tank_l"), "oil_per_tank_l", limits["oil_min_l"], limits["oil_max_l"], 50.0)
-
-    recipe["estimated_seconds"] = estimated
-    recipe["max_cycle_seconds"] = estimated
-    recipe["target_pressure_mbar"] = target
-    recipe["roots_start_pressure_mbar"] = roots
-    recipe["b2_start_seconds"] = b2
-    recipe["oil_start_seconds"] = oil
-    recipe["stabilization_seconds"] = stabilization
-    recipe["oil_per_tank_l"] = oil_per_tank
-
-    return recipe
+def get_tanks() -> list[dict[str, Any]]:
+    data = _read_json(TANKS_FILE, [])
+    return [normalize_tank(item) for item in data if isinstance(item, dict)]
 
 
-def sync_legacy_hoses_for_main() -> None:
+def get_hoses() -> list[dict[str, Any]]:
+    data = _read_json(HOSES_FILE, [])
+    return [normalize_hose(item) for item in data if isinstance(item, dict)]
+
+
+def get_recipes() -> list[dict[str, Any]]:
     core = _core()
+    recipes = getattr(core, "RECIPES", [])
+    return recipes if isinstance(recipes, list) else []
 
-    if not hasattr(core, "HOSES"):
+
+def save_recipes(items: list[dict[str, Any]]) -> None:
+    core = _core()
+    core.RECIPES.clear()
+    core.RECIPES.extend(items)
+
+    try:
+        core.save_recipes(core.RECIPES)
+    except Exception:
+        pass
+
+
+def normalize_recipe(raw: dict[str, Any]) -> dict[str, Any]:
+    limits = get_limits()
+    timestamp = datetime.now().strftime("%H%M%S")
+    rid = str(raw.get("id") or raw.get("title") or raw.get("name") or f"REC-{timestamp}").strip()
+
+    if not rid:
+        raise HTTPException(status_code=422, detail="ID da receita e obrigatorio.")
+
+    estimated = _strict_int(raw.get("estimated_seconds") or raw.get("max_cycle_seconds"), "estimated_seconds", limits["cycle_min_seconds"], limits["cycle_max_seconds"], 205)
+    target = _strict_float(raw.get("target_pressure_mbar"), "target_pressure_mbar", limits["pressure_min_mbar"], limits["pressure_max_mbar"], 8.0)
+    roots = _strict_float(raw.get("roots_start_pressure_mbar"), "roots_start_pressure_mbar", limits["pressure_min_mbar"], limits["pressure_max_mbar"], 50.0)
+
+    b2 = _strict_int(raw.get("b2_start_seconds"), "b2_start_seconds", 0, estimated, 24)
+    oil = _strict_int(raw.get("oil_start_seconds"), "oil_start_seconds", b2, estimated, max(b2, int(estimated * 0.45)))
+    stabilization = _strict_int(raw.get("stabilization_seconds"), "stabilization_seconds", oil, estimated, max(oil, int(estimated * 0.78)))
+    oil_per_tank = _strict_float(raw.get("oil_per_tank_l"), "oil_per_tank_l", limits["oil_min_l"], limits["oil_max_l"], 50.0)
+
+    return {
+        "id": rid,
+        "title": str(raw.get("title") or raw.get("name") or rid).strip(),
+        "name": str(raw.get("name") or raw.get("title") or rid).strip(),
+        "tank_type": str(raw.get("tank_type") or "Regulador").strip(),
+        "estimated_seconds": estimated,
+        "max_cycle_seconds": estimated,
+        "target_pressure_mbar": target,
+        "roots_start_pressure_mbar": roots,
+        "b2_start_seconds": b2,
+        "oil_start_seconds": oil,
+        "stabilization_seconds": stabilization,
+        "oil_per_tank_l": oil_per_tank,
+        "note": str(raw.get("note") or ""),
+    }
+
+
+def sync_legacy_hoses_for_main(main_globals: dict[str, Any] | None = None) -> None:
+    if main_globals is None:
+        main_globals = vars(_core())
+
+    hoses_dict = main_globals.get("HOSES")
+
+    if not isinstance(hoses_dict, dict):
         return
 
     for hose in get_hoses():
-        core.HOSES[str(hose["id"])] = {
+        hoses_dict[str(hose["id"])] = {
             "id": str(hose["id"]),
             "descricao": str(hose.get("descricao") or hose.get("label") or hose["id"]),
             "loss_base_mbar": float(hose.get("loss_base_mbar") or hose.get("calibrated_loss_mbar") or 0.0),
@@ -389,7 +433,7 @@ def validate_start_payload(data: dict[str, Any]) -> None:
     recipe_id = str(data.get("recipe_id") or "")
     hose_id = str(data.get("hose_id") or "")
 
-    if not any(str(item.get("id")) == recipe_id or str(item.get("title")) == recipe_id or str(item.get("name")) == recipe_id for item in recipes):
+    if not any(str(item.get("id")) == recipe_id for item in recipes):
         raise ValueError("Receita selecionada nao existe na base real.")
 
     if not any(str(item.get("id")) == hose_id or str(item.get("code")) == hose_id for item in hoses):
@@ -457,14 +501,13 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         return
 
     main_globals["_TSEA_REAL_HOOKS_INSTALLED"] = True
-
-    sync_legacy_hoses_for_main()
+    sync_legacy_hoses_for_main(main_globals)
 
     original_normalize_recipe = main_globals.get("normalize_recipe")
     if callable(original_normalize_recipe):
         def normalize_recipe_wrapped(payload: Any):
             item = original_normalize_recipe(payload)
-            return validate_recipe_dict(item)
+            return normalize_recipe(item)
 
         main_globals["normalize_recipe"] = normalize_recipe_wrapped
 
@@ -544,8 +587,8 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         cls.start = start_real
 
 
-@router.get("/api/parameters")
-def api_parameters() -> dict[str, Any]:
+@router.get("/api/real/parameters")
+def api_real_parameters() -> dict[str, Any]:
     sync_legacy_hoses_for_main()
 
     return {
@@ -563,13 +606,56 @@ def api_parameters() -> dict[str, Any]:
     }
 
 
-@router.get("/api/tanks")
-def api_get_tanks() -> list[dict[str, Any]]:
+@router.get("/api/real/recipes")
+def api_real_recipes() -> list[dict[str, Any]]:
+    return get_recipes()
+
+
+@router.post("/api/real/recipes")
+async def api_real_create_recipe(payload: RecipePayloadReal) -> dict[str, Any]:
+    items = get_recipes()
+    item = normalize_recipe(payload.model_dump(exclude_none=True))
+    index = next((idx for idx, current in enumerate(items) if str(current.get("id")) == str(item.get("id"))), None)
+
+    if index is None:
+        items.append(item)
+    else:
+        items[index] = item
+
+    save_recipes(items)
+
+    core = _core()
+    try:
+        core.STATE.event(f"Receita cadastrada/atualizada: {item['id']}", "INFO")
+        await core.broadcast()
+    except Exception:
+        pass
+
+    return item
+
+
+@router.delete("/api/real/recipes/{recipe_id}")
+async def api_real_delete_recipe(recipe_id: str) -> dict[str, Any]:
+    items = [item for item in get_recipes() if str(item.get("id")) != str(recipe_id)]
+    save_recipes(items)
+
+    core = _core()
+    try:
+        core.STATE.event(f"Receita removida: {recipe_id}", "WARN")
+        await core.broadcast()
+    except Exception:
+        pass
+
+    return {"ok": True, "recipes": items}
+
+
+@router.get("/api/real/tanks")
+def api_real_get_tanks() -> list[dict[str, Any]]:
     return get_tanks()
 
 
-@router.post("/api/tanks")
-async def api_create_tank(payload: TankPayload) -> dict[str, Any]:
+@router.post("/api/real/tanks")
+async def api_real_create_tank(payload: TankPayload) -> dict[str, Any]:
     items = get_tanks()
     item = normalize_tank(payload.model_dump(exclude_none=True))
     index = next((idx for idx, current in enumerate(items) if str(current.get("id")) == str(item.get("id"))), None)
@@ -591,8 +677,8 @@ async def api_create_tank(payload: TankPayload) -> dict[str, Any]:
     return item
 
 
-@router.delete("/api/tanks/{tank_id}")
-async def api_delete_tank(tank_id: str) -> dict[str, Any]:
+@router.delete("/api/real/tanks/{tank_id}")
+async def api_real_delete_tank(tank_id: str) -> dict[str, Any]:
     items = [
         item for item in get_tanks()
         if str(item.get("id")) != str(tank_id) and str(item.get("code")) != str(tank_id)
@@ -610,14 +696,14 @@ async def api_delete_tank(tank_id: str) -> dict[str, Any]:
     return {"ok": True, "tanks": items}
 
 
-@router.get("/api/hoses")
-def api_get_hoses() -> list[dict[str, Any]]:
+@router.get("/api/real/hoses")
+def api_real_get_hoses() -> list[dict[str, Any]]:
     sync_legacy_hoses_for_main()
     return get_hoses()
 
 
-@router.post("/api/hoses")
-async def api_create_hose(payload: HosePayload) -> dict[str, Any]:
+@router.post("/api/real/hoses")
+async def api_real_create_hose(payload: HosePayload) -> dict[str, Any]:
     items = get_hoses()
     item = normalize_hose(payload.model_dump(exclude_none=True))
     index = next((idx for idx, current in enumerate(items) if str(current.get("id")) == str(item.get("id"))), None)
@@ -640,8 +726,8 @@ async def api_create_hose(payload: HosePayload) -> dict[str, Any]:
     return item
 
 
-@router.delete("/api/hoses/{hose_id}")
-async def api_delete_hose(hose_id: str) -> dict[str, Any]:
+@router.delete("/api/real/hoses/{hose_id}")
+async def api_real_delete_hose(hose_id: str) -> dict[str, Any]:
     items = [
         item for item in get_hoses()
         if str(item.get("id")) != str(hose_id) and str(item.get("code")) != str(hose_id)
@@ -660,16 +746,16 @@ async def api_delete_hose(hose_id: str) -> dict[str, Any]:
     return {"ok": True, "hoses": items}
 
 
-@router.get("/api/limits")
-def api_get_limits() -> dict[str, Any]:
+@router.get("/api/real/limits")
+def api_real_get_limits() -> dict[str, Any]:
     return get_limits()
 
 
-@router.post("/api/limits")
-async def api_update_limits(payload: LimitsPayload) -> dict[str, Any]:
+@router.post("/api/real/limits")
+async def api_real_update_limits(payload: LimitsPayload) -> dict[str, Any]:
     current = get_limits()
     updated = {**current, **payload.model_dump(exclude_none=True)}
-    normalized = get_limits_from_raw(updated)
+    normalized = normalize_limits(updated)
     _write_json(LIMITS_FILE, normalized)
 
     core = _core()
@@ -680,16 +766,6 @@ async def api_update_limits(payload: LimitsPayload) -> dict[str, Any]:
         pass
 
     return normalized
-
-
-def get_limits_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
-    _write_json(LIMITS_FILE.with_suffix(".tmp.json"), raw)
-    old = _read_json(LIMITS_FILE, DEFAULT_LIMITS)
-    try:
-        _write_json(LIMITS_FILE, raw)
-        return get_limits()
-    finally:
-        _write_json(LIMITS_FILE, old)
 
 
 @router.get("/api/hardware/schema")
@@ -846,8 +922,8 @@ async def api_hardware_reset() -> dict[str, Any]:
     return {"ok": True, "mode": state.mode, "state": state.payload()}
 
 
-@router.post("/api/admin/clear-data")
-async def api_admin_clear_data() -> dict[str, Any]:
+@router.post("/api/real/admin/clear-data")
+async def api_real_admin_clear_data() -> dict[str, Any]:
     core = _core()
 
     if hasattr(core, "RECIPES"):

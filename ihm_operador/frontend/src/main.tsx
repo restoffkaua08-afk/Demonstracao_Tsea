@@ -139,11 +139,7 @@ const LIMITS = {
 
 const defaultRecipes: Recipe[] = [];
 
-const hoses: Hose[] = [
-  { id: "MG-01", descricao: "Curta - 5 m", perdaBase: 0.7, comprimento: 5 },
-  { id: "MG-02", descricao: "Media - 8 m", perdaBase: 1.2, comprimento: 8 },
-  { id: "MG-03", descricao: "Longa - 12 m", perdaBase: 1.8, comprimento: 12 },
-];
+const hoses: Hose[] = [];
 
 const checklistPreText: Record<keyof ChecklistPre, { title: string; detail: string }> = {
   mangueira: {
@@ -451,17 +447,15 @@ function App() {
   const [realTanks, setRealTanks] = useState<any[]>([]);
   const [realLimits, setRealLimits] = useState<any>(null);
 
-  const recipes = gatewayRecipes.length ? gatewayRecipes : defaultRecipes;
+  const recipes = gatewayRecipes;
   const recipe = recipes.find((r) => r.id === recipeId) || recipes[0] || EMPTY_RECIPE;
-  const hosesDisponiveis: Hose[] = realParametersOnline
-    ? realHoses.map((item: any) => ({
-        id: String(item.id || item.code),
-        descricao: `${item.label || item.descricao || item.code} · ${item.length_m ?? "--"} m · Ø ${item.internal_diameter_mm ?? "--"} mm · Vol. ${item.internal_volume_l ?? "--"} L`,
-        perdaBase: Number(item.calibrated_loss_mbar ?? item.loss_base_mbar ?? 0),
-        comprimento: Number(item.length_m ?? 0),
-      }))
-    : hoses;
-  const hose = hosesDisponiveis.find((h) => h.id === hoseId) || hosesDisponiveis[0] || hoses[1] || hoses[0];
+  const hosesDisponiveis: Hose[] = realHoses.map((item: any) => ({
+    id: String(item.id || item.code),
+    descricao: `${item.label || item.descricao || item.code} · ${item.length_m ?? "--"} m · Ø ${item.internal_diameter_mm ?? "--"} mm · Vol. ${item.internal_volume_l ?? "--"} L`,
+    perdaBase: Number(item.calibrated_loss_mbar ?? item.loss_base_mbar ?? 0),
+    comprimento: Number(item.length_m ?? 0),
+  }));
+  const hose = hosesDisponiveis.find((h) => h.id === hoseId) || hosesDisponiveis[0] || { id: "__SEM_MANGUEIRA__", descricao: "Nenhuma mangueira real cadastrada", perdaBase: 0, comprimento: 0 };
 
   const addLog = (msg: string) => setLogs((prev) => [{ time: now(), msg }, ...prev].slice(0, 60));
 
@@ -518,7 +512,7 @@ function App() {
 
     async function carregarReceitasGateway() {
       try {
-        const response = await fetch(`${GATEWAY_API}/recipes`);
+        const response = await fetch(`${GATEWAY_API}/real/recipes`);
         if (!response.ok) throw new Error(await response.text());
 
         const data = await response.json();
@@ -722,6 +716,11 @@ function App() {
 
     if (gatewayBloqueado) {
       addLog("Inicio bloqueado: Gateway offline.");
+      return;
+    }
+
+    if (parametrosReaisIncompletos) {
+      addLog("Inicio bloqueado: cadastre tanque/regulador e mangueira real no sistema do gerente.");
       return;
     }
 
@@ -944,7 +943,7 @@ function App() {
         <h2>DADOS DA OPERACAO</h2>
         <div className="form-grid">
           <div className="field"><label>Quantidade de tanques</label><input type="number" min={OPERATIONAL_LIMITS.tankMin} max={OPERATIONAL_LIMITS.tankMax} step={1} value={qtdTanques} onChange={(e) => setQtdTanques(clampInteger(Number(e.target.value), OPERATIONAL_LIMITS.tankMin, OPERATIONAL_LIMITS.tankMax))} /></div>
-          <div className="field"><label>Mangueira</label><select value={hoseId} onChange={(e) => setHoseId(e.target.value as HoseKey)}>{hoses.map((h) => <option key={h.id} value={h.id}>{h.descricao}</option>)}</select></div>
+          <div className="field"><label>Mangueira</label><select value={hoseId} onChange={(e) => setHoseId(e.target.value as HoseKey)}>{hosesDisponiveis.map((h) => <option key={h.id} value={h.id}>{h.descricao}</option>)}</select></div>
           <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" min={OPERATIONAL_LIMITS.oilMinL} max={OPERATIONAL_LIMITS.oilMaxL} step={OPERATIONAL_LIMITS.oilStepL} value={oleoColocado} onChange={(e) => setOleoColocado(clampNumber(Number(e.target.value), OPERATIONAL_LIMITS.oilMinL, OPERATIONAL_LIMITS.oilMaxL))} /></div>
           <div className={oilInsuficiente || receitaExcedeLimiteOleo ? "oil-warning limit-box" : "oil-ok limit-box"}>
             <b>Oleo necessario: {oilNeeded} L</b>

@@ -49,7 +49,7 @@ export function ParametersPage(_: any) {
 
   async function load() {
     try {
-      const data = await request("/parameters");
+      const data = await request("/real/parameters");
       setParameters(data || { recipes: [], tanks: [], hoses: [], limits: {}, formulas: {} });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
@@ -68,7 +68,7 @@ export function ParametersPage(_: any) {
 
     try {
       if (tab === "tanks") {
-        await request("/tanks", {
+        await request("/real/tanks", {
           method: "POST",
           body: JSON.stringify(asPayload({
             id: form.code,
@@ -86,7 +86,7 @@ export function ParametersPage(_: any) {
       }
 
       if (tab === "hoses") {
-        await request("/hoses", {
+        await request("/real/hoses", {
           method: "POST",
           body: JSON.stringify(asPayload({
             id: form.code,
@@ -101,7 +101,7 @@ export function ParametersPage(_: any) {
       }
 
       if (tab === "recipes") {
-        await request("/recipes", {
+        await request("/real/recipes", {
           method: "POST",
           body: JSON.stringify(asPayload({
             id: form.id || form.name,
@@ -122,7 +122,7 @@ export function ParametersPage(_: any) {
       }
 
       if (tab === "limits") {
-        await request("/limits", {
+        await request("/real/limits", {
           method: "POST",
           body: JSON.stringify(asPayload({
             tank_count_min: Number(form.tank_count_min || limits.tank_count_min),
@@ -153,14 +153,14 @@ export function ParametersPage(_: any) {
     }
   }
 
-  async function remove(type: "tanks" | "hoses", id: string) {
+  async function remove(type: "tanks" | "hoses" | "recipes", id: string) {
     if (!confirm("Excluir este cadastro?")) return;
 
     setLoading(true);
     setMessage("");
 
     try {
-      await request("/" + type + "/" + encodeURIComponent(id), { method: "DELETE" });
+      await request("/real/" + type + "/" + encodeURIComponent(id), { method: "DELETE" });
       setMessage("Cadastro excluido.");
       await load();
     } catch (error) {
@@ -178,9 +178,10 @@ export function ParametersPage(_: any) {
     setMessage("");
 
     try {
-      await request("/admin/clear-data", { method: "POST", body: "{}" });
+      await request("/real/admin/clear-data", { method: "POST", body: "{}" });
       localStorage.clear();
       setForm({});
+      setParameters({ recipes: [], tanks: [], hoses: [], limits: limits || {}, formulas: {} });
       setMessage("Base limpa. Cadastre tudo do zero.");
       await load();
     } catch (error) {
@@ -194,8 +195,8 @@ export function ParametersPage(_: any) {
     <div className="screen realParamsScreen">
       <Section
         title="Parâmetros reais do protótipo físico"
-        subtitle="Cadastre dados reais. O Gateway valida limites, calcula volume interno da mangueira e sincroniza com IHM/rastreabilidade."
-        action={<button className="danger" onClick={clearAll} disabled={loading}>Limpar base</button>}
+        subtitle="Cadastre somente dados reais. O Gateway bloqueia valores absurdos e sincroniza gerente, IHM e operação."
+        action={<button className="danger" onClick={clearAll} disabled={loading}>Limpar tudo</button>}
       >
         <div className="subtabs">
           <button className={tab === "tanks" ? "" : "secondary"} onClick={() => { setTab("tanks"); setForm({}); }}>Tanques</button>
@@ -221,20 +222,18 @@ export function ParametersPage(_: any) {
         )}
 
         {tab === "hoses" && (
-          <>
-            <div className="formGrid">
-              <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
-              <Field label="Descrição"><input value={form.label || ""} onChange={(e) => setForm({ ...form, label: e.target.value })} /></Field>
-              <Field label="Comprimento real (m)"><input type="number" min={limits.hose_length_min_m || 0.1} max={limits.hose_length_max_m || 30} value={form.length_m || ""} onChange={(e) => setForm({ ...form, length_m: e.target.value })} /></Field>
-              <Field label="Diâmetro interno real (mm)"><input type="number" min={limits.hose_diameter_min_mm || 2} max={limits.hose_diameter_max_mm || 80} value={form.internal_diameter_mm || ""} onChange={(e) => setForm({ ...form, internal_diameter_mm: e.target.value })} /></Field>
-              <Field label="Perda calibrada inicial (mbar)"><input type="number" min={0} max={200} value={form.calibrated_loss_mbar || ""} onChange={(e) => setForm({ ...form, calibrated_loss_mbar: e.target.value })} /></Field>
-              <div className="calcBox">
-                <span>Volume interno calculado</span>
-                <b>{fmt(hoseVolume, "L")}</b>
-                <small>V = π × (D² / 4) × L</small>
-              </div>
+          <div className="formGrid">
+            <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
+            <Field label="Descrição"><input value={form.label || ""} onChange={(e) => setForm({ ...form, label: e.target.value })} /></Field>
+            <Field label="Comprimento real (m)"><input type="number" min={limits.hose_length_min_m || 0.1} max={limits.hose_length_max_m || 30} value={form.length_m || ""} onChange={(e) => setForm({ ...form, length_m: e.target.value })} /></Field>
+            <Field label="Diâmetro interno real (mm)"><input type="number" min={limits.hose_diameter_min_mm || 2} max={limits.hose_diameter_max_mm || 80} value={form.internal_diameter_mm || ""} onChange={(e) => setForm({ ...form, internal_diameter_mm: e.target.value })} /></Field>
+            <Field label="Perda calibrada inicial (mbar)"><input type="number" min={0} max={200} value={form.calibrated_loss_mbar || ""} onChange={(e) => setForm({ ...form, calibrated_loss_mbar: e.target.value })} /></Field>
+            <div className="calcBox">
+              <span>Volume interno calculado</span>
+              <b>{fmt(hoseVolume, "L")}</b>
+              <small>V = π × (D² / 4) × L</small>
             </div>
-          </>
+          </div>
         )}
 
         {tab === "recipes" && (
@@ -277,15 +276,6 @@ export function ParametersPage(_: any) {
         )}
       </Section>
 
-      <Section title="Resumo da base real">
-        <div className="metricGrid">
-          <article className="metric"><span>Receitas</span><strong>{parameters.recipes?.length || 0}</strong></article>
-          <article className="metric"><span>Tanques</span><strong>{parameters.tanks?.length || 0}</strong></article>
-          <article className="metric"><span>Mangueiras</span><strong>{parameters.hoses?.length || 0}</strong></article>
-          <article className="metric"><span>Limite óleo</span><strong>{fmt(limits.oil_max_l, "L")}</strong></article>
-        </div>
-      </Section>
-
       {tab === "tanks" && (
         <Section title="Tanques/reguladores cadastrados">
           <Table
@@ -324,14 +314,15 @@ export function ParametersPage(_: any) {
       {tab === "recipes" && (
         <Section title="Receitas cadastradas">
           <Table
-            columns={["Receita", "Tanque", "Pressão alvo", "Liberação B2", "Tempo", "Óleo/tanque"]}
+            columns={["Receita", "Tanque", "Pressão alvo", "Liberação B2", "Tempo", "Óleo/tanque", "Ações"]}
             rows={(parameters.recipes || []).map((recipe: any) => [
               <b>{recipe.title || recipe.name || recipe.id}</b>,
               recipe.tank_type || "--",
               fmt(recipe.target_pressure_mbar, "mbar"),
               fmt(recipe.roots_start_pressure_mbar, "mbar"),
               fmt(recipe.estimated_seconds || recipe.max_cycle_seconds, "s"),
-              fmt(recipe.oil_per_tank_l, "L")
+              fmt(recipe.oil_per_tank_l, "L"),
+              <button className="danger small" onClick={() => remove("recipes", recipe.id)}>Excluir</button>
             ])}
           />
         </Section>
