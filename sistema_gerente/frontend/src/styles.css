@@ -3731,3 +3731,70 @@ html[data-theme="dark"] .technicalReferenceBlock p {
 }
 
 /* TSEA_TANK_COUNT_SCOPE_END */
+
+
+/* TSEA REAL PARAMETERS PATCH */
+.realParamsScreen .paramMessage {
+  border: 3px solid #111;
+  background: #fff7c2;
+  padding: 10px 12px;
+  font-weight: 800;
+  margin: 10px 0;
+}
+
+.realParamsScreen .danger {
+  background: #d83131;
+  color: #fff;
+  border-color: #111;
+}
+
+.realParamsScreen .small {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.realParamsScreen .calcBox {
+  border: 3px solid #111;
+  background: #f5fbf7;
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.realParamsScreen .calcBox span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  opacity: 0.72;
+}
+
+.realParamsScreen .calcBox b {
+  font-size: 1.1rem;
+}
+
+.realParamsScreen .calcBox small {
+  font-size: 0.75rem;
+  opacity: 0.76;
+}
+
+.realParamsScreen .formulaPanel {
+  display: grid;
+  gap: 12px;
+}
+
+.realParamsScreen .formulaPanel article {
+  border: 3px solid #111;
+  background: #f7fbf7;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.realParamsScreen .formulaPanel code {
+  background: #101510;
+  color: #b8ffbe;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+

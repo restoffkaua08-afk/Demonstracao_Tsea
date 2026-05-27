@@ -446,10 +446,22 @@ function App() {
 
   const [logs, setLogs] = useState<{ time: string; msg: string }[]>([]);
   const [gatewayRecipes, setGatewayRecipes] = useState<Recipe[]>([]);
+  const [realParametersOnline, setRealParametersOnline] = useState(false);
+  const [realHoses, setRealHoses] = useState<any[]>([]);
+  const [realTanks, setRealTanks] = useState<any[]>([]);
+  const [realLimits, setRealLimits] = useState<any>(null);
 
   const recipes = gatewayRecipes.length ? gatewayRecipes : defaultRecipes;
   const recipe = recipes.find((r) => r.id === recipeId) || recipes[0] || EMPTY_RECIPE;
-  const hose = hoses.find((h) => h.id === hoseId) || hoses[1] || hoses[0];
+  const hosesDisponiveis: Hose[] = realParametersOnline
+    ? realHoses.map((item: any) => ({
+        id: String(item.id || item.code),
+        descricao: `${item.label || item.descricao || item.code} · ${item.length_m ?? "--"} m · Ø ${item.internal_diameter_mm ?? "--"} mm · Vol. ${item.internal_volume_l ?? "--"} L`,
+        perdaBase: Number(item.calibrated_loss_mbar ?? item.loss_base_mbar ?? 0),
+        comprimento: Number(item.length_m ?? 0),
+      }))
+    : hoses;
+  const hose = hosesDisponiveis.find((h) => h.id === hoseId) || hosesDisponiveis[0] || hoses[1] || hoses[0];
 
   const addLog = (msg: string) => setLogs((prev) => [{ time: now(), msg }, ...prev].slice(0, 60));
 
@@ -465,6 +477,41 @@ function App() {
       localStorage.setItem("tsea_ihm_registros_dia", JSON.stringify(registros));
     } catch {}
   }, [registros]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function carregarParametrosReais() {
+      try {
+        const response = await fetch(`${GATEWAY_API}/parameters`);
+        if (!response.ok) throw new Error(await response.text());
+
+        const data = await response.json();
+
+        if (!active) return;
+
+        setRealParametersOnline(true);
+        setRealHoses(Array.isArray(data?.hoses) ? data.hoses : []);
+        setRealTanks(Array.isArray(data?.tanks) ? data.tanks : []);
+        setRealLimits(data?.limits || null);
+      } catch {
+        if (!active) return;
+
+        setRealParametersOnline(false);
+        setRealHoses([]);
+        setRealTanks([]);
+        setRealLimits(null);
+      }
+    }
+
+    carregarParametrosReais();
+    const timer = window.setInterval(carregarParametrosReais, 3000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -590,10 +637,11 @@ function App() {
   );
 
   const recipeInvalid = receitaExcedeLimiteOleo || recipeTimeInvalid || pressureTargetInvalid || recipeSequenceInvalid;
+  const parametrosReaisIncompletos = realParametersOnline && (realTanks.length === 0 || realHoses.length === 0);
   const gatewayBloqueado = !gatewayOnline;
   const sensorBloqueado = gatewayState?.hardware?.sensor_online === false;
   const emergencyBloqueada = status === "BLOQUEADO" || gatewayState?.hardware?.emergency === true;
-  const inicioBloqueado = gatewayBloqueado || sensorBloqueado || emergencyBloqueada || recipeInvalid || oilInsuficiente || !allCheckedPre || !recipes.length;
+  const inicioBloqueado = gatewayBloqueado || sensorBloqueado || emergencyBloqueada || recipeInvalid || oilInsuficiente || parametrosReaisIncompletos || !allCheckedPre || !recipes.length;
 
   const alarmInfo = useMemo<AlarmInfo | null>(() => {
     if (emergencyBloqueada) {
@@ -674,6 +722,11 @@ function App() {
 
     if (gatewayBloqueado) {
       addLog("Inicio bloqueado: Gateway offline.");
+      return;
+    }
+
+    if (parametrosReaisIncompletos) {
+      addLog("Inicio bloqueado: cadastre tanque/regulador e mangueira real no sistema do gerente.");
       return;
     }
 

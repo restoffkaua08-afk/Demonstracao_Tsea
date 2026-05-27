@@ -14,8 +14,12 @@ Endpoints principais:
 GET  /api/parameters
 GET  /api/tanks
 POST /api/tanks
+DELETE /api/tanks/{tank_id}
+
 GET  /api/hoses
 POST /api/hoses
+DELETE /api/hoses/{hose_id}
+
 GET  /api/limits
 POST /api/limits
 
