@@ -1,4 +1,21 @@
 
+"""
+Ponte real do protótipo físico TSEA.
+
+Este módulo concentra os parâmetros reais da demonstração:
+- receitas reais cadastradas pelo gerente;
+- tanques/reguladores reais;
+- mangueiras reais;
+- cálculo do volume interno da mangueira;
+- limites técnicos fixos no código;
+- modo simulado e modo físico HTTP;
+- sincronização entre Gateway, sistema do gerente e IHM.
+
+Observação:
+A perda real de pressão na linha deve ser calibrada em ensaio físico.
+O volume interno da mangueira é cálculo geométrico real.
+"""
+
 from __future__ import annotations
 
 import importlib
@@ -18,6 +35,8 @@ TANKS_FILE = DATA_DIR / "tanks.json"
 HOSES_FILE = DATA_DIR / "hoses.json"
 OPERATION_RECORDS_FILE = DATA_DIR / "operation_records.json"
 
+# Limites fixos de segurança da demonstração.
+# Não são cadastrados pelo gerente para evitar valores absurdos em operação.
 CODE_LIMITS: dict[str, Any] = {
     "tank_count_min": 1,
     "tank_count_max": 3,
@@ -141,13 +160,13 @@ def _write_json(path: Path, data: Any) -> None:
 def _strict_float(value: Any, field: str, minimum: float, maximum: float, default: float | None = None) -> float:
     if value is None:
         if default is None:
-            raise HTTPException(status_code=422, detail=f"{field} e obrigatorio.")
+            raise HTTPException(status_code=422, detail=f"{field} é obrigatório.")
         value = default
 
     try:
         number = float(value)
     except Exception:
-        raise HTTPException(status_code=422, detail=f"{field} deve ser numerico.")
+        raise HTTPException(status_code=422, detail=f"{field} deve ser numérico.")
 
     if number < minimum or number > maximum:
         raise HTTPException(status_code=422, detail=f"{field} fora da faixa permitida: {minimum} a {maximum}.")
@@ -158,7 +177,7 @@ def _strict_float(value: Any, field: str, minimum: float, maximum: float, defaul
 def _strict_int(value: Any, field: str, minimum: int, maximum: int, default: int | None = None) -> int:
     if value is None:
         if default is None:
-            raise HTTPException(status_code=422, detail=f"{field} e obrigatorio.")
+            raise HTTPException(status_code=422, detail=f"{field} é obrigatório.")
         value = default
 
     try:
@@ -184,6 +203,7 @@ def _clamp_float(value: Any, minimum: float, maximum: float, fallback: float) ->
 def _to_bool(value: Any, default: bool = False) -> bool:
     if isinstance(value, bool):
         return value
+
     if value is None:
         return default
 
@@ -195,6 +215,16 @@ def get_limits() -> dict[str, Any]:
 
 
 def hose_internal_volume_liters(length_m: float, internal_diameter_mm: float) -> float:
+    """
+    Volume interno real da mangueira.
+
+    Fórmula:
+    V = π × (D² / 4) × L
+
+    D em metros.
+    L em metros.
+    Resultado final convertido para litros.
+    """
     diameter_m = internal_diameter_mm / 1000.0
     volume_m3 = math.pi * ((diameter_m ** 2) / 4.0) * length_m
     return volume_m3 * 1000.0
@@ -205,7 +235,7 @@ def normalize_tank(raw: dict[str, Any]) -> dict[str, Any]:
     code = str(raw.get("code") or raw.get("id") or f"TQ-{datetime.now().strftime('%H%M%S')}").strip()
 
     if not code:
-        raise HTTPException(status_code=422, detail="Codigo do tanque e obrigatorio.")
+        raise HTTPException(status_code=422, detail="Código do tanque é obrigatório.")
 
     volume_liters = _strict_float(raw.get("volume_liters"), "volume_liters", limits["tank_volume_min_l"], limits["tank_volume_max_l"], 50.0)
     diameter_mm = _strict_float(raw.get("diameter_mm"), "diameter_mm", limits["tank_diameter_min_mm"], limits["tank_diameter_max_mm"], 740.0)
@@ -233,7 +263,7 @@ def normalize_hose(raw: dict[str, Any]) -> dict[str, Any]:
     code = str(raw.get("code") or raw.get("id") or f"MG-{datetime.now().strftime('%H%M%S')}").strip()
 
     if not code:
-        raise HTTPException(status_code=422, detail="Codigo da mangueira e obrigatorio.")
+        raise HTTPException(status_code=422, detail="Código da mangueira é obrigatório.")
 
     length_m = _strict_float(raw.get("length_m"), "length_m", limits["hose_length_min_m"], limits["hose_length_max_m"], 8.0)
     internal_diameter_mm = _strict_float(
@@ -250,6 +280,7 @@ def normalize_hose(raw: dict[str, Any]) -> dict[str, Any]:
         limits["calibrated_loss_max_mbar"],
         1.2,
     )
+
     internal_volume_l = hose_internal_volume_liters(length_m, internal_diameter_mm)
 
     return {
@@ -273,7 +304,7 @@ def normalize_recipe(raw: dict[str, Any]) -> dict[str, Any]:
     rid = str(raw.get("id") or raw.get("title") or raw.get("name") or f"REC-{timestamp}").strip()
 
     if not rid:
-        raise HTTPException(status_code=422, detail="ID da receita e obrigatorio.")
+        raise HTTPException(status_code=422, detail="ID da receita é obrigatório.")
 
     estimated = _strict_int(raw.get("estimated_seconds") or raw.get("max_cycle_seconds"), "estimated_seconds", limits["cycle_min_seconds"], limits["cycle_max_seconds"], 205)
     target = _strict_float(raw.get("target_pressure_mbar"), "target_pressure_mbar", limits["pressure_min_mbar"], limits["pressure_max_mbar"], 8.0)
@@ -327,24 +358,13 @@ def save_recipes(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     core.RECIPES.clear()
     core.RECIPES.extend(normalized_items)
 
-    saved = False
-
     if hasattr(core, "save_recipes") and callable(core.save_recipes):
-        try:
-            core.save_recipes(core.RECIPES)
-            saved = True
-        except Exception:
-            saved = False
-
-    try:
-        recipes_file = Path(getattr(core, "RECIPES_FILE", DATA_DIR / "recipes.json"))
-        _write_json(recipes_file, core.RECIPES)
-        saved = True
-    except Exception:
-        pass
-
-    if not saved:
+        core.save_recipes(core.RECIPES)
+    else:
         _write_json(DATA_DIR / "recipes.json", core.RECIPES)
+
+    recipes_file = Path(getattr(core, "RECIPES_FILE", DATA_DIR / "recipes.json"))
+    _write_json(recipes_file, core.RECIPES)
 
     return core.RECIPES
 
@@ -358,19 +378,23 @@ def sync_legacy_hoses_for_main(main_globals: dict[str, Any] | None = None) -> No
     if not isinstance(hoses_dict, dict):
         return
 
+    # Remove mangueiras demonstrativas antigas.
     for key in list(hoses_dict.keys()):
         if str(key).startswith("MG-"):
             hoses_dict.pop(key, None)
 
+    # Insere apenas as mangueiras reais cadastradas pelo gerente.
     for hose in get_hoses():
         hoses_dict[str(hose["id"])] = {
             "id": str(hose["id"]),
+            "code": str(hose["code"]),
+            "label": str(hose.get("label") or hose.get("descricao") or hose["id"]),
             "descricao": str(hose.get("descricao") or hose.get("label") or hose["id"]),
-            "loss_base_mbar": float(hose.get("loss_base_mbar") or hose.get("calibrated_loss_mbar") or 0.0),
-            "calibrated_loss_mbar": float(hose.get("calibrated_loss_mbar") or hose.get("loss_base_mbar") or 0.0),
-            "internal_volume_l": float(hose.get("internal_volume_l") or 0.0),
             "length_m": float(hose.get("length_m") or 0.0),
             "internal_diameter_mm": float(hose.get("internal_diameter_mm") or 0.0),
+            "internal_volume_l": float(hose.get("internal_volume_l") or 0.0),
+            "loss_base_mbar": float(hose.get("loss_base_mbar") or hose.get("calibrated_loss_mbar") or 0.0),
+            "calibrated_loss_mbar": float(hose.get("calibrated_loss_mbar") or hose.get("loss_base_mbar") or 0.0),
         }
 
 
@@ -393,10 +417,10 @@ def validate_start_payload(data: dict[str, Any]) -> None:
     hose_id = str(data.get("hose_id") or "")
 
     if not any(str(item.get("id")) == recipe_id for item in recipes):
-        raise ValueError("Receita selecionada nao existe na base real.")
+        raise ValueError("Receita selecionada não existe na base real.")
 
     if not any(str(item.get("id")) == hose_id or str(item.get("code")) == hose_id for item in hoses):
-        raise ValueError("Mangueira selecionada nao existe na base real.")
+        raise ValueError("Mangueira selecionada não existe na base real.")
 
     tank_count = int(data.get("tank_count") or 0)
     if tank_count < limits["tank_count_min"] or tank_count > limits["tank_count_max"]:
@@ -404,7 +428,55 @@ def validate_start_payload(data: dict[str, Any]) -> None:
 
     oil_reservoir_l = float(data.get("oil_reservoir_l") or 0)
     if oil_reservoir_l < limits["oil_min_l"] or oil_reservoir_l > limits["oil_max_l"]:
-        raise ValueError("Volume de oleo fora dos limites.")
+        raise ValueError("Volume de óleo fora dos limites.")
+
+
+def normalize_hardware_tanks(payload: HardwareIngestPayload) -> list[dict[str, Any]]:
+    if payload.tanks:
+        normalized: list[dict[str, Any]] = []
+
+        for index, tank in enumerate(payload.tanks[:3]):
+            pressure_machine = _clamp_float(tank.get("machine_pressure_mbar", payload.pressure_machine_mbar), 0.001, 1013.0, 1013.0)
+            hose_loss = _clamp_float(tank.get("hose_loss_mbar"), 0.0, 200.0, 0.0)
+            pressure_tank = _clamp_float(tank.get("pressure_mbar"), 0.001, 1013.0, pressure_machine + hose_loss)
+            oil_in_l = _clamp_float(tank.get("oil_in_l"), 0.0, 10000.0, 0.0)
+            risk_pct = _clamp_float(tank.get("risk_pct"), 0.0, 100.0, 0.0)
+
+            normalized.append(
+                {
+                    "id": str(tank.get("id") or f"T{index + 1}"),
+                    "code": str(tank.get("code") or tank.get("id") or f"T{index + 1}"),
+                    "pressure_mbar": round(pressure_tank, 3),
+                    "machine_pressure_mbar": round(pressure_machine, 3),
+                    "hose_loss_mbar": round(hose_loss, 3),
+                    "oil_in_l": round(oil_in_l, 3),
+                    "risk_pct": round(risk_pct, 2),
+                    "status": "ATENCAO" if risk_pct >= 65 else "OK",
+                }
+            )
+
+        return normalized
+
+    core = _core()
+    state = core.STATE
+    pressure_machine = _clamp_float(payload.pressure_machine_mbar, 0.001, 1013.0, 1013.0)
+    tank_count = max(1, int(getattr(state, "tank_count", 1)))
+    hose = getattr(state, "hose", {}) or {}
+    hose_loss_base = float(hose.get("calibrated_loss_mbar", hose.get("loss_base_mbar", 0.0)))
+
+    return [
+        {
+            "id": f"T{index + 1}",
+            "code": f"T{index + 1}",
+            "pressure_mbar": round(min(1013.0, pressure_machine + hose_loss_base), 3),
+            "machine_pressure_mbar": round(pressure_machine, 3),
+            "hose_loss_mbar": round(hose_loss_base, 3),
+            "oil_in_l": round(float(getattr(state, "oil_injected_l", 0.0)) / tank_count, 3),
+            "risk_pct": 18.0,
+            "status": "OK",
+        }
+        for index in range(tank_count)
+    ]
 
 
 def install_main_hooks(main_globals: dict[str, Any]) -> None:
@@ -412,17 +484,15 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         return
 
     main_globals["_TSEA_REAL_HOOKS_INSTALLED"] = True
+
+    def sync_real_hoses_into_legacy_hoses() -> None:
+        sync_legacy_hoses_for_main(main_globals)
+
+    main_globals["sync_real_hoses_into_legacy_hoses"] = sync_real_hoses_into_legacy_hoses
     sync_legacy_hoses_for_main(main_globals)
 
-    original_normalize_recipe = main_globals.get("normalize_recipe")
-    if callable(original_normalize_recipe):
-        def normalize_recipe_wrapped(payload: Any):
-            item = original_normalize_recipe(payload)
-            return normalize_recipe(item)
-
-        main_globals["normalize_recipe"] = normalize_recipe_wrapped
-
     state = main_globals.get("STATE")
+
     if state is None:
         return
 
@@ -447,7 +517,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         cls._real_bridge_original_start = cls.start
 
         def start_real(self, command):
-            sync_legacy_hoses_for_main()
+            sync_legacy_hoses_for_main(main_globals)
 
             try:
                 data = command.model_dump()
@@ -464,6 +534,45 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
 
         cls.start = start_real
 
+    if not hasattr(cls, "_real_bridge_original_current_pressure_machine") and hasattr(cls, "current_pressure_machine"):
+        cls._real_bridge_original_current_pressure_machine = cls.current_pressure_machine
+
+        def current_pressure_machine_real(self):
+            external_pressure = getattr(self, "external_pressure_machine_mbar", None)
+
+            if getattr(self, "mode", "SIMULADO") == "FISICO_HTTP" and external_pressure is not None:
+                return max(0.001, min(1013.0, float(external_pressure)))
+
+            return cls._real_bridge_original_current_pressure_machine(self)
+
+        cls.current_pressure_machine = current_pressure_machine_real
+
+    if not hasattr(cls, "_real_bridge_original_current_oil_flow") and hasattr(cls, "current_oil_flow"):
+        cls._real_bridge_original_current_oil_flow = cls.current_oil_flow
+
+        def current_oil_flow_real(self):
+            external_flow = getattr(self, "external_oil_flow_l_min", None)
+
+            if getattr(self, "mode", "SIMULADO") == "FISICO_HTTP" and external_flow is not None:
+                return max(0.0, float(external_flow))
+
+            return cls._real_bridge_original_current_oil_flow(self)
+
+        cls.current_oil_flow = current_oil_flow_real
+
+    if not hasattr(cls, "_real_bridge_original_tanks_payload") and hasattr(cls, "tanks_payload"):
+        cls._real_bridge_original_tanks_payload = cls.tanks_payload
+
+        def tanks_payload_real(self):
+            external_tanks = getattr(self, "external_tanks_payload", None)
+
+            if getattr(self, "mode", "SIMULADO") == "FISICO_HTTP" and isinstance(external_tanks, list) and external_tanks:
+                return external_tanks[: max(1, int(getattr(self, "tank_count", 1)))]
+
+            return cls._real_bridge_original_tanks_payload(self)
+
+        cls.tanks_payload = tanks_payload_real
+
 
 @router.get("/api/real/parameters")
 def api_real_parameters() -> dict[str, Any]:
@@ -476,12 +585,16 @@ def api_real_parameters() -> dict[str, Any]:
         "limits": get_limits(),
         "formulas": {
             "hose_internal_volume_l": "V = pi * (Dinterno^2 / 4) * L",
-            "hose_internal_volume_units": "D em metros, L em metros, resultado convertido para litros",
             "pressure_relation": "P_tanque = P_sensor + deltaP_linha",
-            "pressure_note": "A perda real de pressao depende de vazao, bomba, conexoes, regime de escoamento e deve ser calibrada em ensaio.",
             "effective_pumping_speed": "1/Sefetivo = 1/Sbomba + 1/Cmangueira",
+            "note": "A perda real da linha precisa ser calibrada com ensaio físico.",
         },
     }
+
+
+@router.get("/api/parameters")
+def api_parameters_alias() -> dict[str, Any]:
+    return api_real_parameters()
 
 
 @router.get("/api/real/limits")
@@ -498,6 +611,7 @@ def api_real_recipes() -> list[dict[str, Any]]:
 async def api_real_create_recipe(payload: RecipePayloadReal) -> dict[str, Any]:
     items = get_recipes()
     item = normalize_recipe(payload.model_dump(exclude_none=True))
+
     index = next((idx for idx, current in enumerate(items) if str(current.get("id")) == str(item.get("id"))), None)
 
     if index is None:
@@ -513,16 +627,6 @@ async def api_real_create_recipe(payload: RecipePayloadReal) -> dict[str, Any]:
     await core.broadcast()
 
     return item
-
-
-@router.post("/api/recipes")
-async def api_legacy_create_recipe_alias(payload: RecipePayloadReal) -> dict[str, Any]:
-    return await api_real_create_recipe(payload)
-
-
-@router.get("/api/recipes")
-def api_legacy_get_recipes_alias() -> list[dict[str, Any]]:
-    return get_recipes()
 
 
 @router.delete("/api/real/recipes/{recipe_id}")
@@ -546,6 +650,7 @@ def api_real_tanks() -> list[dict[str, Any]]:
 async def api_real_create_tank(payload: TankPayload) -> dict[str, Any]:
     items = get_tanks()
     item = normalize_tank(payload.model_dump(exclude_none=True))
+
     index = next((idx for idx, current in enumerate(items) if str(current.get("id")) == str(item.get("id"))), None)
 
     if index is None:
@@ -588,6 +693,7 @@ def api_real_hoses() -> list[dict[str, Any]]:
 async def api_real_create_hose(payload: HosePayload) -> dict[str, Any]:
     items = get_hoses()
     item = normalize_hose(payload.model_dump(exclude_none=True))
+
     index = next((idx for idx, current in enumerate(items) if str(current.get("id")) == str(item.get("id"))), None)
 
     if index is None:
@@ -620,6 +726,174 @@ async def api_real_delete_hose(hose_id: str) -> dict[str, Any]:
     await core.broadcast()
 
     return {"ok": True, "hoses": items}
+
+
+@router.get("/api/hardware/schema")
+def api_hardware_schema() -> dict[str, Any]:
+    return {
+        "description": "Contrato HTTP para conectar ESP32/CLP ao Gateway TSEA.",
+        "recommended_cycle_ms": 1000,
+        "endpoint": "POST /api/hardware/ingest",
+        "payload_example": {
+            "status": "EM_CICLO",
+            "stage": "VACUO_INICIAL",
+            "elapsed_seconds": 12,
+            "pressure_machine_mbar": 82.4,
+            "pumps": {"b1": True, "b2": False, "oil": False},
+            "oil": {"injected_l": 0, "remaining_l": 120, "flow_l_min": 0},
+            "hardware": {"sensor_online": True, "plc_online": True, "emergency": False},
+            "tanks": [
+                {
+                    "id": "T1",
+                    "pressure_mbar": 83.6,
+                    "machine_pressure_mbar": 82.4,
+                    "hose_loss_mbar": 1.2,
+                    "oil_in_l": 0,
+                    "risk_pct": 18,
+                }
+            ],
+            "alarm": None,
+        },
+    }
+
+
+@router.post("/api/hardware/mode")
+async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
+    core = _core()
+    state = core.STATE
+    mode = payload.mode.strip().upper()
+
+    if mode not in {"SIMULADO", "FISICO_HTTP"}:
+        raise HTTPException(status_code=422, detail="Modo inválido. Use SIMULADO ou FISICO_HTTP.")
+
+    state.mode = mode
+
+    if mode == "SIMULADO":
+        state.external_pressure_machine_mbar = None
+        state.external_tanks_payload = []
+        state.external_oil_flow_l_min = None
+        state.sensor_online = True
+        state.plc_online = True
+        state.emergency = False
+        state.alarm = None
+        state.event("Gateway alterado para modo SIMULADO.", "INFO")
+    else:
+        state.event("Gateway alterado para modo FISICO_HTTP.", "INFO")
+
+    await core.broadcast()
+
+    return {"ok": True, "mode": state.mode, "state": state.payload()}
+
+
+@router.get("/api/hardware/state")
+def api_hardware_state() -> dict[str, Any]:
+    core = _core()
+
+    return {
+        "ok": True,
+        "mode": getattr(core.STATE, "mode", "SIMULADO"),
+        "state": core.STATE.payload(),
+    }
+
+
+@router.post("/api/hardware/ingest")
+async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
+    core = _core()
+    state = core.STATE
+    state.mode = "FISICO_HTTP"
+
+    if payload.status and payload.status in _ALLOWED_STATUS:
+        state.status = payload.status
+
+    if payload.stage and payload.stage in _ALLOWED_STAGE:
+        state.stage = payload.stage
+
+    if payload.elapsed_seconds is not None:
+        state.elapsed_seconds = max(0, int(payload.elapsed_seconds))
+
+    if payload.pressure_machine_mbar is not None:
+        state.external_pressure_machine_mbar = _clamp_float(payload.pressure_machine_mbar, 0.001, 1013.0, 1013.0)
+
+    pumps = payload.pumps or {}
+
+    if "b1" in pumps:
+        state.pump_b1 = _to_bool(pumps.get("b1"))
+
+    if "b2" in pumps:
+        state.pump_b2 = _to_bool(pumps.get("b2"))
+
+    if "oil" in pumps:
+        state.pump_oil = _to_bool(pumps.get("oil"))
+
+    oil = payload.oil or {}
+
+    if "injected_l" in oil:
+        state.oil_injected_l = _clamp_float(oil.get("injected_l"), 0.0, 10000.0, getattr(state, "oil_injected_l", 0.0))
+
+    if "remaining_l" in oil:
+        remaining = _clamp_float(oil.get("remaining_l"), 0.0, 10000.0, 0.0)
+        state.oil_injected_l = max(0.0, float(getattr(state, "oil_reservoir_l", 0.0)) - remaining)
+
+    if "flow_l_min" in oil:
+        state.external_oil_flow_l_min = _clamp_float(oil.get("flow_l_min"), 0.0, 200.0, 0.0)
+
+    hardware = payload.hardware or {}
+
+    if "sensor_online" in hardware:
+        state.sensor_online = _to_bool(hardware.get("sensor_online"), True)
+
+    if "plc_online" in hardware:
+        state.plc_online = _to_bool(hardware.get("plc_online"), True)
+
+    if "emergency" in hardware:
+        state.emergency = _to_bool(hardware.get("emergency"))
+
+    if getattr(state, "emergency", False):
+        state.status = "BLOQUEADO"
+        state.stage = "BLOQUEADO"
+        state.pump_b1 = False
+        state.pump_b2 = False
+        state.pump_oil = False
+        state.alarm = "EMERGENCIA_FISICA"
+    elif payload.alarm:
+        state.alarm = str(payload.alarm)
+    elif getattr(state, "alarm", None) == "EMERGENCIA_FISICA":
+        state.alarm = None
+
+    state.external_tanks_payload = normalize_hardware_tanks(payload)
+
+    if payload.event:
+        state.event(str(payload.event), "INFO")
+
+    try:
+        if getattr(state, "operation_id", None):
+            core.upsert_operation_record()
+    except Exception:
+        pass
+
+    await core.broadcast()
+
+    return {"ok": True, "mode": state.mode, "state": state.payload()}
+
+
+@router.post("/api/hardware/reset")
+async def api_hardware_reset() -> dict[str, Any]:
+    core = _core()
+    state = core.STATE
+
+    state.mode = "SIMULADO"
+    state.external_pressure_machine_mbar = None
+    state.external_tanks_payload = []
+    state.external_oil_flow_l_min = None
+    state.sensor_online = True
+    state.plc_online = True
+    state.emergency = False
+    state.alarm = None
+    state.event("Ponte física reiniciada para modo simulado.", "INFO")
+
+    await core.broadcast()
+
+    return {"ok": True, "mode": state.mode, "state": state.payload()}
 
 
 @router.post("/api/real/admin/clear-data")
@@ -665,7 +939,9 @@ async def api_real_admin_clear_data() -> dict[str, Any]:
     state.plc_online = True
     state.emergency = False
     state.alarm = None
-    state.event("Base limpa para nova demonstracao real.", "INFO")
+    state.event("Base limpa para nova demonstração real.", "INFO")
+
+    sync_legacy_hoses_for_main()
 
     await core.broadcast()
 

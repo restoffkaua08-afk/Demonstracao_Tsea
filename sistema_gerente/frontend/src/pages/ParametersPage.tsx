@@ -39,7 +39,9 @@ function asPayload(form: any) {
 function calcHoseVolume(lengthM: unknown, diameterMm: unknown) {
   const length = numberValue(lengthM);
   const diameter = numberValue(diameterMm) / 1000;
+
   if (!length || !diameter) return 0;
+
   return Math.PI * ((diameter ** 2) / 4) * length * 1000;
 }
 
@@ -65,6 +67,7 @@ export function ParametersPage(_: any) {
   useEffect(() => {
     load();
     const timer = window.setInterval(load, 2000);
+
     return () => window.clearInterval(timer);
   }, []);
 

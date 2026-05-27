@@ -11,6 +11,5 @@ Invoke-RestMethod `
     -Body "{}"
 
 Write-Host "Backend limpo." -ForegroundColor Green
-Write-Host "Para limpar cache/localStorage do navegador:" -ForegroundColor Yellow
-Write-Host "Abra IHM e gerente, pressione F12, Console, rode:"
+Write-Host "No navegador, execute se necessário:" -ForegroundColor Yellow
 Write-Host "localStorage.clear(); location.reload();"
