@@ -25,44 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DEFAULT_RECIPES: list[dict[str, Any]] = [
-    {
-        "id": "PAD-001",
-        "title": "Operacao Padrao",
-        "tank_type": "Comum",
-        "estimated_seconds": 205,
-        "target_pressure_mbar": 8.0,
-        "b2_start_seconds": 24,
-        "oil_start_seconds": 90,
-        "stabilization_seconds": 165,
-        "oil_per_tank_l": 50.0,
-        "note": "Ciclo padrao para tanques comuns.",
-    },
-    {
-        "id": "GRA-002",
-        "title": "Tanque Grande",
-        "tank_type": "Grande",
-        "estimated_seconds": 225,
-        "target_pressure_mbar": 12.0,
-        "b2_start_seconds": 32,
-        "oil_start_seconds": 100,
-        "stabilization_seconds": 178,
-        "oil_per_tank_l": 65.0,
-        "note": "Acompanhar rampa e perda de carga.",
-    },
-    {
-        "id": "CRI-003",
-        "title": "Tanque Critico",
-        "tank_type": "Critico",
-        "estimated_seconds": 255,
-        "target_pressure_mbar": 35.0,
-        "b2_start_seconds": 45,
-        "oil_start_seconds": 120,
-        "stabilization_seconds": 195,
-        "oil_per_tank_l": 45.0,
-        "note": "Vacuo conservador para reduzir risco estrutural.",
-    },
-]
+DEFAULT_RECIPES: list[dict[str, Any]] = []
 
 
 EMPTY_RECIPE: dict[str, Any] = {
@@ -148,17 +111,26 @@ def normalize_recipe(payload: RecipePayload) -> dict[str, Any]:
         "note": payload.note or "Receita cadastrada pelo sistema do gerente.",
     }
 
-HOSES: dict[str, dict[str, Any]] = {
-    "MG-01": {"id": "MG-01", "label": "Mangueira curta", "length_m": 5, "loss_base_mbar": 0.7},
-    "MG-02": {"id": "MG-02", "label": "Mangueira media", "length_m": 8, "loss_base_mbar": 1.2},
-    "MG-03": {"id": "MG-03", "label": "Mangueira longa", "length_m": 12, "loss_base_mbar": 1.8},
+HOSES: dict[str, dict[str, Any]] = {}
+
+
+EMPTY_HOSE: dict[str, Any] = {
+    "id": "__SEM_MANGUEIRA__",
+    "code": "__SEM_MANGUEIRA__",
+    "label": "Nenhuma mangueira cadastrada",
+    "descricao": "Nenhuma mangueira cadastrada",
+    "length_m": 0.0,
+    "internal_diameter_mm": 0.0,
+    "internal_volume_l": 0.0,
+    "loss_base_mbar": 0.0,
+    "calibrated_loss_mbar": 0.0,
 }
 
 
 class StartCommand(BaseModel):
-    recipe_id: str = Field(default="PAD-001")
+    recipe_id: str = Field(default="")
     tank_count: int = Field(default=1, ge=1, le=3)
-    hose_id: str = Field(default="MG-02")
+    hose_id: str = Field(default="")
     oil_reservoir_l: float = Field(default=50.0, ge=0)
     operator: str = Field(default="OPERADOR 01")
     shift: str = Field(default="MANHA")
@@ -178,7 +150,7 @@ class GatewayState:
         self.mode = "SIMULADO"
         self.recipe = RECIPES[0] if RECIPES else EMPTY_RECIPE
         self.tank_count = 1
-        self.hose = HOSES["MG-02"]
+        self.hose = EMPTY_HOSE
         self.oil_reservoir_l = 50.0
         self.oil_injected_l = 0.0
         self.elapsed_seconds = 0
@@ -294,7 +266,7 @@ class GatewayState:
         tanks: list[dict[str, Any]] = []
 
         for index in range(self.tank_count):
-            hose_loss = float(self.hose["loss_base_mbar"]) + index * 0.35 + (self.tank_count - 1) * 0.42
+            hose_loss = float(self.hose.get("loss_base_mbar", self.hose.get("calibrated_loss_mbar", 0.0))) + index * 0.35 + (self.tank_count - 1) * 0.42
             pressure_tank = max(float(self.recipe["target_pressure_mbar"]), pressure_machine + hose_loss)
             oil_in_tank = self.oil_injected_l / max(self.tank_count, 1)
 
@@ -368,12 +340,12 @@ class GatewayState:
     def start(self, command: StartCommand) -> dict[str, Any]:
         recipe = next((item for item in RECIPES if item["id"] == command.recipe_id), None)
         if recipe is None:
-            raise ValueError("Receita nao encontrada.")
+            raise ValueError("Receita nao encontrada. Cadastre uma receita real no sistema do gerente.")
 
         sync_real_hoses_into_legacy_hoses()
         hose = HOSES.get(command.hose_id)
         if hose is None:
-            raise ValueError("Mangueira nao encontrada.")
+            raise ValueError("Mangueira nao encontrada. Cadastre uma mangueira real no sistema do gerente.")
 
         required_oil = float(recipe["oil_per_tank_l"]) * command.tank_count
         if command.oil_reservoir_l < required_oil:

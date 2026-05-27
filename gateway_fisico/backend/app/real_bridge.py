@@ -230,6 +230,18 @@ def get_limits() -> dict[str, Any]:
     return dict(CODE_LIMITS)
 
 
+def _sanitize_code(value: Any, prefix: str) -> str:
+    text = str(value or "").strip().upper().replace(" ", "-")
+
+    if not text:
+        return f"{prefix}-{datetime.now().strftime('%H%M%S')}"
+
+    allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+    cleaned = "".join(ch for ch in text if ch in allowed)
+
+    return cleaned or f"{prefix}-{datetime.now().strftime('%H%M%S')}"
+
+
 def hose_internal_volume_liters(length_m: float, internal_diameter_mm: float) -> float:
     """
     Volume interno real da mangueira.
@@ -247,7 +259,7 @@ def hose_internal_volume_liters(length_m: float, internal_diameter_mm: float) ->
 
 def normalize_tank(raw: dict[str, Any]) -> dict[str, Any]:
     limits = get_limits()
-    code = str(raw.get("code") or raw.get("id") or f"TQ-{datetime.now().strftime('%H%M%S')}").strip()
+    code = _sanitize_code(raw.get("code") or raw.get("id"), "TQ")
 
     if not code:
         raise HTTPException(status_code=422, detail="Código do tanque é obrigatório.")
@@ -275,7 +287,7 @@ def normalize_tank(raw: dict[str, Any]) -> dict[str, Any]:
 
 def normalize_hose(raw: dict[str, Any]) -> dict[str, Any]:
     limits = get_limits()
-    code = str(raw.get("code") or raw.get("id") or f"MG-{datetime.now().strftime('%H%M%S')}").strip()
+    code = _sanitize_code(raw.get("code") or raw.get("id"), "MG")
 
     if not code:
         raise HTTPException(status_code=422, detail="Código da mangueira é obrigatório.")
@@ -316,7 +328,7 @@ def normalize_hose(raw: dict[str, Any]) -> dict[str, Any]:
 def normalize_recipe(raw: dict[str, Any]) -> dict[str, Any]:
     limits = get_limits()
     timestamp = datetime.now().strftime("%H%M%S")
-    rid = str(raw.get("id") or raw.get("title") or raw.get("name") or f"REC-{timestamp}").strip()
+    rid = _sanitize_code(raw.get("id") or raw.get("title") or raw.get("name"), "REC")
 
     if not rid:
         raise HTTPException(status_code=422, detail="ID da receita é obrigatório.")
@@ -451,6 +463,11 @@ def apply_watchdog(state: Any) -> None:
     last_ts = getattr(state, "last_ingest_monotonic", None)
 
     if last_ts is None:
+        state.plc_online = False
+        state.pump_b1 = False
+        state.pump_b2 = False
+        state.pump_oil = False
+        state.alarm = "PLC_AGUARDANDO_INGEST"
         return
 
     age = (_now().timestamp() - float(last_ts))
@@ -950,6 +967,9 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
     state.mode = "FISICO_HTTP"
     state.last_ingest_at = _iso_now()
     state.last_ingest_monotonic = _now().timestamp()
+
+    if getattr(state, "alarm", None) in {"PLC_AGUARDANDO_INGEST", "PLC_OFFLINE"}:
+        state.alarm = None
 
     if payload.status and payload.status in _ALLOWED_STATUS:
         state.status = payload.status

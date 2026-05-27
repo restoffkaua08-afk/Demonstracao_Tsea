@@ -9,12 +9,12 @@ type Phase =
   | "preparar_dados"
   | "checklist_pre"
   | "revisao"
-  | "operacao"
+  | "operação"
   | "finalizacao"
   | "registros_dia"
   | "alarmes";
 
-type OperationTab = "reguladores" | "bombas" | "oleo" | "informacoes";
+type OperationTab = "reguladores" | "bombas" | "óleo" | "informacoes";
 type Status = "PRONTO" | "EM CICLO" | "PAUSADO" | "FINALIZADO" | "BLOQUEADO";
 type RecipeKey = string;
 type HoseKey = string;
@@ -25,8 +25,8 @@ type ChecklistPre = {
   valvulaSuperior: boolean;
   valvulaInferior: boolean;
   tanquesPosicionados: boolean;
-  oleoDisponivel: boolean;
-  emergenciaLiberada: boolean;
+  óleoDisponivel: boolean;
+  emergênciaLiberada: boolean;
   sensoresComunicando: boolean;
   intertravamentosLiberados: boolean;
   receitaRevisada: boolean;
@@ -35,8 +35,8 @@ type ChecklistPre = {
 type ChecklistPos = {
   tempoOk: boolean;
   semAnomalia: boolean;
-  oleoRestanteVisivel: boolean;
-  pressaoFinalOk: boolean;
+  óleoRestanteVisivel: boolean;
+  pressãoFinalOk: boolean;
   bombasDesligaram: boolean;
   linhaÓleoFinalizada: boolean;
   operadorConfirmouFisico: boolean;
@@ -50,11 +50,11 @@ type Recipe = {
   title: string;
   tipoTanque: string;
   tempoEstimado: number;
-  pressaoAlvo: number;
+  pressãoAlvo: number;
   b2StartSeg: number;
   oilStartSeg: number;
   estabilizacaoSeg: number;
-  oleoPorTanque: number;
+  óleoPorTanque: number;
   observacao: string;
 };
 
@@ -143,40 +143,40 @@ const hoses: Hose[] = [];
 
 const checklistPreText: Record<keyof ChecklistPre, { title: string; detail: string }> = {
   mangueira: {
-    title: "Mangueira de vacuo conectada",
+    title: "Mangueira de vácuo conectada",
     detail: "Conferir engate, vedação e ausência de dobra na linha.",
   },
   valvulaSuperior: {
     title: "Válvula superior liberada",
-    detail: "Linha de vacuo preparada para aplicar pressao negativa no tanque.",
+    detail: "Linha de vácuo preparada para aplicar pressão negativa no tanque.",
   },
   valvulaInferior: {
     title: "Válvula inferior fechada",
-    detail: "Evita entrada indevida de oleo/ar antes da etapa correta.",
+    detail: "Evita entrada indevida de óleo/ar antes da etapa correta.",
   },
   tanquesPosicionados: {
     title: "Tanques posicionados",
-    detail: "Tanques/reguladores alinhados, apoiados e sem obstrucao fisica.",
+    detail: "Tanques/reguladores alinhados, apoiados e sem obstrução física.",
   },
-  oleoDisponivel: {
-    title: "Óleo disponivel",
+  óleoDisponivel: {
+    title: "Óleo disponível",
     detail: "Volume informado precisa cobrir a receita selecionada.",
   },
-  emergenciaLiberada: {
-    title: "Emergencia liberada",
-    detail: "Botao de emergencia e bloqueios fisicos devem estar liberados.",
+  emergênciaLiberada: {
+    title: "Emergência liberada",
+    detail: "Botão de emergência e bloqueios fisicos devem estar liberados.",
   },
   sensoresComunicando: {
     title: "Sensores comunicando",
-    detail: "Pressão/vacuo, Gateway e sinal do controlador devem estar online.",
+    detail: "Pressão/vácuo, Gateway e sinal do controlador devem estar online.",
   },
   intertravamentosLiberados: {
     title: "Intertravamentos liberados",
-    detail: "Condicoes minimas para bomba, válvulas, oleo e seguranca.",
+    detail: "Condições minimas para bomba, válvulas, óleo e segurança.",
   },
   receitaRevisada: {
     title: "Receita revisada",
-    detail: "Conferir pressao alvo, tempo, tanque, mangueira e operador.",
+    detail: "Conferir pressão alvo, tempo, tanque, mangueira e operador.",
   },
 };
 
@@ -187,26 +187,26 @@ const checklistPosText: Record<keyof Omit<ChecklistPos, "observacao">, { title: 
   },
   semAnomalia: {
     title: "Sem anomalia visual",
-    detail: "Sem ruido anormal, vazamento, oscilacao critica ou comportamento inesperado.",
+    detail: "Sem ruido anormal, vazamento, oscilação crítica ou comportamento inesperado.",
   },
-  oleoRestanteVisivel: {
+  óleoRestanteVisivel: {
     title: "Óleo restante conferido",
-    detail: "Reservatorio e linha de oleo coerentes com a operacao.",
+    detail: "Reservatorio e linha de óleo coerentes com a operação.",
   },
-  pressaoFinalOk: {
+  pressãoFinalOk: {
     title: "Pressão final registrada",
-    detail: "Valor final salvo para rastreabilidade e relatorio.",
+    detail: "Valor final salvo para rastreabilidade e relatório.",
   },
   bombasDesligaram: {
     title: "Bombas desligadas",
-    detail: "B1, B2/Roots simulada e linha de oleo em estado seguro.",
+    detail: "B1, B2/Roots simulada e linha de óleo em estado seguro.",
   },
   linhaÓleoFinalizada: {
-    title: "Linha de oleo finalizada",
+    title: "Linha de óleo finalizada",
     detail: "Etapa de injeção/enchimento concluida sem alerta pendente.",
   },
   operadorConfirmouFisico: {
-    title: "Conferencia fisica feita",
+    title: "Conferencia física feita",
     detail: "Operador confirmou maquina, tanque, mangueira e painel.",
   },
   alarmesRevisados: {
@@ -215,7 +215,7 @@ const checklistPosText: Record<keyof Omit<ChecklistPos, "observacao">, { title: 
   },
   dadosEnviados: {
     title: "Dados enviados ao Gateway",
-    detail: "Registro da operacao enviado para painel, historico e relatorios.",
+    detail: "Registro da operação enviado para painel, histórico e relatórios.",
   },
 };
 
@@ -224,11 +224,11 @@ const EMPTY_RECIPE: Recipe = {
   title: "Nenhuma receita cadastrada",
   tipoTanque: "Nao definido",
   tempoEstimado: 0,
-  pressaoAlvo: 1013,
+  pressãoAlvo: 1013,
   b2StartSeg: 0,
   oilStartSeg: 0,
   estabilizacaoSeg: 0,
-  oleoPorTanque: 0,
+  óleoPorTanque: 0,
   observacao: "Cadastre uma receita no sistema do gerente.",
 };
 
@@ -271,18 +271,18 @@ function humanStage(stage: string) {
 
 function gatewayToRecipe(raw: any): Recipe {
   const estimated = Number(raw?.estimated_seconds || raw?.max_cycle_seconds || 205);
-  const oilPerTank = Number(raw?.oil_per_tank_l || raw?.oleoPorTanque || Math.max(30, Number(raw?.min_oil_flow_l_min || 2) * 25));
+  const oilPerTank = Number(raw?.oil_per_tank_l || raw?.óleoPorTanque || Math.max(30, Number(raw?.min_oil_flow_l_min || 2) * 25));
 
   return {
     id: String(raw?.id || `REC-${Date.now()}`),
     title: String(raw?.title || raw?.name || "Receita Operacional"),
     tipoTanque: String(raw?.tank_type || raw?.tipoTanque || "Comum"),
     tempoEstimado: estimated,
-    pressaoAlvo: Number(raw?.target_pressure_mbar || raw?.pressaoAlvo || 8),
+    pressãoAlvo: Number(raw?.target_pressure_mbar || raw?.pressãoAlvo || 8),
     b2StartSeg: Number(raw?.b2_start_seconds || 24),
     oilStartSeg: Number(raw?.oil_start_seconds || 90),
     estabilizacaoSeg: Number(raw?.stabilization_seconds || 165),
-    oleoPorTanque: oilPerTank,
+    óleoPorTanque: oilPerTank,
     observacao: String(raw?.note || raw?.observacao || "Receita recebida do Gateway"),
   };
 }
@@ -320,9 +320,9 @@ function PumpCard({ name, subtitle, on, detail }: { name: string; subtitle: stri
 }
 
 function ProcessTank({ tank, index, oilActive }: { tank: any; index: number; oilActive: boolean }) {
-  const pressure = Number(tank.pressao ?? tank.pressure_mbar ?? 1013);
+  const pressure = Number(tank.pressão ?? tank.pressure_mbar ?? 1013);
   const loss = Number(tank.perda ?? tank.hose_loss_mbar ?? 0);
-  const oil = Number(tank.oleo ?? tank.oil_in_l ?? 0);
+  const oil = Number(tank.óleo ?? tank.oil_in_l ?? 0);
   const oilHeight = Math.max(4, Math.min(78, oil * 2.2));
   const vacuumHeight = Math.max(10, Math.min(84, 92 - Math.log10(Math.max(pressure, 1)) * 24));
 
@@ -412,16 +412,16 @@ function App() {
 
   const [recipeId, setRecipeId] = useState<RecipeKey>("");
   const [qtdTanques, setQtdTanques] = useState(1);
-  const [hoseId, setHoseId] = useState<HoseKey>("MG-02");
-  const [oleoColocado, setÓleoColocado] = useState(80);
+  const [hoseId, setHoseId] = useState<HoseKey>("");
+  const [óleoColocado, setÓleoColocado] = useState(80);
 
   const [checklistPre, setChecklistPre] = useState<ChecklistPre>({
     mangueira: false,
     valvulaSuperior: false,
     valvulaInferior: false,
     tanquesPosicionados: false,
-    oleoDisponivel: false,
-    emergenciaLiberada: true,
+    óleoDisponivel: false,
+    emergênciaLiberada: true,
     sensoresComunicando: false,
     intertravamentosLiberados: false,
     receitaRevisada: false,
@@ -430,8 +430,8 @@ function App() {
   const [checklistPos, setChecklistPos] = useState<ChecklistPos>({
     tempoOk: false,
     semAnomalia: false,
-    oleoRestanteVisivel: false,
-    pressaoFinalOk: false,
+    óleoRestanteVisivel: false,
+    pressãoFinalOk: false,
     bombasDesligaram: false,
     linhaÓleoFinalizada: false,
     operadorConfirmouFisico: false,
@@ -589,37 +589,37 @@ function App() {
   const oilLigada = Boolean(gatewayState?.pumps?.oil) || (status === "EM CICLO" && elapsedLive >= recipe.oilStartSeg);
   const etapaAtual = humanStage(stageRaw || etapaLocal());
 
-  const pressaoMaquina = Number(
+  const pressãoMaquina = Number(
     gatewayState?.pressure_machine_mbar ??
-      (status === "EM CICLO" ? Math.max(recipe.pressaoAlvo, 1013 * Math.exp(-elapsedLive / 4.8)) : 1013)
+      (status === "EM CICLO" ? Math.max(recipe.pressãoAlvo, 1013 * Math.exp(-elapsedLive / 4.8)) : 1013)
   );
 
-  const pressaoMedia = Number(gatewayState?.pressure_avg_tank_mbar ?? pressaoMaquina + hose.perdaBase);
-  const oilInjetado = Number(gatewayState?.oil?.injected_l ?? Math.min(oleoColocado, oilLigada ? Math.max(0, elapsedLive - recipe.oilStartSeg) * 0.8 : 0));
-  const oilRestante = Number(gatewayState?.oil?.remaining_l ?? Math.max(0, oleoColocado - oilInjetado));
+  const pressãoMedia = Number(gatewayState?.pressure_avg_tank_mbar ?? pressãoMaquina + hose.perdaBase);
+  const oilInjetado = Number(gatewayState?.oil?.injected_l ?? Math.min(óleoColocado, oilLigada ? Math.max(0, elapsedLive - recipe.oilStartSeg) * 0.8 : 0));
+  const oilRestante = Number(gatewayState?.oil?.remaining_l ?? Math.max(0, óleoColocado - oilInjetado));
   const oilFlow = Number(gatewayState?.oil?.flow_l_min ?? (oilLigada ? qtdTanques * 1.5 : 0));
 
   const tanques = Array.isArray(gatewayState?.tanks) && gatewayState.tanks.length
     ? gatewayState.tanks.map((t: any, index: number) => ({
         id: t.id || `T${index + 1}`,
-        pressao: Number(t.pressure_mbar || pressaoMedia),
+        pressão: Number(t.pressure_mbar || pressãoMedia),
         perda: Number(t.hose_loss_mbar || hose.perdaBase),
-        oleo: Number(t.oil_in_l || 0),
+        óleo: Number(t.oil_in_l || 0),
         risco: Number(t.risk_pct || 0),
       }))
     : Array.from({ length: qtdTanques }).map((_, index) => ({
         id: `T${index + 1}`,
-        pressao: pressaoMedia + index * 0.5,
+        pressão: pressãoMedia + index * 0.5,
         perda: hose.perdaBase + index * 0.2,
-        oleo: oilLigada ? Math.max(0, elapsedLive - recipe.oilStartSeg) / 2 : 0,
+        óleo: oilLigada ? Math.max(0, elapsedLive - recipe.oilStartSeg) / 2 : 0,
         risco: 18,
       }));
 
   const allCheckedPre = Object.values(checklistPre).every((v) => v === true);
   const allCheckedPos = Object.entries(checklistPos).filter(([k]) => k !== "observacao").every(([, v]) => v === true);
-  const oilNeeded = qtdTanques * recipe.oleoPorTanque;
+  const oilNeeded = qtdTanques * recipe.óleoPorTanque;
   const receitaExcedeLimiteÓleo = recipes.length > 0 && oilNeeded > OPERATIONAL_LIMITS.oilMaxL;
-  const oilInsuficiente = recipes.length > 0 && oleoColocado < oilNeeded;
+  const oilInsuficiente = recipes.length > 0 && óleoColocado < oilNeeded;
 
   const recipeTimeInvalid = recipes.length > 0 && (
     recipe.tempoEstimado < OPERATIONAL_LIMITS.minCycleSeconds ||
@@ -627,8 +627,8 @@ function App() {
   );
 
   const pressureTargetInvalid = recipes.length > 0 && (
-    recipe.pressaoAlvo < OPERATIONAL_LIMITS.pressureMinMbar ||
-    recipe.pressaoAlvo > OPERATIONAL_LIMITS.pressureMaxMbar
+    recipe.pressãoAlvo < OPERATIONAL_LIMITS.pressureMinMbar ||
+    recipe.pressãoAlvo > OPERATIONAL_LIMITS.pressureMaxMbar
   );
 
   const recipeSequenceInvalid = recipes.length > 0 && (
@@ -643,12 +643,12 @@ function App() {
   const gatewayBloqueado = !gatewayOnline;
   const sensorBloqueado = gatewayState?.hardware?.sensor_online === false;
   const emergencyBloqueada = status === "BLOQUEADO" || gatewayState?.hardware?.emergency === true;
-  const inicioBloqueado = gatewayBloqueado || sensorBloqueado || emergencyBloqueada || recipeInvalid || oilInsuficiente || parametrosReaisIncompletos || !allCheckedPre || !recipes.length;
+  const inícioBloqueado = gatewayBloqueado || sensorBloqueado || emergencyBloqueada || recipeInvalid || oilInsuficiente || parametrosReaisIncompletos || !allCheckedPre || !recipes.length;
 
   const alarmInfo = useMemo<AlarmInfo | null>(() => {
     if (emergencyBloqueada) {
       return {
-        key: "emergencia",
+        key: "emergência",
         severity: "red",
         title: `${ALARM_TEXT.emergency.code} - ${ALARM_TEXT.emergency.title}`,
         message: ALARM_TEXT.emergency.message,
@@ -684,7 +684,7 @@ function App() {
 
     if (oilInsuficiente) {
       return {
-        key: "oleo_insuficiente",
+        key: "óleo_insuficiente",
         severity: "yellow",
         title: `${ALARM_TEXT.oilShortage.code} - ${ALARM_TEXT.oilShortage.title}`,
         message: ALARM_TEXT.oilShortage.message,
@@ -706,13 +706,13 @@ function App() {
     return "FINALIZACAO";
   }
 
-  async function acionarEmergencia() {
+  async function acionarEmergência() {
     try {
       await fetch(`${GATEWAY_API}/command/emergency`, { method: "POST" });
     } catch {}
 
     setStatus("BLOQUEADO");
-    addLog("Parada critica acionada pela IHM.");
+    addLog("Parada crítica acionada pela IHM.");
     setPhase("alarmes");
   }
 
@@ -723,7 +723,7 @@ function App() {
     }
 
     if (gatewayBloqueado) {
-      addLog("Inicio bloqueado: Gateway offline.");
+      addLog("Início bloqueado: Gateway offline.");
       return;
     }
 
@@ -733,12 +733,12 @@ function App() {
     }
 
     if (receitaExcedeLimiteÓleo) {
-      addLog(`Inicio bloqueado: receita exige ${oilNeeded} L, acima do limite de ${OPERATIONAL_LIMITS.oilMaxL} L da IHM.`);
+      addLog(`Início bloqueado: receita exige ${oilNeeded} L, acima do limite de ${OPERATIONAL_LIMITS.oilMaxL} L da IHM.`);
       return;
     }
 
     if (oilInsuficiente || !allCheckedPre) {
-      addLog("Inicio bloqueado por checklist incompleto ou oleo insuficiente.");
+      addLog("Início bloqueado por checklist incompleto ou óleo insuficiente.");
       return;
     }
 
@@ -750,7 +750,7 @@ function App() {
           recipe_id: recipeId,
           tank_count: qtdTanques,
           hose_id: hoseId,
-          oil_reservoir_l: oleoColocado,
+          oil_reservoir_l: óleoColocado,
           operator: "OPERADOR 01",
           shift: "MANHA",
         }),
@@ -772,11 +772,11 @@ function App() {
         body: JSON.stringify({
           operation_id: realOperationId,
           items: checklistPre,
-          observation: "Checklist pre-operacional confirmado na IHM.",
+          observation: "Checklist pré-operacional confirmado na IHM.",
         }),
       });
 
-      setPhase("operacao");
+      setPhase("operação");
     } catch (error) {
       addLog(`Falha ao iniciar no Gateway: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -820,8 +820,8 @@ function App() {
       valvulaSuperior: false,
       valvulaInferior: false,
       tanquesPosicionados: false,
-      oleoDisponivel: false,
-      emergenciaLiberada: true,
+      óleoDisponivel: false,
+      emergênciaLiberada: true,
       sensoresComunicando: false,
       intertravamentosLiberados: false,
       receitaRevisada: false,
@@ -829,8 +829,8 @@ function App() {
     setChecklistPos({
       tempoOk: false,
       semAnomalia: false,
-      oleoRestanteVisivel: false,
-      pressaoFinalOk: false,
+      óleoRestanteVisivel: false,
+      pressãoFinalOk: false,
       bombasDesligaram: false,
       linhaÓleoFinalizada: false,
       operadorConfirmouFisico: false,
@@ -859,10 +859,10 @@ function App() {
     return (
       <div className={`drawer ${drawerOpen ? "open" : ""}`}>
         <div><button onClick={() => setDrawerOpen(false)}>FECHAR</button></div>
-        <button disabled={phase !== "operacao" || status !== "FINALIZADO"} onClick={() => setPhase("finalizacao")}>FINALIZAR OPERACAO</button>
+        <button disabled={phase !== "operação" || status !== "FINALIZADO"} onClick={() => setPhase("finalizacao")}>FINALIZAR OPERACAO</button>
         <button onClick={() => { setDrawerOpen(false); setPhase("alarmes"); }}>ALARMES</button>
-        <button onClick={() => { setDrawerOpen(false); setPhase("operacao"); setTab("informacoes"); }}>DIAGNOSTICO</button>
-        <button disabled={phase === "operacao" && status !== "FINALIZADO"} onClick={reiniciar}>INICIO</button>
+        <button onClick={() => { setDrawerOpen(false); setPhase("operação"); setTab("informacoes"); }}>DIAGNOSTICO</button>
+        <button disabled={phase === "operação" && status !== "FINALIZADO"} onClick={reiniciar}>INICIO</button>
       </div>
     );
   }
@@ -875,7 +875,7 @@ function App() {
         alarm={visibleAlarm}
         onSilence={() => visibleAlarm && setSilencedAlarmKey(visibleAlarm.key)}
         onOpenAlarms={() => setPhase("alarmes")}
-        onEmergencyStop={acionarEmergencia}
+        onEmergencyStop={acionarEmergência}
       />
     );
   }
@@ -927,8 +927,8 @@ function App() {
               <div className="recipe-title">{r.title}</div>
               <div>Tanque: {r.tipoTanque}</div>
               <div>Tempo: {r.tempoEstimado}s</div>
-              <div>Pressão alvo: {r.pressaoAlvo} mbar</div>
-              <div>Óleo/tanque: {r.oleoPorTanque} L</div>
+              <div>Pressão alvo: {r.pressãoAlvo} mbar</div>
+              <div>Óleo/tanque: {r.óleoPorTanque} L</div>
               <div className="recipe-note">{r.observacao}</div>
             </button>
           ))}
@@ -947,12 +947,12 @@ function App() {
         <div className="form-grid">
           <div className="field"><label>Quantidade de tanques</label><input type="number" min={OPERATIONAL_LIMITS.tankMin} max={OPERATIONAL_LIMITS.tankMax} step={1} value={qtdTanques} onChange={(e) => setQtdTanques(clampInteger(Number(e.target.value), OPERATIONAL_LIMITS.tankMin, OPERATIONAL_LIMITS.tankMax))} /></div>
           <div className="field"><label>Mangueira</label><select value={hoseId} onChange={(e) => setHoseId(e.target.value as HoseKey)}>{hosesDisponiveis.map((h) => <option key={h.id} value={h.id}>{h.descricao}</option>)}</select></div>
-          <div className="field"><label>Óleo no reservatorio (L)</label><input type="number" min={OPERATIONAL_LIMITS.oilMinL} max={OPERATIONAL_LIMITS.oilMaxL} step={OPERATIONAL_LIMITS.oilStepL} value={oleoColocado} onChange={(e) => setÓleoColocado(clampNumber(Number(e.target.value), OPERATIONAL_LIMITS.oilMinL, OPERATIONAL_LIMITS.oilMaxL))} /></div>
+          <div className="field"><label>Óleo no reservatório (L)</label><input type="number" min={OPERATIONAL_LIMITS.oilMinL} max={OPERATIONAL_LIMITS.oilMaxL} step={OPERATIONAL_LIMITS.oilStepL} value={óleoColocado} onChange={(e) => setÓleoColocado(clampNumber(Number(e.target.value), OPERATIONAL_LIMITS.oilMinL, OPERATIONAL_LIMITS.oilMaxL))} /></div>
           <div className={oilInsuficiente || receitaExcedeLimiteÓleo ? "oil-warning limit-box" : "oil-ok limit-box"}>
-            <b>Óleo necessario: {oilNeeded} L</b>
+            <b>Óleo necessário: {oilNeeded} L</b>
             <span>Limite operacional da IHM: {OPERATIONAL_LIMITS.oilMinL} a {OPERATIONAL_LIMITS.oilMaxL} L.</span>
             {receitaExcedeLimiteÓleo && <span>Receita acima do limite demonstrativo. Ajuste a receita no gerente.</span>}
-            {gatewayBloqueado && <span>Gateway offline: inicio bloqueado ate normalizar a comunicacao.</span>}
+            {gatewayBloqueado && <span>Gateway offline: início bloqueado ate normalizar a comunicação.</span>}
           </div>
         </div>
         <button className="next-btn standard-btn compact" disabled={oilInsuficiente || receitaExcedeLimiteÓleo || !recipes.length} onClick={() => setPhase("checklist_pre")}>CONTINUAR</button>
@@ -989,9 +989,9 @@ function App() {
           <p><b>Receita:</b> {recipe.title}</p>
           <p><b>Tanques:</b> {qtdTanques}</p>
           <p><b>Mangueira:</b> {hose.descricao}</p>
-          <p><b>Óleo colocado:</b> {oleoColocado} L</p>
-          <p><b>Óleo necessario:</b> {oilNeeded} L</p>
-          <p><b>Pressão alvo:</b> {recipe.pressaoAlvo} mbar</p>
+          <p><b>Óleo colocado:</b> {óleoColocado} L</p>
+          <p><b>Óleo necessário:</b> {oilNeeded} L</p>
+          <p><b>Pressão alvo:</b> {recipe.pressãoAlvo} mbar</p>
           {oilInsuficiente && <p className="warn-text">Volume de óleo insuficiente para iniciar.</p>}
           {gatewayBloqueado && <p className="warn-text">Gateway offline. Início bloqueado.</p>}
           {sensorBloqueado && <p className="warn-text">Sensor de pressão offline. Início bloqueado.</p>}
@@ -999,21 +999,21 @@ function App() {
           {pressureTargetInvalid && <p className="warn-text">Pressão alvo fora da faixa permitida.</p>}
           {recipeSequenceInvalid && <p className="warn-text">Sequência da receita inválida: revise B2, óleo, estabilizaÃ§Ã£o e tempo final.</p>}
           {receitaExcedeLimiteÓleo && <p className="warn-text">Receita exige mais óleo que o limite demonstrativo.</p>}
-          {receitaExcedeLimiteÓleo && <p className="warn-text">Receita exige mais oleo que o limite operacional da IHM.</p>}
-          {gatewayBloqueado && <p className="warn-text">Gateway offline. Inicio bloqueado ate normalizar a comunicacao.</p>}
+          {receitaExcedeLimiteÓleo && <p className="warn-text">Receita exige mais óleo que o limite operacional da IHM.</p>}
+          {gatewayBloqueado && <p className="warn-text">Gateway offline. Início bloqueado ate normalizar a comunicação.</p>}
         </div>
         <div className="button-row">
           <button className="cancel-btn standard-btn compact" onClick={() => setPhase("inicial")}>CANCELAR</button>
-          <button className="start-btn standard-btn compact" disabled={inicioBloqueado} onClick={iniciarOperacao}>INICIAR</button>
+          <button className="start-btn standard-btn compact" disabled={inícioBloqueado} onClick={iniciarOperacao}>INICIAR</button>
         </div>
         {renderMenu()}
       </div>
     );
   }
 
-  if (phase === "operacao") {
+  if (phase === "operação") {
     return (
-      <div className={`operacao ${screenClass}`}>
+      <div className={`operação ${screenClass}`}>
         {renderAlarm()}
 
         <div className="topbar">
@@ -1034,35 +1034,35 @@ function App() {
           {tab === "bombas" && (
             <div className="machines-layout machines-priority">
               <div className="pump-stack pump-stack-priority">
-                <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Evacuacao inicial do tanque e manutencao da linha de vacuo." />
-                <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Reforco de vacuo acionado somente dentro da faixa permitida." />
-                <PumpCard name="OLEO" subtitle="Linha de injeção" on={oilLigada} detail="Entrada controlada de oleo conforme etapa da receita." />
+                <PumpCard name="B1" subtitle="Bomba primaria" on={b1Ligada} detail="Evacuacao inicial do tanque e manutencao da linha de vácuo." />
+                <PumpCard name="B2" subtitle="Roots simulada" on={b2Ligada} detail="Reforco de vácuo acionado somente dentro da faixa permitida." />
+                <PumpCard name="OLEO" subtitle="Linha de injeção" on={oilLigada} detail="Entrada controlada de óleo conforme etapa da receita." />
               </div>
 
               <div className="machine-info-grid pump-info-compact">
-                <article><span>Pressão geral</span><b>{fmt(pressaoMaquina, "mbar")}</b><small>Antes da perda da linha</small></article>
-                <article><span>Pressão no regulador</span><b>{fmt(pressaoMedia, "mbar")}</b><small>Valor compensado no tanque</small></article>
+                <article><span>Pressão geral</span><b>{fmt(pressãoMaquina, "mbar")}</b><small>Antes da perda da linha</small></article>
+                <article><span>Pressão no regulador</span><b>{fmt(pressãoMedia, "mbar")}</b><small>Valor compensado no tanque</small></article>
                 <article><span>Gateway</span><b>{gatewayOnline ? "ONLINE" : "OFFLINE"}</b><small>Comunicacao com gerente</small></article>
                 <article><span>Seguranca</span><b>{alarmInfo?.severity === "red" ? "BLOQUEADO" : "LIBERADO"}</b><small>Intertravamento</small></article>
               </div>
             </div>
           )}
 
-          {tab === "oleo" && (
+          {tab === "óleo" && (
             <div className="oil-layout oil-layout-focused">
               <article className="oil-flow-card oil-flow-main">
-                <h3>Linha de injeção de oleo</h3>
+                <h3>Linha de injeção de óleo</h3>
 
                 <div className="oil-inline-metrics">
                   <div><span>Reservatorio</span><b>{fmt(oilRestante, "L")}</b></div>
-                  <div><span>Pressão tanque</span><b>{fmt(pressaoMedia, "mbar")}</b></div>
+                  <div><span>Pressão tanque</span><b>{fmt(pressãoMedia, "mbar")}</b></div>
                   <div><span>Injetado</span><b>{fmt(oilInjetado, "L")}</b></div>
                   <div><span>Vazao</span><b>{fmt(oilFlow, "L/min")}</b></div>
                 </div>
 
                 <div className={`oil-demo-line ${oilLigada ? "active" : ""}`}>
                   <div className="pipe-reservoir oil-source-with-level">
-                    <div className="pipe-reservoir-oil" style={{ height: `${Math.max(6, Math.min(92, (oilRestante / Math.max(oleoColocado, 1)) * 100))}%` }} />
+                    <div className="pipe-reservoir-oil" style={{ height: `${Math.max(6, Math.min(92, (oilRestante / Math.max(óleoColocado, 1)) * 100))}%` }} />
                   </div>
                   <div className="pipe-hose">{oilLigada && <><span /><span /><span /><span /></>}</div>
                   <div className="pipe-tank">
@@ -1070,12 +1070,12 @@ function App() {
                   </div>
                 </div>
 
-                <p>{oilLigada ? "Injetando oleo na etapa atual" : "Linha aguardando etapa de oleo"}</p>
+                <p>{oilLigada ? "Injetando óleo na etapa atual" : "Linha aguardando etapa de óleo"}</p>
               </article>
 
               <div className="oil-metrics oil-metrics-focused">
-                <article><span>Óleo inicial</span><b>{fmt(oleoColocado, "L")}</b></article>
-                <article><span>Óleo necessario</span><b>{fmt(oilNeeded, "L")}</b></article>
+                <article><span>Óleo inicial</span><b>{fmt(óleoColocado, "L")}</b></article>
+                <article><span>Óleo necessário</span><b>{fmt(oilNeeded, "L")}</b></article>
                 <article><span>Temperatura</span><b>{fmt(Number(gatewayState?.oil?.temperature_c ?? 60), "C")}</b></article>
                 <article><span>Status da linha</span><b>{oilLigada ? "ATIVA" : "AGUARDANDO"}</b></article>
               </div>
@@ -1101,7 +1101,7 @@ function App() {
                 <p><b>Sensor pressão:</b> {sensorBloqueado ? "Falha" : "Online"}</p>
                 <p><b>Emergência:</b> {emergencyBloqueada ? "Ativa/Bloqueada" : "Normal"}</p>
                 <p><b>Limites:</b> {recipeInvalid ? "Receita inválida" : "Conforme"}</p>
-                <p><b>Início:</b> {inicioBloqueado ? "Bloqueado" : "Liberado"}</p>
+                <p><b>Início:</b> {inícioBloqueado ? "Bloqueado" : "Liberado"}</p>
               </div>
 
               <div className="logs">
@@ -1112,7 +1112,7 @@ function App() {
         </div>
 
         <div className="bottom-tabs">
-          {(["reguladores", "bombas", "oleo", "informacoes"] as const).map((t) => (
+          {(["reguladores", "bombas", "óleo", "informacoes"] as const).map((t) => (
             <button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>{t.toUpperCase()}</button>
           ))}
         </div>
@@ -1134,18 +1134,18 @@ function App() {
           <p><b>Alarme:</b> {alarmInfo ? alarmInfo.title : "Sem alarme ativo"}</p>
           <p><b>Causa provÃ¡vel:</b> {alarmInfo ? alarmInfo.message : "Nenhuma condição crítica detectada."}</p>
           <p><b>AÃ§Ã£o recomendada:</b> {alarmInfo?.severity === "red" ? "Parar o ciclo, verificar bancada e reconhecer a falha." : alarmInfo ? "Verificar condição indicada e corrigir antes de iniciar." : "OperaÃ§Ã£o liberada."}</p>
-          <p><b>Pressão maquina:</b> {fmt(pressaoMaquina, "mbar")}</p>
-          <p><b>Pressão media:</b> {fmt(pressaoMedia, "mbar")}</p>
-          <p><b>Óleo colocado:</b> {oleoColocado} L</p>
-          <p><b>Óleo necessario:</b> {oilNeeded} L</p>
-          <button className="emergency-inline" onClick={acionarEmergencia}>PARADA CRITICA</button>
+          <p><b>Pressão maquina:</b> {fmt(pressãoMaquina, "mbar")}</p>
+          <p><b>Pressão media:</b> {fmt(pressãoMedia, "mbar")}</p>
+          <p><b>Óleo colocado:</b> {óleoColocado} L</p>
+          <p><b>Óleo necessário:</b> {oilNeeded} L</p>
+          <button className="emergency-inline" onClick={acionarEmergência}>PARADA CRITICA</button>
         </div>
 
         <div className="logs alarm-log">
           {logs.length === 0 ? <div>Sem eventos locais registrados.</div> : logs.map((l, index) => <div key={`${l.time}-${index}`}>[{l.time}] {l.msg}</div>)}
         </div>
 
-        <button className="standard-btn compact" onClick={() => setPhase(status === "EM CICLO" ? "operacao" : "inicial")}>VOLTAR</button>
+        <button className="standard-btn compact" onClick={() => setPhase(status === "EM CICLO" ? "operação" : "inicial")}>VOLTAR</button>
         {renderMenu()}
       </div>
     );
@@ -1163,8 +1163,8 @@ function App() {
           <p><b>Tanques:</b> {qtdTanques}</p>
           <p><b>Mangueira:</b> {hose.descricao}</p>
           <p><b>Tempo:</b> {timeFmt(elapsedLive)}</p>
-          <p><b>Pressão final:</b> {fmt(pressaoMedia, "mbar")}</p>
-          <p><b>Óleo colocado:</b> {oleoColocado} L</p>
+          <p><b>Pressão final:</b> {fmt(pressãoMedia, "mbar")}</p>
+          <p><b>Óleo colocado:</b> {óleoColocado} L</p>
           <p><b>Óleo injetado:</b> {fmt(oilInjetado, "L")}</p>
         </div>
 

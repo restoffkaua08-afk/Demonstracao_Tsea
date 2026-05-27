@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
 
 const char* WIFI_SSID = "COLOQUE_O_NOME_DO_WIFI";
 const char* WIFI_PASS = "COLOQUE_A_SENHA_DO_WIFI";
@@ -8,12 +9,17 @@ const char* WIFI_PASS = "COLOQUE_A_SENHA_DO_WIFI";
 // Exemplo: http://192.168.0.10:8020
 const char* GATEWAY_BASE = "http://192.168.0.10:8020";
 
+// Saídas demonstrativas.
+// Use primeiro LEDs ou relés SEM carga perigosa.
+// Só conecte bomba real depois de validar a bancada com instrutor.
 const int PIN_B1 = 25;
 const int PIN_B2 = 26;
 const int PIN_OIL = 27;
 const int PIN_ALARM_GREEN = 16;
 const int PIN_ALARM_YELLOW = 17;
 const int PIN_ALARM_RED = 18;
+
+// Entradas.
 const int PIN_EMERGENCY = 14;
 const int PIN_SENSOR = 34;
 
@@ -23,14 +29,202 @@ int elapsedSeconds = 0;
 float readPressureMbar() {
   int raw = analogRead(PIN_SENSOR);
 
-  // Conversao inicial demonstrativa.
-  // Substitua pela curva real do sensor usado no prototipo.
+  // Conversão inicial demonstrativa.
+  // Substituir pela curva real do sensor usado:
+  // pressão = f(tensão ou leitura ADC).
   float pressure = 1013.0 - (raw / 4095.0) * 1013.0;
 
   if (pressure < 0.01) pressure = 0.01;
   if (pressure > 1013.0) pressure = 1013.0;
 
   return pressure;
+}
+
+String httpGet(String path) {
+  if (WiFi.status() != WL_CONNECTED) return "";
+
+  HTTPClient http;
+  String url = String(GATEWAY_BASE) + path;
+
+  http.begin(url);
+  int code = http.GET();
+
+  String body = "";
+  if (code > 0) {
+    body = http.getString();
+  }
+
+  http.end();
+  return body;
+}
+
+bool httpPost(String path, String json) {
+  if (WiFi.status() != WL_CONNECTED) return false;
+
+  HTTPClient http;
+  String url = String(GATEWAY_BASE) + path;
+
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+
+  int code = http.POST(json);
+
+  Serial.print("POST ");
+  Serial.print(path);
+  Serial.print(" -> ");
+  Serial.println(code);
+
+  http.end();
+
+  return code >= 200 && code < 300;
+}
+
+void allOutputsOff() {
+  digitalWrite(PIN_B1, LOW);
+  digitalWrite(PIN_B2, LOW);
+  digitalWrite(PIN_OIL, LOW);
+  digitalWrite(PIN_ALARM_GREEN, LOW);
+  digitalWrite(PIN_ALARM_YELLOW, LOW);
+  digitalWrite(PIN_ALARM_RED, HIGH);
+}
+
+String getJsonString(JsonDocument& doc, const char* key, const char* fallback) {
+  if (doc[key].is<const char*>()) return String(doc[key].as<const char*>());
+  return String(fallback);
+}
+
+void acknowledgeCommand(String commandId, bool applied, String message) {
+  StaticJsonDocument<512> ack;
+
+  ack["command_id"] = commandId;
+  ack["applied"] = applied;
+  ack["message"] = message;
+
+  String body;
+  serializeJson(ack, body);
+
+  httpPost("/api/hardware/command-ack", body);
+}
+
+void applyDesiredOutputs(String body) {
+  if (body.length() == 0) {
+    allOutputsOff();
+    return;
+  }
+
+  StaticJsonDocument<1536> doc;
+  DeserializationError error = deserializeJson(doc, body);
+
+  if (error) {
+    Serial.print("Erro JSON desired-outputs: ");
+    Serial.println(error.c_str());
+    allOutputsOff();
+    return;
+  }
+
+  String commandId = getJsonString(doc, "command_id", "SEM_ID");
+
+  JsonObject outputs = doc["outputs"];
+  JsonObject safety = doc["safety"];
+
+  bool emergencyStop = outputs["emergency_stop"] | true;
+  bool allowedToRun = doc["allowed_to_run"] | false;
+
+  bool pumpB1 = outputs["pump_b1"] | false;
+  bool pumpB2 = outputs["pump_b2"] | false;
+  bool oilValve = outputs["oil_valve"] | false;
+  bool green = outputs["alarm_green"] | false;
+  bool yellow = outputs["alarm_yellow"] | false;
+  bool red = outputs["alarm_red"] | false;
+
+  bool localEmergency = digitalRead(PIN_EMERGENCY) == LOW;
+
+  if (!allowedToRun || emergencyStop || localEmergency) {
+    digitalWrite(PIN_B1, LOW);
+    digitalWrite(PIN_B2, LOW);
+    digitalWrite(PIN_OIL, LOW);
+    digitalWrite(PIN_ALARM_GREEN, LOW);
+    digitalWrite(PIN_ALARM_YELLOW, LOW);
+    digitalWrite(PIN_ALARM_RED, HIGH);
+
+    acknowledgeCommand(commandId, true, "Comando seguro aplicado: saidas desligadas.");
+    return;
+  }
+
+  digitalWrite(PIN_B1, pumpB1 ? HIGH : LOW);
+  digitalWrite(PIN_B2, pumpB2 ? HIGH : LOW);
+  digitalWrite(PIN_OIL, oilValve ? HIGH : LOW);
+  digitalWrite(PIN_ALARM_GREEN, green ? HIGH : LOW);
+  digitalWrite(PIN_ALARM_YELLOW, yellow ? HIGH : LOW);
+  digitalWrite(PIN_ALARM_RED, red ? HIGH : LOW);
+
+  acknowledgeCommand(commandId, true, "Comando aplicado pelo ESP32.");
+}
+
+void sendHardwareState() {
+  bool emergency = digitalRead(PIN_EMERGENCY) == LOW;
+  bool b1State = digitalRead(PIN_B1) == HIGH;
+  bool b2State = digitalRead(PIN_B2) == HIGH;
+  bool oilState = digitalRead(PIN_OIL) == HIGH;
+
+  float pressure = readPressureMbar();
+  float hoseLoss = 1.2;
+  float tankPressure = pressure + hoseLoss;
+  float oilInjected = oilState ? max(0, elapsedSeconds - 90) * 0.75 : 0;
+
+  String status = emergency ? "BLOQUEADO" : "EM_CICLO";
+  String stage = emergency ? "BLOQUEADO" : "VACUO_INICIAL";
+
+  if (!emergency && elapsedSeconds >= 24 && elapsedSeconds < 90) {
+    stage = "VACUO_PROFUNDO";
+  }
+
+  if (!emergency && elapsedSeconds >= 90) {
+    stage = "INJECAO_DE_OLEO";
+  }
+
+  StaticJsonDocument<1536> doc;
+
+  doc["status"] = status;
+  doc["stage"] = stage;
+  doc["elapsed_seconds"] = elapsedSeconds;
+  doc["pressure_machine_mbar"] = pressure;
+
+  JsonObject pumps = doc.createNestedObject("pumps");
+  pumps["b1"] = b1State;
+  pumps["b2"] = b2State;
+  pumps["oil"] = oilState;
+
+  JsonObject oil = doc.createNestedObject("oil");
+  oil["injected_l"] = oilInjected;
+  oil["remaining_l"] = max(0.0f, 120.0f - oilInjected);
+  oil["flow_l_min"] = oilState ? 1.5 : 0.0;
+
+  JsonObject hardware = doc.createNestedObject("hardware");
+  hardware["sensor_online"] = true;
+  hardware["plc_online"] = true;
+  hardware["emergency"] = emergency;
+
+  JsonArray tanks = doc.createNestedArray("tanks");
+  JsonObject tank = tanks.createNestedObject();
+  tank["id"] = "T1";
+  tank["pressure_mbar"] = tankPressure;
+  tank["machine_pressure_mbar"] = pressure;
+  tank["hose_loss_mbar"] = hoseLoss;
+  tank["oil_in_l"] = oilInjected;
+  tank["risk_pct"] = 18;
+
+  if (emergency) {
+    doc["alarm"] = "EMERGENCIA_FISICA";
+  } else {
+    doc["alarm"] = nullptr;
+  }
+
+  String body;
+  serializeJson(doc, body);
+
+  httpPost("/api/hardware/ingest", body);
+  Serial.println(body);
 }
 
 void setup() {
@@ -42,7 +236,9 @@ void setup() {
   pinMode(PIN_ALARM_GREEN, OUTPUT);
   pinMode(PIN_ALARM_YELLOW, OUTPUT);
   pinMode(PIN_ALARM_RED, OUTPUT);
+
   pinMode(PIN_EMERGENCY, INPUT_PULLUP);
+  pinMode(PIN_SENSOR, INPUT);
 
   digitalWrite(PIN_B1, LOW);
   digitalWrite(PIN_B2, LOW);
@@ -62,130 +258,18 @@ void setup() {
   Serial.println(WiFi.localIP());
 }
 
-String httpGet(String path) {
-  if (WiFi.status() != WL_CONNECTED) return "";
-
-  HTTPClient http;
-  String url = String(GATEWAY_BASE) + path;
-  http.begin(url);
-
-  int code = http.GET();
-  String body = "";
-
-  if (code > 0) {
-    body = http.getString();
-  }
-
-  http.end();
-
-  return body;
-}
-
-void httpPost(String path, String json) {
-  if (WiFi.status() != WL_CONNECTED) return;
-
-  HTTPClient http;
-  String url = String(GATEWAY_BASE) + path;
-  http.begin(url);
-  http.addHeader("Content-Type", "application/json");
-
-  int code = http.POST(json);
-
-  Serial.print("POST ");
-  Serial.print(path);
-  Serial.print(" -> ");
-  Serial.println(code);
-
-  http.end();
-}
-
-void applyDesiredOutputs(String body) {
-  // Parser simples para demonstracao.
-  // Para projeto final, usar ArduinoJson.
-  bool pumpB1 = body.indexOf("\"pump_b1\":true") >= 0;
-  bool pumpB2 = body.indexOf("\"pump_b2\":true") >= 0;
-  bool oilValve = body.indexOf("\"oil_valve\":true") >= 0;
-  bool green = body.indexOf("\"alarm_green\":true") >= 0;
-  bool yellow = body.indexOf("\"alarm_yellow\":true") >= 0;
-  bool red = body.indexOf("\"alarm_red\":true") >= 0;
-  bool stop = body.indexOf("\"emergency_stop\":true") >= 0;
-
-  digitalWrite(PIN_B1, (!stop && pumpB1) ? HIGH : LOW);
-  digitalWrite(PIN_B2, (!stop && pumpB2) ? HIGH : LOW);
-  digitalWrite(PIN_OIL, (!stop && oilValve) ? HIGH : LOW);
-  digitalWrite(PIN_ALARM_GREEN, green ? HIGH : LOW);
-  digitalWrite(PIN_ALARM_YELLOW, yellow ? HIGH : LOW);
-  digitalWrite(PIN_ALARM_RED, red ? HIGH : LOW);
-}
-
 void loop() {
-  unsigned long now = millis();
+  unsigned long nowMs = millis();
 
-  if (now - lastCycle < 1000) {
+  if (nowMs - lastCycle < 1000) {
     return;
   }
 
-  lastCycle = now;
+  lastCycle = nowMs;
   elapsedSeconds++;
-
-  bool emergency = digitalRead(PIN_EMERGENCY) == LOW;
-  float pressure = readPressureMbar();
 
   String desired = httpGet("/api/hardware/desired-outputs");
   applyDesiredOutputs(desired);
 
-  bool b1State = digitalRead(PIN_B1) == HIGH;
-  bool b2State = digitalRead(PIN_B2) == HIGH;
-  bool oilState = digitalRead(PIN_OIL) == HIGH;
-
-  String status = emergency ? "BLOQUEADO" : "EM_CICLO";
-  String stage = emergency ? "BLOQUEADO" : "VACUO_INICIAL";
-
-  if (!emergency && elapsedSeconds >= 24 && elapsedSeconds < 90) {
-    stage = "VACUO_PROFUNDO";
-  }
-
-  if (!emergency && elapsedSeconds >= 90) {
-    stage = "INJECAO_DE_OLEO";
-  }
-
-  float hoseLoss = 1.2;
-  float tankPressure = pressure + hoseLoss;
-  float oilInjected = oilState ? max(0, elapsedSeconds - 90) * 0.75 : 0;
-
-  String json = "{";
-  json += "\"status\":\"" + status + "\",";
-  json += "\"stage\":\"" + stage + "\",";
-  json += "\"elapsed_seconds\":" + String(elapsedSeconds) + ",";
-  json += "\"pressure_machine_mbar\":" + String(pressure, 2) + ",";
-  json += "\"pumps\":{";
-  json += "\"b1\":" + String(b1State ? "true" : "false") + ",";
-  json += "\"b2\":" + String(b2State ? "true" : "false") + ",";
-  json += "\"oil\":" + String(oilState ? "true" : "false");
-  json += "},";
-  json += "\"oil\":{";
-  json += "\"injected_l\":" + String(oilInjected, 2) + ",";
-  json += "\"remaining_l\":" + String(max(0.0f, 120.0f - oilInjected), 2) + ",";
-  json += "\"flow_l_min\":" + String(oilState ? 1.5 : 0.0, 2);
-  json += "},";
-  json += "\"hardware\":{";
-  json += "\"sensor_online\":true,";
-  json += "\"plc_online\":true,";
-  json += "\"emergency\":" + String(emergency ? "true" : "false");
-  json += "},";
-  json += "\"tanks\":[{";
-  json += "\"id\":\"T1\",";
-  json += "\"pressure_mbar\":" + String(tankPressure, 2) + ",";
-  json += "\"machine_pressure_mbar\":" + String(pressure, 2) + ",";
-  json += "\"hose_loss_mbar\":" + String(hoseLoss, 2) + ",";
-  json += "\"oil_in_l\":" + String(oilInjected, 2) + ",";
-  json += "\"risk_pct\":18";
-  json += "}],";
-  json += "\"alarm\":";
-  json += emergency ? "\"EMERGENCIA_FISICA\"" : "null";
-  json += "}";
-
-  httpPost("/api/hardware/ingest", json);
-
-  Serial.println(json);
+  sendHardwareState();
 }
