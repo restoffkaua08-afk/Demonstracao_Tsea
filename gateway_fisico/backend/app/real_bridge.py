@@ -1,5 +1,14 @@
 
 """
+# TSEA_REAL_BRIDGE_MAINTENANCE
+# Este módulo é a camada de integração física.
+# Manutenção futura:
+# - Comandos desejados para ESP32/PLC saem por /api/hardware/desired-outputs.
+# - Leituras reais entram por /api/hardware/ingest.
+# - O ESP32/PLC não deve decidir sozinho o estado principal da operação.
+# - O Gateway/IHM iniciam, pausam, finalizam e bloqueiam a operação.
+# - Sensor real precisa ser calibrado em hardware/esp32_http_bridge/esp32_http_bridge.ino.
+
 Ponte real do protótipo físico TSEA V-Twin.
 
 Responsabilidades:
@@ -457,7 +466,7 @@ def validate_start_payload(data: dict[str, Any]) -> None:
 
 
 def apply_watchdog(state: Any) -> None:
-    if getattr(state, "mode", "SIMULADO") != "FISICO_HTTP":
+    if getattr(state, "mode", "SIMULADO") not in {"FISICO_HTTP", "BANCADA_SEGURA"}:
         return
 
     last_ts = getattr(state, "last_ingest_monotonic", None)
@@ -487,6 +496,9 @@ def apply_watchdog(state: Any) -> None:
 def build_desired_outputs(state: Any) -> dict[str, Any]:
     apply_watchdog(state)
 
+    mode = getattr(state, "mode", "SIMULADO")
+    mode = getattr(state, "mode", "SIMULADO")
+    mode = getattr(state, "mode", "SIMULADO")
     emergency = bool(getattr(state, "emergency", False))
     plc_online = bool(getattr(state, "plc_online", True))
     sensor_online = bool(getattr(state, "sensor_online", True))
@@ -509,8 +521,10 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
 
     return {
         "command_id": command_id,
-        "mode": getattr(state, "mode", "SIMULADO"),
+        "mode": mode,
         "allowed_to_run": not blocked,
+        "bench_safe": mode == "BANCADA_SEGURA",
+        "physical_power_allowed": mode == "FISICO_HTTP",
         "status": status,
         "stage": stage,
         "outputs": {
@@ -521,6 +535,21 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
             "alarm_yellow": bool(alarm) and not blocked,
             "alarm_red": blocked,
             "emergency_stop": blocked,
+        },
+        "notes": {
+            "command_authority": "Gateway/IHM",
+            "hardware_role": "Executa comandos e devolve leituras reais.",
+            "safe_bench_mode": "BANCADA_SEGURA deve ser usado com LEDs ou relés sem carga.",
+        },
+        "notes": {
+            "command_authority": "Gateway/IHM",
+            "hardware_role": "Executa comandos e devolve leituras reais.",
+            "safe_bench_mode": "BANCADA_SEGURA deve ser usado com LEDs ou relés sem carga.",
+        },
+        "notes": {
+            "command_authority": "Gateway/IHM",
+            "hardware_role": "Executa comandos e devolve leituras reais.",
+            "safe_bench_mode": "BANCADA_SEGURA deve ser usado com LEDs ou relés sem carga.",
         },
         "safety": {
             "emergency": emergency,
@@ -618,6 +647,17 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         state.last_ingest_monotonic = None
     if not hasattr(state, "last_command_ack"):
         state.last_command_ack = None
+    if not hasattr(state, "actual_pumps"):
+        state.actual_pumps = {"b1": False, "b2": False, "oil": False}
+    if not hasattr(state, "actual_hardware"):
+        state.actual_hardware = {}
+    if not hasattr(state, "actual_oil"):
+        state.actual_oil = {}
+    if not hasattr(state, "sensor_calibration"):
+        state.sensor_calibration = {
+            "status": "pendente",
+            "note": "Substituir curva demonstrativa do ESP32 pela curva real do sensor."
+        }
 
     cls = state.__class__
 
@@ -657,6 +697,10 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
                     "emergency": bool(getattr(self, "emergency", False)),
                     "last_ingest_at": getattr(self, "last_ingest_at", None),
                     "last_command_ack": getattr(self, "last_command_ack", None),
+                    "actual_pumps": getattr(self, "actual_pumps", {}),
+                    "actual_hardware": getattr(self, "actual_hardware", {}),
+                    "actual_oil": getattr(self, "actual_oil", {}),
+                    "sensor_calibration": getattr(self, "sensor_calibration", {}),
                     "desired_outputs": build_desired_outputs(self),
                 }
 
@@ -922,8 +966,8 @@ async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
     state = core.STATE
     mode = payload.mode.strip().upper()
 
-    if mode not in {"SIMULADO", "FISICO_HTTP"}:
-        raise HTTPException(status_code=422, detail="Modo inválido. Use SIMULADO ou FISICO_HTTP.")
+    if mode not in {"SIMULADO", "FISICO_HTTP", "BANCADA_SEGURA"}:
+        raise HTTPException(status_code=422, detail="Modo inválido. Use SIMULADO, FISICO_HTTP ou BANCADA_SEGURA.")
 
     state.mode = mode
 
@@ -961,52 +1005,64 @@ def api_hardware_state() -> dict[str, Any]:
 
 @router.post("/api/hardware/ingest")
 async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
+    """
+    Recebe telemetria física.
+
+    Regra importante:
+    O hardware não inicia operação sozinho. Ele apenas envia leituras reais.
+    Status/etapa principais só são alterados se já existir operation_id iniciado pela IHM/Gerente.
+    """
     core = _core()
     state = core.STATE
 
-    state.mode = "FISICO_HTTP"
+    if getattr(state, "mode", "SIMULADO") not in {"FISICO_HTTP", "BANCADA_SEGURA"}:
+        state.mode = "FISICO_HTTP"
+
     state.last_ingest_at = _iso_now()
     state.last_ingest_monotonic = _now().timestamp()
 
     if getattr(state, "alarm", None) in {"PLC_AGUARDANDO_INGEST", "PLC_OFFLINE"}:
         state.alarm = None
 
-    if payload.status and payload.status in _ALLOWED_STATUS:
-        state.status = payload.status
+    operation_active = bool(getattr(state, "operation_id", None))
 
-    if payload.stage and payload.stage in _ALLOWED_STAGE:
+    if operation_active and payload.status and payload.status in _ALLOWED_STATUS:
+        # Só aceita status físico se já existe operação iniciada pelo sistema.
+        if payload.status in {"BLOQUEADO", "PAUSADO", "FINALIZADO"}:
+            state.status = payload.status
+
+    if operation_active and payload.stage and payload.stage in _ALLOWED_STAGE:
+        # Etapa física é aceita como leitura auxiliar quando operação já existe.
         state.stage = payload.stage
 
-    if payload.elapsed_seconds is not None:
+    if operation_active and payload.elapsed_seconds is not None:
         state.elapsed_seconds = max(0, int(payload.elapsed_seconds))
 
     if payload.pressure_machine_mbar is not None:
         state.external_pressure_machine_mbar = _clamp_float(payload.pressure_machine_mbar, 0.001, 1013.0, 1013.0)
 
     pumps = payload.pumps or {}
-
-    if "b1" in pumps:
-        state.pump_b1 = _to_bool(pumps.get("b1"))
-
-    if "b2" in pumps:
-        state.pump_b2 = _to_bool(pumps.get("b2"))
-
-    if "oil" in pumps:
-        state.pump_oil = _to_bool(pumps.get("oil"))
+    state.actual_pumps = {
+        "b1": _to_bool(pumps.get("b1"), False),
+        "b2": _to_bool(pumps.get("b2"), False),
+        "oil": _to_bool(pumps.get("oil"), False),
+    }
 
     oil = payload.oil or {}
+    state.actual_oil = dict(oil)
 
-    if "injected_l" in oil:
+    if operation_active and "injected_l" in oil:
         state.oil_injected_l = _clamp_float(oil.get("injected_l"), 0.0, 10000.0, getattr(state, "oil_injected_l", 0.0))
 
-    if "remaining_l" in oil:
+    if operation_active and "remaining_l" in oil:
         remaining = _clamp_float(oil.get("remaining_l"), 0.0, 10000.0, 0.0)
         state.oil_injected_l = max(0.0, float(getattr(state, "oil_reservoir_l", 0.0)) - remaining)
 
-    if "flow_l_min" in oil:
+    if operation_active and "flow_l_min" in oil:
         state.external_oil_flow_l_min = _clamp_float(oil.get("flow_l_min"), 0.0, 200.0, 0.0)
 
     hardware = payload.hardware or {}
+    state.actual_hardware = dict(hardware)
 
     if "sensor_online" in hardware:
         state.sensor_online = _to_bool(hardware.get("sensor_online"), True)
@@ -1045,6 +1101,7 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
     return {
         "ok": True,
         "mode": state.mode,
+        "operation_active": operation_active,
         "state": state.payload(),
         "desired_outputs": build_desired_outputs(state),
     }

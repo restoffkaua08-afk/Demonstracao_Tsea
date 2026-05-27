@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+# TSEA_PHYSICAL_GATEWAY_NOTES
+# Este arquivo mantém o núcleo do Gateway FastAPI usado pela demonstração.
+# Regra de manutenção:
+# - Cadastros reais ficam em data/recipes.json, data/tanks.json e data/hoses.json.
+# - A ponte de hardware físico fica em app/real_bridge.py.
+# - Não adicionar receitas, tanques ou mangueiras fixas neste arquivo.
+# - Compatibilidade antiga deve existir apenas para telas legadas, sem criar dados falsos.
+
 import asyncio
 import json
 import math
@@ -641,7 +649,7 @@ def current_operation_record(extra: dict[str, Any] | None = None, forced_status:
         "stage": STATE.stage,
         "tank": tank_codes,
         "tank_count": STATE.tank_count,
-        "hose": hose.get("code") or hose.get("id") or "MG-02",
+        "hose": hose.get("code") or hose.get("id") or "__SEM_MANGUEIRA__",
         "recipe": recipe.get("title") or recipe.get("name") or recipe.get("id"),
         "recipe_id": recipe.get("id"),
         "initial_pressure_mbar": 1013.0,
@@ -746,16 +754,10 @@ async def on_startup() -> None:
 
 # TSEA_GATEWAY_COMPAT_ROUTES_START
 
-TANKS: list[dict[str, Any]] = [
-    {
-        "id": 1,
-        "code": "TQ-01",
-        "type": "Camara do prototipo",
-        "volume_liters": 50,
-        "structural_limit_mbar": 35,
-        "status": "available",
-    }
-]
+# Compatibilidade legada: mantida vazia para não criar tanque falso.
+# Compatibilidade legada: mantida vazia para não criar tanque falso.
+# Compatibilidade legada: mantida vazia para não criar tanque falso.
+TANKS: list[dict[str, Any]] = []
 
 
 def public_recipe(recipe: dict[str, Any]) -> dict[str, Any]:
@@ -783,21 +785,27 @@ def public_recipe(recipe: dict[str, Any]) -> dict[str, Any]:
 
 
 def public_hose(hose: dict[str, Any]) -> dict[str, Any]:
-    code = str(hose.get("code") or hose.get("id") or "MG-02")
+    """Normaliza mangueiras para telas antigas sem recriar MG-01/MG-02/MG-03."""
+    code = str(hose.get("code") or hose.get("id") or "__SEM_MANGUEIRA__")
+
     return {
         **hose,
         "id": code,
         "code": code,
         "label": hose.get("label") or hose.get("descricao") or code,
-        "length_m": float(hose.get("length_m") or 8),
-        "diameter_in": float(hose.get("diameter_in") or 1),
-        "loss_factor": float(hose.get("loss_factor") or hose.get("loss_base_mbar") or 1.2),
-        "loss_base_mbar": float(hose.get("loss_base_mbar") or hose.get("loss_factor") or 1.2),
-        "status": hose.get("status") or "available",
+        "length_m": float(hose.get("length_m") or 0),
+        "diameter_in": float(hose.get("diameter_in") or 0),
+        "internal_diameter_mm": float(hose.get("internal_diameter_mm") or 0),
+        "internal_volume_l": float(hose.get("internal_volume_l") or 0),
+        "loss_factor": float(hose.get("loss_factor") or hose.get("loss_base_mbar") or 0),
+        "loss_base_mbar": float(hose.get("loss_base_mbar") or hose.get("loss_factor") or 0),
+        "calibrated_loss_mbar": float(hose.get("calibrated_loss_mbar") or hose.get("loss_base_mbar") or 0),
+        "status": hose.get("status") or "not_configured",
     }
 
 
 def normalize_recipe_id(value: Any) -> str:
+    """Mantém compatibilidade numérica sem inventar receita padrão."""
     text = str(value or "").strip()
 
     if any(str(recipe.get("id")) == text for recipe in RECIPES):
@@ -808,22 +816,17 @@ def normalize_recipe_id(value: Any) -> str:
         if 0 <= index < len(RECIPES):
             return str(RECIPES[index].get("id"))
 
-    return str(RECIPES[0].get("id"))
+    return ""
 
 
 def normalize_hose_id(value: Any) -> str:
+    """Mantém compatibilidade sem mapear 1/2/3 para MG-01/MG-02/MG-03."""
     text = str(value or "").strip()
 
     if text in HOSES:
         return text
 
-    numeric_map = {
-        "1": "MG-01",
-        "2": "MG-02",
-        "3": "MG-03",
-    }
-
-    return numeric_map.get(text, "MG-02")
+    return ""
 
 
 def legacy_status(status: str) -> str:
@@ -879,12 +882,12 @@ def legacy_state_payload() -> dict[str, Any]:
         "tank_states": tank_states,
         "primary_pump": {
             "running": bool(payload.get("pumps", {}).get("b1")),
-            "model": "Mini bomba de vacuo do prototipo",
+            "model": "Mini bomba de vácuo do protótipo",
             "health_pct": 96,
         },
         "roots_pump": {
             "running": bool(payload.get("pumps", {}).get("b2")),
-            "model": "Lampada simulando B2/Roots",
+            "model": "Lâmpada simulando B2/Roots",
             "health_pct": 94 if payload.get("pumps", {}).get("b2") else 0,
         },
         "oil_injection": {

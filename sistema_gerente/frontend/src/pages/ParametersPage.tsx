@@ -2,6 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Field, fmt, Section, Table } from "../components/ui";
 
+// TSEA_PARAMETERS_MAINTENANCE
+// Esta tela cadastra somente dados reais da demonstração.
+// Limites de segurança ficam no backend em app/real_bridge.py.
 const API = "http://127.0.0.1:8020/api";
 
 type LocalTab = "recipes" | "tanks" | "hoses" | "formulas";

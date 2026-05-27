@@ -81,6 +81,10 @@ type AlarmInfo = {
   message: string;
 };
 
+// TSEA_IHM_MAINTENANCE
+// A IHM não possui cadastros fixos.
+// Receitas, tanques e mangueiras vêm do Gateway físico.
+// Manutenção futura: manter as regras críticas também no backend.
 const GATEWAY_API = "http://127.0.0.1:8020/api";
 
 const OPERATIONAL_LIMITS = {
@@ -164,7 +168,7 @@ const checklistPreText: Record<keyof ChecklistPre, { title: string; detail: stri
   },
   emergênciaLiberada: {
     title: "Emergência liberada",
-    detail: "Botão de emergência e bloqueios fisicos devem estar liberados.",
+    detail: "Botão de emergência e bloqueios físicos devem estar liberados.",
   },
   sensoresComunicando: {
     title: "Sensores comunicando",
@@ -172,7 +176,7 @@ const checklistPreText: Record<keyof ChecklistPre, { title: string; detail: stri
   },
   intertravamentosLiberados: {
     title: "Intertravamentos liberados",
-    detail: "Condições minimas para bomba, válvulas, óleo e segurança.",
+    detail: "Condições mínimas para bomba, válvulas, óleo e segurança.",
   },
   receitaRevisada: {
     title: "Receita revisada",
@@ -203,7 +207,7 @@ const checklistPosText: Record<keyof Omit<ChecklistPos, "observacao">, { title: 
   },
   linhaÓleoFinalizada: {
     title: "Linha de óleo finalizada",
-    detail: "Etapa de injeção/enchimento concluida sem alerta pendente.",
+    detail: "Etapa de injeção/enchimento concluída sem alerta pendente.",
   },
   operadorConfirmouFisico: {
     title: "Conferencia física feita",
@@ -222,7 +226,7 @@ const checklistPosText: Record<keyof Omit<ChecklistPos, "observacao">, { title: 
 const EMPTY_RECIPE: Recipe = {
   id: "__SEM_RECEITA__",
   title: "Nenhuma receita cadastrada",
-  tipoTanque: "Nao definido",
+  tipoTanque: "Não definido",
   tempoEstimado: 0,
   pressãoAlvo: 1013,
   b2StartSeg: 0,
@@ -258,11 +262,11 @@ function clampInteger(value: number, min: number, max: number) {
 function humanStage(stage: string) {
   const map: Record<string, string> = {
     PREPARO: "PREPARO",
-    VACUO_INICIAL: "VACUO INICIAL",
-    VACUO_PROFUNDO: "VACUO PROFUNDO",
-    INJECAO_DE_OLEO: "INJECAO DE OLEO",
-    ESTABILIZACAO: "ESTABILIZACAO",
-    FINALIZACAO: "FINALIZACAO",
+    VACUO_INICIAL: "VÁCUO INICIAL",
+    VACUO_PROFUNDO: "VÁCUO PROFUNDO",
+    INJECAO_DE_OLEO: "INJEÇÃO DE ÓLEO",
+    ESTABILIZAÇÃO: "ESTABILIZAÇÃO",
+    FINALIZAÇÃO: "FINALIZAÇÃO",
     BLOQUEADO: "BLOQUEADO",
   };
 
@@ -702,8 +706,8 @@ function App() {
     if (elapsedLive < recipe.b2StartSeg) return "VACUO_INICIAL";
     if (elapsedLive < recipe.oilStartSeg) return "VACUO_PROFUNDO";
     if (elapsedLive < recipe.estabilizacaoSeg) return "INJECAO_DE_OLEO";
-    if (elapsedLive < recipe.tempoEstimado) return "ESTABILIZACAO";
-    return "FINALIZACAO";
+    if (elapsedLive < recipe.tempoEstimado) return "ESTABILIZAÇÃO";
+    return "FINALIZAÇÃO";
   }
 
   async function acionarEmergência() {
@@ -764,7 +768,7 @@ function App() {
       setOperationId(realOperationId);
       setStatus("EM CICLO");
       setElapsed(0);
-      setLogs([{ time: now(), msg: "Operacao iniciada pela IHM e enviada ao Gateway." }]);
+      setLogs([{ time: now(), msg: "Operação iniciada pela IHM e enviada ao Gateway." }]);
 
       await fetch(`${GATEWAY_API}/checklist/pre`, {
         method: "POST",
@@ -1085,7 +1089,7 @@ function App() {
           {tab === "informacoes" && (
             <div className="info-grid">
               <div className="etapas">
-                {["PREPARO", "VACUO INICIAL", "VACUO PROFUNDO", "INJECAO DE OLEO", "ESTABILIZACAO", "FINALIZACAO"].map((e) => (
+                {["PREPARO", "VÁCUO INICIAL", "VÁCUO PROFUNDO", "INJEÇÃO DE ÓLEO", "ESTABILIZAÇÃO", "FINALIZAÇÃO"].map((e) => (
                   <div key={e} className={etapaAtual === e ? "active" : ""}>{e}</div>
                 ))}
               </div>
