@@ -1,1 +1,67 @@
-[]
+[
+  {
+    "id": "REC-1779727622989",
+    "title": "teste",
+    "tank_type": "grande",
+    "estimated_seconds": 180,
+    "target_pressure_mbar": 2.0,
+    "roots_start_pressure_mbar": 6.0,
+    "b2_start_seconds": 24,
+    "oil_start_seconds": 81,
+    "stabilization_seconds": 140,
+    "oil_per_tank_l": 50.0,
+    "note": "Receita cadastrada no sistema do gerente e compartilhada com a IHM pelo Gateway."
+  },
+  {
+    "id": "REC-1779734427588",
+    "title": "teste2",
+    "tank_type": "grande",
+    "estimated_seconds": 180,
+    "target_pressure_mbar": 0.2,
+    "roots_start_pressure_mbar": 6.0,
+    "b2_start_seconds": 24,
+    "oil_start_seconds": 81,
+    "stabilization_seconds": 140,
+    "oil_per_tank_l": 50.0,
+    "note": "Receita cadastrada no sistema do gerente e compartilhada com a IHM pelo Gateway."
+  },
+  {
+    "id": "REC-1779816706922",
+    "title": "eh",
+    "tank_type": "abc",
+    "estimated_seconds": 1324,
+    "target_pressure_mbar": 2.3,
+    "roots_start_pressure_mbar": 6.0,
+    "b2_start_seconds": 24,
+    "oil_start_seconds": 120,
+    "stabilization_seconds": 1032,
+    "oil_per_tank_l": 300.0,
+    "note": "Receita cadastrada no sistema do gerente e compartilhada com a IHM pelo Gateway."
+  },
+  {
+    "id": "REC-1779820473446",
+    "title": "teste3",
+    "tank_type": "grande",
+    "estimated_seconds": 180,
+    "target_pressure_mbar": 0.2,
+    "roots_start_pressure_mbar": 6.0,
+    "b2_start_seconds": 24,
+    "oil_start_seconds": 81,
+    "stabilization_seconds": 140,
+    "oil_per_tank_l": 30.0,
+    "note": "Receita cadastrada no sistema do gerente e compartilhada com a IHM pelo Gateway."
+  },
+  {
+    "id": "REC-1779823143064",
+    "title": "testes4",
+    "tank_type": "pequeno",
+    "estimated_seconds": 180,
+    "target_pressure_mbar": 0.2,
+    "roots_start_pressure_mbar": 6.0,
+    "b2_start_seconds": 24,
+    "oil_start_seconds": 81,
+    "stabilization_seconds": 140,
+    "oil_per_tank_l": 50.0,
+    "note": "Receita cadastrada no sistema do gerente e compartilhada com a IHM pelo Gateway."
+  }
+]
