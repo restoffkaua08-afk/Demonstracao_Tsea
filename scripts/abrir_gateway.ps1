@@ -18,7 +18,6 @@ function Get-WorkingPython {
     foreach ($Candidate in $Candidates) {
         try {
             & $Candidate.Exe @($Candidate.Args + @("--version")) *> $null
-
             if ($LASTEXITCODE -eq 0) {
                 return $Candidate
             }

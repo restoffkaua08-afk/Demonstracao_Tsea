@@ -1,4 +1,4 @@
-# Contrato HTTP para ESP32/PLC
+Contrato HTTP para ESP32/PLC
 
 GET /api/hardware/desired-outputs
 

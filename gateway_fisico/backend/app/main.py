@@ -755,8 +755,6 @@ async def on_startup() -> None:
 # TSEA_GATEWAY_COMPAT_ROUTES_START
 
 # Compatibilidade legada: mantida vazia para não criar tanque falso.
-# Compatibilidade legada: mantida vazia para não criar tanque falso.
-# Compatibilidade legada: mantida vazia para não criar tanque falso.
 TANKS: list[dict[str, Any]] = []
 
 
@@ -767,7 +765,7 @@ def public_recipe(recipe: dict[str, Any]) -> dict[str, Any]:
 
     return {
         **recipe,
-        "id": str(recipe.get("id") or "PAD-001"),
+        "id": str(recipe.get("id") or "__SEM_RECEITA__"),
         "name": recipe.get("name") or recipe.get("title") or "Receita Operacional",
         "title": recipe.get("title") or recipe.get("name") or "Receita Operacional",
         "tank_type": recipe.get("tank_type") or "Comum",
@@ -785,7 +783,6 @@ def public_recipe(recipe: dict[str, Any]) -> dict[str, Any]:
 
 
 def public_hose(hose: dict[str, Any]) -> dict[str, Any]:
-    """Normaliza mangueiras para telas antigas sem recriar MG-01/MG-02/MG-03."""
     code = str(hose.get("code") or hose.get("id") or "__SEM_MANGUEIRA__")
 
     return {
@@ -805,7 +802,6 @@ def public_hose(hose: dict[str, Any]) -> dict[str, Any]:
 
 
 def normalize_recipe_id(value: Any) -> str:
-    """Mantém compatibilidade numérica sem inventar receita padrão."""
     text = str(value or "").strip()
 
     if any(str(recipe.get("id")) == text for recipe in RECIPES):
@@ -820,7 +816,6 @@ def normalize_recipe_id(value: Any) -> str:
 
 
 def normalize_hose_id(value: Any) -> str:
-    """Mantém compatibilidade sem mapear 1/2/3 para MG-01/MG-02/MG-03."""
     text = str(value or "").strip()
 
     if text in HOSES:
@@ -1264,11 +1259,9 @@ async def ws_live(websocket: WebSocket) -> None:
     except Exception:
         CLIENTS.discard(websocket)
 
-
 try:
     from app.real_bridge import router as real_bridge_router, install_main_hooks
     install_main_hooks(globals())
     app.include_router(real_bridge_router)
 except Exception as real_bridge_error:
     print(f"[TSEA REAL BRIDGE] Falha ao carregar ponte real: {real_bridge_error}")
-

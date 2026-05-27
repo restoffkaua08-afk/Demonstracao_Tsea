@@ -414,7 +414,7 @@ def sync_legacy_hoses_for_main(main_globals: dict[str, Any] | None = None) -> No
 
     # Remove qualquer mangueira demonstrativa antiga.
     for key in list(hoses_dict.keys()):
-        if str(key).startswith("MG-"):
+        if str(key) in {"MG-01", "MG-02", "MG-03"}:
             hoses_dict.pop(key, None)
 
     # Insere somente mangueiras reais cadastradas pelo gerente.
@@ -497,8 +497,6 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
     apply_watchdog(state)
 
     mode = getattr(state, "mode", "SIMULADO")
-    mode = getattr(state, "mode", "SIMULADO")
-    mode = getattr(state, "mode", "SIMULADO")
     emergency = bool(getattr(state, "emergency", False))
     plc_online = bool(getattr(state, "plc_online", True))
     sensor_online = bool(getattr(state, "sensor_online", True))
@@ -506,25 +504,19 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
     status = getattr(state, "status", "PRONTO")
     stage = getattr(state, "stage", "PREPARO")
 
-    blocked = emergency or not plc_online or not sensor_online or status == "BLOQUEADO" or alarm in {"EMERGENCIA_FISICA", "PLC_OFFLINE", "SENSOR_OFFLINE"}
+    critical_alarms = {"EMERGENCIA_FISICA", "PLC_AGUARDANDO_INGEST", "PLC_OFFLINE", "SENSOR_OFFLINE"}
+    blocked = emergency or not plc_online or not sensor_online or status == "BLOQUEADO" or alarm in critical_alarms
 
-    if blocked:
-        pump_b1 = False
-        pump_b2 = False
-        oil_valve = False
-    else:
-        pump_b1 = bool(getattr(state, "pump_b1", False))
-        pump_b2 = bool(getattr(state, "pump_b2", False))
-        oil_valve = bool(getattr(state, "pump_oil", False))
-
-    command_id = f"CMD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    pump_b1 = False if blocked else bool(getattr(state, "pump_b1", False))
+    pump_b2 = False if blocked else bool(getattr(state, "pump_b2", False))
+    oil_valve = False if blocked else bool(getattr(state, "pump_oil", False))
 
     return {
-        "command_id": command_id,
+        "command_id": f"CMD-{datetime.now().strftime('%Y%m%d%H%M%S')}",
         "mode": mode,
         "allowed_to_run": not blocked,
         "bench_safe": mode == "BANCADA_SEGURA",
-        "physical_power_allowed": mode == "FISICO_HTTP",
+        "physical_power_allowed": mode == "FISICO_HTTP" and not blocked,
         "status": status,
         "stage": stage,
         "outputs": {
@@ -535,16 +527,6 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
             "alarm_yellow": bool(alarm) and not blocked,
             "alarm_red": blocked,
             "emergency_stop": blocked,
-        },
-        "notes": {
-            "command_authority": "Gateway/IHM",
-            "hardware_role": "Executa comandos e devolve leituras reais.",
-            "safe_bench_mode": "BANCADA_SEGURA deve ser usado com LEDs ou relés sem carga.",
-        },
-        "notes": {
-            "command_authority": "Gateway/IHM",
-            "hardware_role": "Executa comandos e devolve leituras reais.",
-            "safe_bench_mode": "BANCADA_SEGURA deve ser usado com LEDs ou relés sem carga.",
         },
         "notes": {
             "command_authority": "Gateway/IHM",
@@ -714,7 +696,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         def current_pressure_machine_real(self):
             external_pressure = getattr(self, "external_pressure_machine_mbar", None)
 
-            if getattr(self, "mode", "SIMULADO") == "FISICO_HTTP" and external_pressure is not None:
+            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA"} and external_pressure is not None:
                 return max(0.001, min(1013.0, float(external_pressure)))
 
             return cls._real_bridge_original_current_pressure_machine(self)
@@ -727,7 +709,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         def current_oil_flow_real(self):
             external_flow = getattr(self, "external_oil_flow_l_min", None)
 
-            if getattr(self, "mode", "SIMULADO") == "FISICO_HTTP" and external_flow is not None:
+            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA"} and external_flow is not None:
                 return max(0.0, float(external_flow))
 
             return cls._real_bridge_original_current_oil_flow(self)
@@ -740,7 +722,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         def tanks_payload_real(self):
             external_tanks = getattr(self, "external_tanks_payload", None)
 
-            if getattr(self, "mode", "SIMULADO") == "FISICO_HTTP" and isinstance(external_tanks, list) and external_tanks:
+            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA"} and isinstance(external_tanks, list) and external_tanks:
                 return external_tanks[: max(1, int(getattr(self, "tank_count", 1)))]
 
             return cls._real_bridge_original_tanks_payload(self)
@@ -983,7 +965,7 @@ async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
         state.alarm = None
         state.event("Gateway alterado para modo SIMULADO.", "INFO")
     else:
-        state.event("Gateway alterado para modo FISICO_HTTP.", "INFO")
+        state.event(f"Gateway alterado para modo {mode}.", "INFO")
 
     await core.broadcast()
 
@@ -1005,13 +987,6 @@ def api_hardware_state() -> dict[str, Any]:
 
 @router.post("/api/hardware/ingest")
 async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
-    """
-    Recebe telemetria física.
-
-    Regra importante:
-    O hardware não inicia operação sozinho. Ele apenas envia leituras reais.
-    Status/etapa principais só são alterados se já existir operation_id iniciado pela IHM/Gerente.
-    """
     core = _core()
     state = core.STATE
 
@@ -1027,12 +1002,10 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
     operation_active = bool(getattr(state, "operation_id", None))
 
     if operation_active and payload.status and payload.status in _ALLOWED_STATUS:
-        # Só aceita status físico se já existe operação iniciada pelo sistema.
         if payload.status in {"BLOQUEADO", "PAUSADO", "FINALIZADO"}:
             state.status = payload.status
 
     if operation_active and payload.stage and payload.stage in _ALLOWED_STAGE:
-        # Etapa física é aceita como leitura auxiliar quando operação já existe.
         state.stage = payload.stage
 
     if operation_active and payload.elapsed_seconds is not None:
@@ -1082,7 +1055,7 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
         state.alarm = "EMERGENCIA_FISICA"
     elif payload.alarm:
         state.alarm = str(payload.alarm)
-    elif getattr(state, "alarm", None) in {"EMERGENCIA_FISICA", "PLC_OFFLINE", "SENSOR_OFFLINE"}:
+    elif getattr(state, "alarm", None) in {"EMERGENCIA_FISICA", "PLC_AGUARDANDO_INGEST", "PLC_OFFLINE", "SENSOR_OFFLINE"}:
         state.alarm = None
 
     state.external_tanks_payload = normalize_hardware_tanks(payload)

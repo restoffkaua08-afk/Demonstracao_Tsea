@@ -1,4 +1,4 @@
-# Guia de manutencao — Demonstracao TSEA V-Twin
+Guia de manutencao — Demonstracao TSEA V-Twin
 
 gateway_fisico/backend/app/main.py:
 - nucleo FastAPI;
