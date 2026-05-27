@@ -1,0 +1,13 @@
+Nome,Tipo,Direcao,Modbus,Endereco,Descricao
+DI_Emergencia,BOOL,Entrada,Discrete Input,0,Botao de emergencia
+DI_GHPC_OUT1_NPN,BOOL,Entrada,Discrete Input,1,OUT1 NPN do sensor GHPC
+DI_GHPC_OUT2_PNP,BOOL,Entrada,Discrete Input,2,OUT2 PNP do sensor GHPC
+DI_Feedback_B1,BOOL,Entrada,Discrete Input,3,Feedback da saida B1
+DI_Feedback_B2,BOOL,Entrada,Discrete Input,4,Feedback da saida B2
+DI_Feedback_Oleo,BOOL,Entrada,Discrete Input,5,Feedback da saida de oleo
+CMD_B1,BOOL,Saida logica Modbus,Coil,0,Comando B1 vindo do Gateway
+CMD_B2,BOOL,Saida logica Modbus,Coil,1,Comando B2/lampada vindo do Gateway
+CMD_Oleo,BOOL,Saida logica Modbus,Coil,2,Comando oleo vindo do Gateway
+CMD_Farol_Verde,BOOL,Saida logica Modbus,Coil,3,Comando farol verde
+CMD_Farol_Amarelo,BOOL,Saida logica Modbus,Coil,4,Comando farol amarelo
+CMD_Farol_Vermelho,BOOL,Saida logica Modbus,Coil,5,Comando farol vermelho

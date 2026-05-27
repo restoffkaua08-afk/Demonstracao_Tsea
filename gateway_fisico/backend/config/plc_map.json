@@ -1,0 +1,70 @@
+{
+  "enabled": false,
+  "mode": "SIMULATED",
+  "host": "192.168.0.50",
+  "port": 502,
+  "unit_id": 1,
+  "timeout_s": 2.0,
+  "bench_outputs_allow_actuators": false,
+  "sensor": {
+    "model": "GHPC SCD-020-01",
+    "type": "DIGITAL_PRESSURE_SWITCH",
+    "range_min_kpa": -100,
+    "range_max_kpa": 100,
+    "numeric_pressure_available": false,
+    "out1_description": "Limite de vacuo configurado no sensor",
+    "out2_description": "Segundo limite ou alarme configurado no sensor"
+  },
+  "inputs": {
+    "emergency": {
+      "type": "discrete_input",
+      "address": 0
+    },
+    "sensor_out1_npn": {
+      "type": "discrete_input",
+      "address": 1
+    },
+    "sensor_out2_pnp": {
+      "type": "discrete_input",
+      "address": 2
+    },
+    "feedback_pump_b1": {
+      "type": "discrete_input",
+      "address": 3
+    },
+    "feedback_pump_b2": {
+      "type": "discrete_input",
+      "address": 4
+    },
+    "feedback_oil": {
+      "type": "discrete_input",
+      "address": 5
+    }
+  },
+  "outputs": {
+    "pump_b1": {
+      "type": "coil",
+      "address": 0
+    },
+    "pump_b2": {
+      "type": "coil",
+      "address": 1
+    },
+    "oil_valve": {
+      "type": "coil",
+      "address": 2
+    },
+    "alarm_green": {
+      "type": "coil",
+      "address": 3
+    },
+    "alarm_yellow": {
+      "type": "coil",
+      "address": 4
+    },
+    "alarm_red": {
+      "type": "coil",
+      "address": 5
+    }
+  }
+}

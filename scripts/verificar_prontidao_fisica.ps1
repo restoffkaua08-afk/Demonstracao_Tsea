@@ -8,5 +8,7 @@ Invoke-RestMethod "$Gateway/api/health"
 Invoke-RestMethod "$Gateway/api/real/parameters"
 Invoke-RestMethod "$Gateway/api/hardware/schema"
 Invoke-RestMethod "$Gateway/api/hardware/desired-outputs"
+Invoke-RestMethod "$Gateway/api/plc/map"
+Invoke-RestMethod "$Gateway/api/plc/status"
 
 Write-Host "Verificacao concluida." -ForegroundColor Green

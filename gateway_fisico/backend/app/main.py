@@ -1265,3 +1265,9 @@ try:
     app.include_router(real_bridge_router)
 except Exception as real_bridge_error:
     print(f"[TSEA REAL BRIDGE] Falha ao carregar ponte real: {real_bridge_error}")
+
+try:
+    from app.plc_modbus_bridge import router as plc_modbus_router
+    app.include_router(plc_modbus_router)
+except Exception as plc_modbus_error:
+    print(f"[TSEA PLC MODBUS] Falha ao carregar ponte Modbus: {plc_modbus_error}")

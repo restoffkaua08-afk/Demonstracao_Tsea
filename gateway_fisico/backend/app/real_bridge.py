@@ -466,7 +466,7 @@ def validate_start_payload(data: dict[str, Any]) -> None:
 
 
 def apply_watchdog(state: Any) -> None:
-    if getattr(state, "mode", "SIMULADO") not in {"FISICO_HTTP", "BANCADA_SEGURA"}:
+    if getattr(state, "mode", "SIMULADO") not in {"FISICO_HTTP", "BANCADA_SEGURA", "MODBUS_TCP"}:
         return
 
     last_ts = getattr(state, "last_ingest_monotonic", None)
@@ -516,7 +516,7 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
         "mode": mode,
         "allowed_to_run": not blocked,
         "bench_safe": mode == "BANCADA_SEGURA",
-        "physical_power_allowed": mode == "FISICO_HTTP" and not blocked,
+        "physical_power_allowed": mode in {"FISICO_HTTP", "MODBUS_TCP"} and not blocked,
         "status": status,
         "stage": stage,
         "outputs": {
@@ -532,6 +532,7 @@ def build_desired_outputs(state: Any) -> dict[str, Any]:
             "command_authority": "Gateway/IHM",
             "hardware_role": "Executa comandos e devolve leituras reais.",
             "safe_bench_mode": "BANCADA_SEGURA deve ser usado com LEDs ou relés sem carga.",
+            "modbus_mode": "MODBUS_TCP usa PLC XP325 como ponte de I/O.",
         },
         "safety": {
             "emergency": emergency,
@@ -696,7 +697,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         def current_pressure_machine_real(self):
             external_pressure = getattr(self, "external_pressure_machine_mbar", None)
 
-            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA"} and external_pressure is not None:
+            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA", "MODBUS_TCP"} and external_pressure is not None:
                 return max(0.001, min(1013.0, float(external_pressure)))
 
             return cls._real_bridge_original_current_pressure_machine(self)
@@ -709,7 +710,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         def current_oil_flow_real(self):
             external_flow = getattr(self, "external_oil_flow_l_min", None)
 
-            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA"} and external_flow is not None:
+            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA", "MODBUS_TCP"} and external_flow is not None:
                 return max(0.0, float(external_flow))
 
             return cls._real_bridge_original_current_oil_flow(self)
@@ -722,7 +723,7 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         def tanks_payload_real(self):
             external_tanks = getattr(self, "external_tanks_payload", None)
 
-            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA"} and isinstance(external_tanks, list) and external_tanks:
+            if getattr(self, "mode", "SIMULADO") in {"FISICO_HTTP", "BANCADA_SEGURA", "MODBUS_TCP"} and isinstance(external_tanks, list) and external_tanks:
                 return external_tanks[: max(1, int(getattr(self, "tank_count", 1)))]
 
             return cls._real_bridge_original_tanks_payload(self)
@@ -948,8 +949,8 @@ async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
     state = core.STATE
     mode = payload.mode.strip().upper()
 
-    if mode not in {"SIMULADO", "FISICO_HTTP", "BANCADA_SEGURA"}:
-        raise HTTPException(status_code=422, detail="Modo inválido. Use SIMULADO, FISICO_HTTP ou BANCADA_SEGURA.")
+    if mode not in {"SIMULADO", "FISICO_HTTP", "BANCADA_SEGURA", "MODBUS_TCP"}:
+        raise HTTPException(status_code=422, detail="Modo inválido. Use SIMULADO, FISICO_HTTP, BANCADA_SEGURA ou MODBUS_TCP.")
 
     state.mode = mode
 
@@ -990,7 +991,7 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
     core = _core()
     state = core.STATE
 
-    if getattr(state, "mode", "SIMULADO") not in {"FISICO_HTTP", "BANCADA_SEGURA"}:
+    if getattr(state, "mode", "SIMULADO") not in {"FISICO_HTTP", "BANCADA_SEGURA", "MODBUS_TCP"}:
         state.mode = "FISICO_HTTP"
 
     state.last_ingest_at = _iso_now()
