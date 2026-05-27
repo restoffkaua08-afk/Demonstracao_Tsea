@@ -54,11 +54,13 @@ Start-Sleep -Seconds 8
 
 Start-Process "http://127.0.0.1:8020/docs"
 Start-Process "http://127.0.0.1:8020/api/real/parameters"
+Start-Process "http://127.0.0.1:8020/api/hardware/desired-outputs"
 Start-Process "http://127.0.0.1:5173"
 Start-Process "http://127.0.0.1:5178"
 
 Write-Host "Aberto." -ForegroundColor Green
-Write-Host "Gateway: http://127.0.0.1:8020/docs"
-Write-Host "Parametros: http://127.0.0.1:8020/api/real/parameters"
-Write-Host "Gerente: http://127.0.0.1:5173"
-Write-Host "IHM: http://127.0.0.1:5178"
+Write-Host "Gateway:          http://127.0.0.1:8020/docs"
+Write-Host "Parametros reais: http://127.0.0.1:8020/api/real/parameters"
+Write-Host "Comandos fisicos: http://127.0.0.1:8020/api/hardware/desired-outputs"
+Write-Host "Gerente:          http://127.0.0.1:5173"
+Write-Host "IHM:              http://127.0.0.1:5178"

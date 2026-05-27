@@ -11,5 +11,5 @@ Invoke-RestMethod `
     -Body "{}"
 
 Write-Host "Backend limpo." -ForegroundColor Green
-Write-Host "No navegador, execute se necessário:" -ForegroundColor Yellow
+Write-Host "No navegador, se necessário, rode no console:" -ForegroundColor Yellow
 Write-Host "localStorage.clear(); location.reload();"

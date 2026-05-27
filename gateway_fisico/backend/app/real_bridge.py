@@ -1,19 +1,20 @@
 
 """
-Ponte real do protótipo físico TSEA.
+Ponte real do protótipo físico TSEA V-Twin.
 
-Este módulo concentra os parâmetros reais da demonstração:
-- receitas reais cadastradas pelo gerente;
-- tanques/reguladores reais;
-- mangueiras reais;
-- cálculo do volume interno da mangueira;
-- limites técnicos fixos no código;
-- modo simulado e modo físico HTTP;
-- sincronização entre Gateway, sistema do gerente e IHM.
+Responsabilidades:
+- Receber cadastros reais do gerente: receitas, tanques e mangueiras.
+- Sincronizar esses dados com a IHM.
+- Bloquear operação sem receita, tanque ou mangueira real.
+- Calcular volume interno real da mangueira.
+- Receber leituras físicas via HTTP.
+- Expor comandos desejados para ESP32/PLC.
+- Aplicar watchdog de comunicação.
+- Manter limites fixos no código, não editáveis pelo gerente.
 
-Observação:
-A perda real de pressão na linha deve ser calibrada em ensaio físico.
-O volume interno da mangueira é cálculo geométrico real.
+Fluxo físico recomendado:
+ESP32/PLC -> POST /api/hardware/ingest
+ESP32/PLC <- GET  /api/hardware/desired-outputs
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ from __future__ import annotations
 import importlib
 import json
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -35,8 +36,8 @@ TANKS_FILE = DATA_DIR / "tanks.json"
 HOSES_FILE = DATA_DIR / "hoses.json"
 OPERATION_RECORDS_FILE = DATA_DIR / "operation_records.json"
 
-# Limites fixos de segurança da demonstração.
-# Não são cadastrados pelo gerente para evitar valores absurdos em operação.
+WATCHDOG_TIMEOUT_SECONDS = 5.0
+
 CODE_LIMITS: dict[str, Any] = {
     "tank_count_min": 1,
     "tank_count_max": 3,
@@ -123,6 +124,13 @@ class HardwareModePayload(BaseModel):
     mode: str = Field(default="SIMULADO")
 
 
+class HardwareAckPayload(BaseModel):
+    command_id: str | None = None
+    applied: bool = False
+    message: str | None = None
+    outputs: dict[str, Any] = Field(default_factory=dict)
+
+
 class HardwareIngestPayload(BaseModel):
     status: str | None = None
     stage: str | None = None
@@ -138,6 +146,14 @@ class HardwareIngestPayload(BaseModel):
 
 def _core():
     return importlib.import_module("app.main")
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _iso_now() -> str:
+    return _now().isoformat()
 
 
 def _read_json(path: Path, fallback: Any) -> Any:
@@ -218,7 +234,6 @@ def hose_internal_volume_liters(length_m: float, internal_diameter_mm: float) ->
     """
     Volume interno real da mangueira.
 
-    Fórmula:
     V = π × (D² / 4) × L
 
     D em metros.
@@ -360,8 +375,6 @@ def save_recipes(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     if hasattr(core, "save_recipes") and callable(core.save_recipes):
         core.save_recipes(core.RECIPES)
-    else:
-        _write_json(DATA_DIR / "recipes.json", core.RECIPES)
 
     recipes_file = Path(getattr(core, "RECIPES_FILE", DATA_DIR / "recipes.json"))
     _write_json(recipes_file, core.RECIPES)
@@ -378,12 +391,12 @@ def sync_legacy_hoses_for_main(main_globals: dict[str, Any] | None = None) -> No
     if not isinstance(hoses_dict, dict):
         return
 
-    # Remove mangueiras demonstrativas antigas.
+    # Remove qualquer mangueira demonstrativa antiga.
     for key in list(hoses_dict.keys()):
         if str(key).startswith("MG-"):
             hoses_dict.pop(key, None)
 
-    # Insere apenas as mangueiras reais cadastradas pelo gerente.
+    # Insere somente mangueiras reais cadastradas pelo gerente.
     for hose in get_hoses():
         hoses_dict[str(hose["id"])] = {
             "id": str(hose["id"]),
@@ -429,6 +442,78 @@ def validate_start_payload(data: dict[str, Any]) -> None:
     oil_reservoir_l = float(data.get("oil_reservoir_l") or 0)
     if oil_reservoir_l < limits["oil_min_l"] or oil_reservoir_l > limits["oil_max_l"]:
         raise ValueError("Volume de óleo fora dos limites.")
+
+
+def apply_watchdog(state: Any) -> None:
+    if getattr(state, "mode", "SIMULADO") != "FISICO_HTTP":
+        return
+
+    last_ts = getattr(state, "last_ingest_monotonic", None)
+
+    if last_ts is None:
+        return
+
+    age = (_now().timestamp() - float(last_ts))
+
+    if age <= WATCHDOG_TIMEOUT_SECONDS:
+        return
+
+    state.plc_online = False
+    state.pump_b1 = False
+    state.pump_b2 = False
+    state.pump_oil = False
+    state.status = "BLOQUEADO"
+    state.stage = "BLOQUEADO"
+    state.alarm = "PLC_OFFLINE"
+
+
+def build_desired_outputs(state: Any) -> dict[str, Any]:
+    apply_watchdog(state)
+
+    emergency = bool(getattr(state, "emergency", False))
+    plc_online = bool(getattr(state, "plc_online", True))
+    sensor_online = bool(getattr(state, "sensor_online", True))
+    alarm = getattr(state, "alarm", None)
+    status = getattr(state, "status", "PRONTO")
+    stage = getattr(state, "stage", "PREPARO")
+
+    blocked = emergency or not plc_online or not sensor_online or status == "BLOQUEADO" or alarm in {"EMERGENCIA_FISICA", "PLC_OFFLINE", "SENSOR_OFFLINE"}
+
+    if blocked:
+        pump_b1 = False
+        pump_b2 = False
+        oil_valve = False
+    else:
+        pump_b1 = bool(getattr(state, "pump_b1", False))
+        pump_b2 = bool(getattr(state, "pump_b2", False))
+        oil_valve = bool(getattr(state, "pump_oil", False))
+
+    command_id = f"CMD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+    return {
+        "command_id": command_id,
+        "mode": getattr(state, "mode", "SIMULADO"),
+        "allowed_to_run": not blocked,
+        "status": status,
+        "stage": stage,
+        "outputs": {
+            "pump_b1": pump_b1,
+            "pump_b2": pump_b2,
+            "oil_valve": oil_valve,
+            "alarm_green": status == "EM_CICLO" and not blocked and not alarm,
+            "alarm_yellow": bool(alarm) and not blocked,
+            "alarm_red": blocked,
+            "emergency_stop": blocked,
+        },
+        "safety": {
+            "emergency": emergency,
+            "plc_online": plc_online,
+            "sensor_online": sensor_online,
+            "alarm": alarm,
+            "watchdog_timeout_seconds": WATCHDOG_TIMEOUT_SECONDS,
+            "last_ingest_at": getattr(state, "last_ingest_at", None),
+        },
+    }
 
 
 def normalize_hardware_tanks(payload: HardwareIngestPayload) -> list[dict[str, Any]]:
@@ -510,6 +595,12 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
         state.plc_online = True
     if not hasattr(state, "emergency"):
         state.emergency = False
+    if not hasattr(state, "last_ingest_at"):
+        state.last_ingest_at = None
+    if not hasattr(state, "last_ingest_monotonic"):
+        state.last_ingest_monotonic = None
+    if not hasattr(state, "last_command_ack"):
+        state.last_command_ack = None
 
     cls = state.__class__
 
@@ -533,6 +624,28 @@ def install_main_hooks(main_globals: dict[str, Any]) -> None:
             return cls._real_bridge_original_start(self, command)
 
         cls.start = start_real
+
+    if not hasattr(cls, "_real_bridge_original_payload") and hasattr(cls, "payload"):
+        cls._real_bridge_original_payload = cls.payload
+
+        def payload_real(self):
+            apply_watchdog(self)
+            data = cls._real_bridge_original_payload(self)
+
+            if isinstance(data, dict):
+                data["hardware"] = {
+                    "mode": getattr(self, "mode", "SIMULADO"),
+                    "sensor_online": bool(getattr(self, "sensor_online", True)),
+                    "plc_online": bool(getattr(self, "plc_online", True)),
+                    "emergency": bool(getattr(self, "emergency", False)),
+                    "last_ingest_at": getattr(self, "last_ingest_at", None),
+                    "last_command_ack": getattr(self, "last_command_ack", None),
+                    "desired_outputs": build_desired_outputs(self),
+                }
+
+            return data
+
+        cls.payload = payload_real
 
     if not hasattr(cls, "_real_bridge_original_current_pressure_machine") and hasattr(cls, "current_pressure_machine"):
         cls._real_bridge_original_current_pressure_machine = cls.current_pressure_machine
@@ -731,9 +844,11 @@ async def api_real_delete_hose(hose_id: str) -> dict[str, Any]:
 @router.get("/api/hardware/schema")
 def api_hardware_schema() -> dict[str, Any]:
     return {
-        "description": "Contrato HTTP para conectar ESP32/CLP ao Gateway TSEA.",
-        "recommended_cycle_ms": 1000,
-        "endpoint": "POST /api/hardware/ingest",
+        "description": "Contrato HTTP para conectar ESP32/PLC ao Gateway TSEA.",
+        "cycle_recommendation_ms": 1000,
+        "ingest": "POST /api/hardware/ingest",
+        "desired_outputs": "GET /api/hardware/desired-outputs",
+        "command_ack": "POST /api/hardware/command-ack",
         "payload_example": {
             "status": "EM_CICLO",
             "stage": "VACUO_INICIAL",
@@ -757,6 +872,33 @@ def api_hardware_schema() -> dict[str, Any]:
     }
 
 
+@router.get("/api/hardware/desired-outputs")
+def api_hardware_desired_outputs() -> dict[str, Any]:
+    core = _core()
+    return build_desired_outputs(core.STATE)
+
+
+@router.post("/api/hardware/command-ack")
+async def api_hardware_command_ack(payload: HardwareAckPayload) -> dict[str, Any]:
+    core = _core()
+    core.STATE.last_command_ack = {
+        "received_at": _iso_now(),
+        "command_id": payload.command_id,
+        "applied": payload.applied,
+        "message": payload.message,
+        "outputs": payload.outputs,
+    }
+
+    if payload.applied:
+        core.STATE.event(f"PLC confirmou comando: {payload.command_id or 'sem id'}", "INFO")
+    else:
+        core.STATE.event(f"PLC recusou/falhou comando: {payload.command_id or 'sem id'}", "WARN")
+
+    await core.broadcast()
+
+    return {"ok": True, "ack": core.STATE.last_command_ack}
+
+
 @router.post("/api/hardware/mode")
 async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
     core = _core()
@@ -775,6 +917,8 @@ async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
         state.sensor_online = True
         state.plc_online = True
         state.emergency = False
+        state.last_ingest_at = None
+        state.last_ingest_monotonic = None
         state.alarm = None
         state.event("Gateway alterado para modo SIMULADO.", "INFO")
     else:
@@ -788,11 +932,13 @@ async def api_hardware_mode(payload: HardwareModePayload) -> dict[str, Any]:
 @router.get("/api/hardware/state")
 def api_hardware_state() -> dict[str, Any]:
     core = _core()
+    apply_watchdog(core.STATE)
 
     return {
         "ok": True,
         "mode": getattr(core.STATE, "mode", "SIMULADO"),
         "state": core.STATE.payload(),
+        "desired_outputs": build_desired_outputs(core.STATE),
     }
 
 
@@ -800,7 +946,10 @@ def api_hardware_state() -> dict[str, Any]:
 async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
     core = _core()
     state = core.STATE
+
     state.mode = "FISICO_HTTP"
+    state.last_ingest_at = _iso_now()
+    state.last_ingest_monotonic = _now().timestamp()
 
     if payload.status and payload.status in _ALLOWED_STATUS:
         state.status = payload.status
@@ -857,7 +1006,7 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
         state.alarm = "EMERGENCIA_FISICA"
     elif payload.alarm:
         state.alarm = str(payload.alarm)
-    elif getattr(state, "alarm", None) == "EMERGENCIA_FISICA":
+    elif getattr(state, "alarm", None) in {"EMERGENCIA_FISICA", "PLC_OFFLINE", "SENSOR_OFFLINE"}:
         state.alarm = None
 
     state.external_tanks_payload = normalize_hardware_tanks(payload)
@@ -873,7 +1022,12 @@ async def api_hardware_ingest(payload: HardwareIngestPayload) -> dict[str, Any]:
 
     await core.broadcast()
 
-    return {"ok": True, "mode": state.mode, "state": state.payload()}
+    return {
+        "ok": True,
+        "mode": state.mode,
+        "state": state.payload(),
+        "desired_outputs": build_desired_outputs(state),
+    }
 
 
 @router.post("/api/hardware/reset")
@@ -888,6 +1042,8 @@ async def api_hardware_reset() -> dict[str, Any]:
     state.sensor_online = True
     state.plc_online = True
     state.emergency = False
+    state.last_ingest_at = None
+    state.last_ingest_monotonic = None
     state.alarm = None
     state.event("Ponte física reiniciada para modo simulado.", "INFO")
 
@@ -938,6 +1094,9 @@ async def api_real_admin_clear_data() -> dict[str, Any]:
     state.sensor_online = True
     state.plc_online = True
     state.emergency = False
+    state.last_ingest_at = None
+    state.last_ingest_monotonic = None
+    state.last_command_ack = None
     state.alarm = None
     state.event("Base limpa para nova demonstração real.", "INFO")
 

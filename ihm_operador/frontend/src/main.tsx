@@ -125,7 +125,7 @@ const ALARM_TEXT = {
   operationState: {
     code: "ALM-006",
     title: "ESTADO OPERACIONAL INVÁLIDO",
-    message: "A operação não pode avanÃ§ar no estado atual.",
+    message: "A operação não pode avançar no estado atual.",
   },
 };
 
@@ -728,12 +728,7 @@ function App() {
     }
 
     if (parametrosReaisIncompletos) {
-      addLog("Inicio bloqueado: cadastre tanque/regulador e mangueira real no sistema do gerente.");
-      return;
-    }
-
-    if (parametrosReaisIncompletos) {
-      addLog("Inicio bloqueado: cadastre tanque/regulador e mangueira real no sistema do gerente.");
+      addLog("Início bloqueado: cadastre tanque/regulador e mangueira real no sistema do gerente.");
       return;
     }
 
@@ -997,13 +992,13 @@ function App() {
           <p><b>Óleo colocado:</b> {oleoColocado} L</p>
           <p><b>Óleo necessario:</b> {oilNeeded} L</p>
           <p><b>Pressão alvo:</b> {recipe.pressaoAlvo} mbar</p>
-          {oilInsuficiente && <p className="warn-text">Volume de Ã³leo insuficiente para iniciar.</p>}
-          {gatewayBloqueado && <p className="warn-text">Gateway offline. InÃ­cio bloqueado.</p>}
-          {sensorBloqueado && <p className="warn-text">Sensor de pressão offline. InÃ­cio bloqueado.</p>}
+          {oilInsuficiente && <p className="warn-text">Volume de óleo insuficiente para iniciar.</p>}
+          {gatewayBloqueado && <p className="warn-text">Gateway offline. Início bloqueado.</p>}
+          {sensorBloqueado && <p className="warn-text">Sensor de pressão offline. Início bloqueado.</p>}
           {recipeTimeInvalid && <p className="warn-text">Tempo da receita fora do limite operacional.</p>}
-          {pressureTargetInvalid && <p className="warn-text">PressÃ£o alvo fora da faixa permitida.</p>}
-          {recipeSequenceInvalid && <p className="warn-text">SequÃªncia da receita invÃ¡lida: revise B2, Ã³leo, estabilizaÃ§Ã£o e tempo final.</p>}
-          {receitaExcedeLimiteÓleo && <p className="warn-text">Receita exige mais Ã³leo que o limite demonstrativo.</p>}
+          {pressureTargetInvalid && <p className="warn-text">Pressão alvo fora da faixa permitida.</p>}
+          {recipeSequenceInvalid && <p className="warn-text">Sequência da receita inválida: revise B2, óleo, estabilizaÃ§Ã£o e tempo final.</p>}
+          {receitaExcedeLimiteÓleo && <p className="warn-text">Receita exige mais óleo que o limite demonstrativo.</p>}
           {receitaExcedeLimiteÓleo && <p className="warn-text">Receita exige mais oleo que o limite operacional da IHM.</p>}
           {gatewayBloqueado && <p className="warn-text">Gateway offline. Inicio bloqueado ate normalizar a comunicacao.</p>}
         </div>
@@ -1104,9 +1099,9 @@ function App() {
                 <p><b>Tempo:</b> {timeFmt(elapsedLive)}</p>
                 <p><b>Gateway:</b> {gatewayOnline ? "Online" : "Offline"}</p>
                 <p><b>Sensor pressão:</b> {sensorBloqueado ? "Falha" : "Online"}</p>
-                <p><b>EmergÃªncia:</b> {emergencyBloqueada ? "Ativa/Bloqueada" : "Normal"}</p>
-                <p><b>Limites:</b> {recipeInvalid ? "Receita invÃ¡lida" : "Conforme"}</p>
-                <p><b>InÃ­cio:</b> {inicioBloqueado ? "Bloqueado" : "Liberado"}</p>
+                <p><b>Emergência:</b> {emergencyBloqueada ? "Ativa/Bloqueada" : "Normal"}</p>
+                <p><b>Limites:</b> {recipeInvalid ? "Receita inválida" : "Conforme"}</p>
+                <p><b>Início:</b> {inicioBloqueado ? "Bloqueado" : "Liberado"}</p>
               </div>
 
               <div className="logs">
@@ -1137,8 +1132,8 @@ function App() {
           <p><b>Status:</b> {status}</p>
           <p><b>Etapa:</b> {etapaAtual}</p>
           <p><b>Alarme:</b> {alarmInfo ? alarmInfo.title : "Sem alarme ativo"}</p>
-          <p><b>Causa provÃ¡vel:</b> {alarmInfo ? alarmInfo.message : "Nenhuma condiÃ§Ã£o crítica detectada."}</p>
-          <p><b>AÃ§Ã£o recomendada:</b> {alarmInfo?.severity === "red" ? "Parar o ciclo, verificar bancada e reconhecer a falha." : alarmInfo ? "Verificar condiÃ§Ã£o indicada e corrigir antes de iniciar." : "OperaÃ§Ã£o liberada."}</p>
+          <p><b>Causa provÃ¡vel:</b> {alarmInfo ? alarmInfo.message : "Nenhuma condição crítica detectada."}</p>
+          <p><b>AÃ§Ã£o recomendada:</b> {alarmInfo?.severity === "red" ? "Parar o ciclo, verificar bancada e reconhecer a falha." : alarmInfo ? "Verificar condição indicada e corrigir antes de iniciar." : "OperaÃ§Ã£o liberada."}</p>
           <p><b>Pressão maquina:</b> {fmt(pressaoMaquina, "mbar")}</p>
           <p><b>Pressão media:</b> {fmt(pressaoMedia, "mbar")}</p>
           <p><b>Óleo colocado:</b> {oleoColocado} L</p>
