@@ -403,7 +403,7 @@ function SpreadsheetCanvas({
     <div className={`tc-sheet-shell ${fullscreen ? "fullscreen" : ""}`}>
       <div className="tc-sheet-toolbar">
         <strong>Campo de análise gráfica</strong>
-        <span>Grade A-Z / 1-50 · arraste a rolagem para navegar</span>
+        <span>Grade A-Z / 1-50 · use a rolagem para navegar e expanda para apresentar</span>
         <button type="button" onClick={() => setFullscreen(!fullscreen)}>
           {fullscreen ? "Sair da tela cheia" : "Expandir campo"}
         </button>
@@ -422,7 +422,7 @@ function SpreadsheetCanvas({
           {charts.length === 0 ? (
             <div className="tc-empty-sheet">
               <strong>Nenhum gráfico gerado</strong>
-              <p>Escolha um indicador, um tipo compatível e clique em Gerar gráfico. O gráfico e a legenda aparecerão dentro deste campo branco.</p>
+              <p>Escolha um indicador, um tipo compatível e clique em Gerar gráfico. O gráfico, a legenda e a tabela de apoio aparecerão dentro deste campo branco.</p>
             </div>
           ) : (
             <div className="tc-chart-grid">
@@ -594,7 +594,7 @@ export function TraceabilityChartsPanel() {
           <div>
             <span>Análise gerencial</span>
             <h3>Indicadores e Gráficos</h3>
-            <p>Gere gráficos objetivos a partir de operações, logs, alarmes, equipamentos, relatórios e telemetria. A rampa em tempo real fica no Painel.</p>
+            <p>Escolha um indicador, selecione o tipo de gráfico e gere a visualização. Cada gráfico aparece dentro do campo branco com legenda e tabela de apoio.</p>
           </div>
         </div>
 
