@@ -1,7 +1,8 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge, Empty, fmt, Section, Table } from "../components/ui";
+import { TraceabilityChartsPanel } from "./TraceabilityChartsPanel";
 
-type TraceTab = "records" | "logs" | "reports";
+type TraceTab = "records" | "logs" | "reports" | "charts";
 type TraceType = "Operação" | "Simulação";
 type ReportExportType = "menu" | "general" | "operations" | "simulations" | "individualType" | "individualList" | "individualConfirm";
 
@@ -562,6 +563,7 @@ export function TraceabilityPage({
       { key: "records", label: "Registros", description: "Operações e simulações" },
       { key: "logs", label: "Logs de Acesso", description: "Acessos e ações por dia" },
       { key: "reports", label: "Relatórios", description: "Exportação técnica" },
+      { key: "charts", label: "Indicadores e Gráficos", description: "Análise estatística e rampa de vácuo" },
     ];
 
     return (
@@ -1154,6 +1156,7 @@ export function TraceabilityPage({
         {active === "records" && renderRecords()}
         {active === "logs" && renderLogs()}
         {active === "reports" && renderReports()}
+        {active === "charts" && <TraceabilityChartsPanel />}
       </Section>
 
       {renderDetailsModal()}
