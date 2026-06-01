@@ -1290,3 +1290,8 @@ try:
     app.include_router(plc_modbus_router)
 except Exception as plc_modbus_error:
     print(f"[TSEA PLC MODBUS] Falha ao carregar ponte Modbus: {plc_modbus_error}")
+try:
+    from app.charts_bridge import router as charts_bridge_router
+    app.include_router(charts_bridge_router)
+except Exception as charts_bridge_error:
+    print(f"[TSEA CHARTS] Falha ao carregar ponte de gráficos: {charts_bridge_error}")
