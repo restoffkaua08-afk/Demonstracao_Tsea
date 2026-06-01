@@ -1,4 +1,5 @@
 import { Badge, fmt, Metric, Section, statusLabel } from "../components/ui";
+import { RealtimeRamp } from "./TraceabilityChartsPanel";
 
 type DashboardPageProps = {
   avgPressure: number;
@@ -198,6 +199,8 @@ export function DashboardPage({ avgPressure, maxRisk, operations, simulations, s
           <SensorsOilCard state={state} tanksState={tanksState} />
         </aside>
       </div>
+
+      <RealtimeRamp />
     </div>
   );
 }

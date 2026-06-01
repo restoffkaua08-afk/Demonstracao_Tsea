@@ -34,14 +34,6 @@ const METRICS: {
   recommended: ChartType;
 }[] = [
   {
-    id: "vacuum_ramp",
-    label: "Rampa de vácuo",
-    description: "Pressão por tempo da operação atual ou registrada.",
-    group: "Processo",
-    allowed: ["line"],
-    recommended: "line",
-  },
-  {
     id: "operations_by_day",
     label: "Operações por período",
     description: "Quantidade de operações agrupadas por data.",
@@ -60,9 +52,17 @@ const METRICS: {
   {
     id: "cycle_time",
     label: "Tempo de ciclo",
-    description: "Duração de cada operação ou comparação de tempo.",
+    description: "Duração registrada por operação.",
     group: "Desempenho",
     allowed: ["bar", "line"],
+    recommended: "line",
+  },
+  {
+    id: "vacuum_ramp",
+    label: "Rampa de vácuo registrada",
+    description: "Curva registrada a partir dos pontos de telemetria já salvos.",
+    group: "Processo",
+    allowed: ["line"],
     recommended: "line",
   },
   {
@@ -75,7 +75,7 @@ const METRICS: {
   },
   {
     id: "equipment_usage",
-    label: "Uso de equipamentos/parâmetros",
+    label: "Equipamentos e parâmetros",
     description: "Receitas, tanques, mangueiras e estados principais.",
     group: "Equipamentos",
     allowed: ["bar"],
@@ -92,7 +92,7 @@ const METRICS: {
   {
     id: "logs_by_severity",
     label: "Logs por severidade",
-    description: "INFO, WARN, CRITICAL e EMERGENCY.",
+    description: "Eventos separados por INFO, WARN, CRITICAL e EMERGENCY.",
     group: "Auditoria",
     allowed: ["bar", "pie"],
     recommended: "bar",
@@ -132,12 +132,6 @@ function scale(value: number, min: number, max: number, outMin: number, outMax: 
 
 function pathFrom(points: { x: number; y: number }[]) {
   return points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
-}
-
-function ChartSvg({ chart }: { chart: GeneratedChart }) {
-  if (chart.chart_type === "pie") return <PieSvg chart={chart} />;
-  if (chart.chart_type === "line") return <LineSvg chart={chart} />;
-  return <BarSvg chart={chart} />;
 }
 
 function Axis({
@@ -190,13 +184,19 @@ function Axis({
   );
 }
 
+function ChartSvg({ chart }: { chart: GeneratedChart }) {
+  if (chart.chart_type === "pie") return <PieSvg chart={chart} />;
+  if (chart.chart_type === "line") return <LineSvg chart={chart} />;
+  return <BarSvg chart={chart} />;
+}
+
 function LineSvg({ chart }: { chart: GeneratedChart }) {
   const width = 920;
   const height = 360;
-  const left = 76;
-  const right = 32;
-  const top = 28;
-  const bottom = 56;
+  const left = 78;
+  const right = 34;
+  const top = 30;
+  const bottom = 58;
 
   const rawValues = chart.series[0]?.data || [];
   const values = rawValues.map(Number).filter(Number.isFinite);
@@ -217,7 +217,7 @@ function LineSvg({ chart }: { chart: GeneratedChart }) {
       <Axis width={width} height={height} left={left} right={right} top={top} bottom={bottom} xLabels={xLabels} yLabels={yLabels} />
       <path className="tc-line" d={pathFrom(points)} />
       {points.map((point, index) => (
-        <circle key={index} className={index === points.length - 1 ? "tc-current-point" : "tc-point"} cx={point.x} cy={point.y} r={index === points.length - 1 ? 6 : 3} />
+        <circle key={index} className={index === points.length - 1 ? "tc-current-point" : "tc-point"} cx={point.x} cy={point.y} r={index === points.length - 1 ? 7 : 3.5} />
       ))}
       <text className="tc-axis-title" x={width / 2} y={height - 4} textAnchor="middle">Tempo / período</text>
       <text className="tc-axis-title" x={16} y={height / 2} transform={`rotate(-90 16 ${height / 2})`} textAnchor="middle">Valor</text>
@@ -228,10 +228,10 @@ function LineSvg({ chart }: { chart: GeneratedChart }) {
 function BarSvg({ chart }: { chart: GeneratedChart }) {
   const width = 920;
   const height = 360;
-  const left = 76;
-  const right = 32;
-  const top = 28;
-  const bottom = 64;
+  const left = 78;
+  const right = 34;
+  const top = 30;
+  const bottom = 66;
   const cw = width - left - right;
   const ch = height - top - bottom;
 
@@ -254,8 +254,8 @@ function BarSvg({ chart }: { chart: GeneratedChart }) {
 
         return (
           <g key={index}>
-            <rect className="tc-bar" x={x} y={y} width={barW * 0.64} height={Math.max(2, h)} rx={5} />
-            <text className="tc-bar-text" x={x + barW * 0.32} y={height - 30} textAnchor="middle">{String(labels[index] || "").slice(0, 10)}</text>
+            <rect className={`tc-bar b${index % 8}`} x={x} y={y} width={barW * 0.64} height={Math.max(2, h)} rx={5} />
+            <text className="tc-bar-text" x={x + barW * 0.32} y={height - 32} textAnchor="middle">{String(labels[index] || "").slice(0, 10)}</text>
           </g>
         );
       })}
@@ -310,41 +310,51 @@ function PieSvg({ chart }: { chart: GeneratedChart }) {
   );
 }
 
-function LegendBox({ chart }: { chart: GeneratedChart | null }) {
-  if (!chart) {
-    return (
-      <aside className="tc-side-card">
-        <h3>Legenda</h3>
-        <p>Gere ou selecione um gráfico para ver a legenda e a tabela de apoio.</p>
-      </aside>
-    );
-  }
-
+function LegendTable({ chart }: { chart: GeneratedChart }) {
   return (
-    <aside className="tc-side-card">
-      <h3>Legenda e leitura</h3>
-      <strong>{chart.title}</strong>
-      <p>Tipo: {chart.chart_type.toUpperCase()}</p>
+    <div className="tc-legend-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Cor</th>
+            <th>Legenda</th>
+            <th>Interpretação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(chart.legend?.length ? chart.legend : [{ label: chart.series?.[0]?.name || "Série", description: "Dados do indicador selecionado." }]).map((item, index) => (
+            <tr key={`${item.label}-${index}`}>
+              <td><span className={`tc-color c${index % 8}`} /></td>
+              <td>{item.label}</td>
+              <td>{item.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
-      <div className="tc-legend-list">
-        {(chart.legend || []).map((item, index) => (
-          <div key={`${item.label}-${index}`}>
-            <span className={`tc-color c${index % 8}`} />
-            <div>
-              <b>{item.label}</b>
-              <small>{item.description}</small>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <h4>Tabela de apoio</h4>
-      <div className="tc-table-mini">
-        {(chart.table || []).slice(0, 10).map((row, index) => (
-          <pre key={index}>{JSON.stringify(row, null, 0)}</pre>
-        ))}
-      </div>
-    </aside>
+function SupportTable({ chart }: { chart: GeneratedChart }) {
+  return (
+    <div className="tc-data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Dados</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(chart.table || []).slice(0, 8).map((row, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td><code>{JSON.stringify(row)}</code></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -368,6 +378,8 @@ function ChartCard({
       </div>
 
       <ChartSvg chart={chart} />
+      <LegendTable chart={chart} />
+      <SupportTable chart={chart} />
     </article>
   );
 }
@@ -376,15 +388,27 @@ function SpreadsheetCanvas({
   charts,
   selectedIndex,
   setSelectedIndex,
+  fullscreen,
+  setFullscreen,
 }: {
   charts: GeneratedChart[];
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
+  fullscreen: boolean;
+  setFullscreen: (value: boolean) => void;
 }) {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
   return (
-    <div className="tc-sheet-shell">
+    <div className={`tc-sheet-shell ${fullscreen ? "fullscreen" : ""}`}>
+      <div className="tc-sheet-toolbar">
+        <strong>Campo de análise gráfica</strong>
+        <span>Grade A-Z / 1-50 · arraste a rolagem para navegar</span>
+        <button type="button" onClick={() => setFullscreen(!fullscreen)}>
+          {fullscreen ? "Sair da tela cheia" : "Expandir campo"}
+        </button>
+      </div>
+
       <div className="tc-sheet-cols">
         {letters.map((letter) => <span key={letter}>{letter}</span>)}
       </div>
@@ -398,7 +422,7 @@ function SpreadsheetCanvas({
           {charts.length === 0 ? (
             <div className="tc-empty-sheet">
               <strong>Nenhum gráfico gerado</strong>
-              <p>Escolha um indicador, um tipo compatível e clique em Gerar gráfico. Os gráficos aparecem aqui dentro da área de análise.</p>
+              <p>Escolha um indicador, um tipo compatível e clique em Gerar gráfico. O gráfico e a legenda aparecerão dentro deste campo branco.</p>
             </div>
           ) : (
             <div className="tc-chart-grid">
@@ -418,7 +442,7 @@ function SpreadsheetCanvas({
   );
 }
 
-function RealtimeRamp() {
+export function RealtimeRamp({ compact = false }: { compact?: boolean }) {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState("");
 
@@ -460,8 +484,8 @@ function RealtimeRamp() {
       series: [{ name: "Pressão medida (mbar)", data: numeric.map((point: any) => Number(point.pressure_mbar)) }],
       table: points.slice(-12).reverse(),
       legend: [
-        { label: "Linha principal", description: "Pressão medida ao longo do tempo, quando houver sensor numérico." },
-        { label: "Ponto final", description: "Última leitura registrada pelo Gateway." },
+        { label: "Pressão medida", description: "Valor numérico de pressão/vácuo recebido do sensor/PLC." },
+        { label: "Ponto atual", description: "Última amostra da operação em tempo real." },
       ],
     };
   }, [data]);
@@ -470,12 +494,12 @@ function RealtimeRamp() {
   const hasNumeric = Boolean(data?.pressure_numeric_available);
 
   return (
-    <section className="tc-realtime">
+    <section className={`tc-realtime ${compact ? "compact" : ""}`}>
       <div className="tc-realtime-head">
         <div>
           <span>Gráfico técnico principal</span>
           <h3>Rampa de vácuo da operação</h3>
-          <p>O ponto atual anda no eixo X pelo tempo e desce no eixo Y conforme a pressão reduz.</p>
+          <p>A bolinha avança pelo tempo no eixo X e desce conforme a pressão reduz no eixo Y.</p>
         </div>
 
         <div className={`tc-mode-pill ${hasNumeric ? "ok" : "warn"}`}>
@@ -487,7 +511,7 @@ function RealtimeRamp() {
 
       {!hasNumeric && (
         <div className="tc-warning">
-          O sensor atual pode estar em modo digital OUT1/OUT2. Nesse caso, o sistema registra estados do sensor, mas a curva real de pressão só será preenchida quando houver leitura numérica contínua.
+          Se o sensor estiver apenas em OUT1/OUT2 digital, a curva real só será preenchida quando houver leitura numérica contínua.
         </div>
       )}
 
@@ -516,6 +540,7 @@ export function TraceabilityChartsPanel() {
   const [period, setPeriod] = useState("all");
   const [charts, setCharts] = useState<GeneratedChart[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -562,18 +587,14 @@ export function TraceabilityChartsPanel() {
     setSelectedIndex(0);
   }
 
-  const selectedChart = charts[selectedIndex] || null;
-
   return (
     <div className="tc-root">
-      <RealtimeRamp />
-
       <section className="tc-builder">
         <div className="tc-builder-header">
           <div>
             <span>Análise gerencial</span>
             <h3>Indicadores e Gráficos</h3>
-            <p>Gere gráficos objetivos a partir de operações, logs, alarmes, equipamentos, relatórios e telemetria.</p>
+            <p>Gere gráficos objetivos a partir de operações, logs, alarmes, equipamentos, relatórios e telemetria. A rampa em tempo real fica no Painel.</p>
           </div>
         </div>
 
@@ -628,22 +649,26 @@ export function TraceabilityChartsPanel() {
             </button>
 
             <button className="tc-secondary" onClick={clearCharts} disabled={!charts.length}>
-              Limpar área
+              Limpar campo
             </button>
 
             {error && <div className="tc-error">{error}</div>}
 
             <div className="tc-help">
-              <b>Regra de uso</b>
-              <p>Escolha um indicador, selecione o tipo compatível e gere. O gráfico entra na área de análise com grade tipo planilha.</p>
+              <b>Como usar</b>
+              <p>Escolha o indicador, selecione um tipo compatível e gere. O gráfico, a legenda e a tabela aparecem dentro do campo branco.</p>
             </div>
           </aside>
 
           <div className="tc-analysis">
-            <SpreadsheetCanvas charts={charts} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} />
+            <SpreadsheetCanvas
+              charts={charts}
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              fullscreen={fullscreen}
+              setFullscreen={setFullscreen}
+            />
           </div>
-
-          <LegendBox chart={selectedChart} />
         </div>
       </section>
     </div>
