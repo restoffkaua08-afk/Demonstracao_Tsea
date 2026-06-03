@@ -23,88 +23,41 @@ type GeneratedChart = {
   series: { name: string; data: number[] }[];
   table: any[];
   legend: { label: string; description: string }[];
+  meta?: {
+    source?: string;
+    sample_count?: number;
+    real_data?: boolean;
+    empty?: boolean;
+  };
 };
 
 const METRICS: {
   id: MetricId;
   label: string;
-  description: string;
   group: string;
   allowed: ChartType[];
   recommended: ChartType;
 }[] = [
-  {
-    id: "operations_by_day",
-    label: "Operações por período",
-    description: "Quantidade de operações agrupadas por data.",
-    group: "Operações",
-    allowed: ["bar", "line"],
-    recommended: "bar",
-  },
-  {
-    id: "operation_status",
-    label: "Status das operações",
-    description: "Finalizadas, em atenção, bloqueadas, críticas ou em ciclo.",
-    group: "Operações",
-    allowed: ["bar", "pie"],
-    recommended: "pie",
-  },
-  {
-    id: "cycle_time",
-    label: "Tempo de ciclo",
-    description: "Duração registrada por operação.",
-    group: "Desempenho",
-    allowed: ["bar", "line"],
-    recommended: "line",
-  },
-  {
-    id: "vacuum_ramp",
-    label: "Rampa de vácuo registrada",
-    description: "Curva registrada a partir dos pontos de telemetria já salvos.",
-    group: "Processo",
-    allowed: ["line"],
-    recommended: "line",
-  },
-  {
-    id: "alarms_by_type",
-    label: "Alarmes por tipo",
-    description: "Ocorrências de alarmes e eventos críticos.",
-    group: "Alarmes",
-    allowed: ["bar", "pie"],
-    recommended: "bar",
-  },
-  {
-    id: "equipment_usage",
-    label: "Equipamentos e parâmetros",
-    description: "Receitas, tanques, mangueiras e estados principais.",
-    group: "Equipamentos",
-    allowed: ["bar"],
-    recommended: "bar",
-  },
-  {
-    id: "machine_performance",
-    label: "Desempenho das máquinas",
-    description: "Amostras de B1, B2, óleo, PLC e sensor.",
-    group: "Equipamentos",
-    allowed: ["bar", "line"],
-    recommended: "bar",
-  },
-  {
-    id: "logs_by_severity",
-    label: "Logs por severidade",
-    description: "Eventos separados por INFO, WARN, CRITICAL e EMERGENCY.",
-    group: "Auditoria",
-    allowed: ["bar", "pie"],
-    recommended: "bar",
-  },
-  {
-    id: "reports_exported",
-    label: "Relatórios exportados",
-    description: "Relatórios gerados por período.",
-    group: "Relatórios",
-    allowed: ["bar", "line"],
-    recommended: "bar",
-  },
+  { id: "operations_by_day", label: "Operações por período", group: "Operações", allowed: ["bar", "line"], recommended: "bar" },
+  { id: "operation_status", label: "Status das operações", group: "Operações", allowed: ["bar", "pie"], recommended: "pie" },
+  { id: "cycle_time", label: "Tempo de ciclo", group: "Desempenho", allowed: ["bar", "line"], recommended: "line" },
+  { id: "vacuum_ramp", label: "Rampa de vácuo registrada", group: "Processo", allowed: ["line"], recommended: "line" },
+  { id: "alarms_by_type", label: "Alarmes por tipo", group: "Alarmes", allowed: ["bar", "pie"], recommended: "bar" },
+  { id: "equipment_usage", label: "Equipamentos e parâmetros", group: "Equipamentos", allowed: ["bar"], recommended: "bar" },
+  { id: "machine_performance", label: "Desempenho das máquinas", group: "Equipamentos", allowed: ["bar", "line"], recommended: "bar" },
+  { id: "logs_by_severity", label: "Logs por severidade", group: "Auditoria", allowed: ["bar", "pie"], recommended: "bar" },
+  { id: "reports_exported", label: "Relatórios exportados", group: "Relatórios", allowed: ["bar", "line"], recommended: "bar" },
+];
+
+const CHART_COLORS = [
+  "#1f4e79",
+  "#2e7d32",
+  "#ed7d31",
+  "#c00000",
+  "#7030a0",
+  "#008c95",
+  "#806000",
+  "#595959",
 ];
 
 async function getJson<T>(url: string): Promise<T> {
@@ -132,6 +85,23 @@ function scale(value: number, min: number, max: number, outMin: number, outMax: 
 
 function pathFrom(points: { x: number; y: number }[]) {
   return points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+}
+
+function cleanData(chart: GeneratedChart) {
+  const values = chart.series?.[0]?.data || [];
+  const labels = chart.labels || [];
+
+  return values
+    .map((value, index) => ({
+      value: Number(value),
+      label: String(labels[index] ?? index + 1),
+      rawIndex: index,
+    }))
+    .filter((item) => Number.isFinite(item.value));
+}
+
+function isEmptyChart(chart: GeneratedChart) {
+  return Boolean(chart.meta?.empty) || cleanData(chart).length === 0;
 }
 
 function Axis({
@@ -163,7 +133,7 @@ function Axis({
         return (
           <g key={`y-${index}`}>
             <line x1={left} x2={left + cw} y1={y} y2={y} />
-            <text x={left - 10} y={y + 4} textAnchor="end">{yLabels[index] || ""}</text>
+            <text x={left - 12} y={y + 4} textAnchor="end">{yLabels[index] || ""}</text>
           </g>
         );
       })}
@@ -173,7 +143,7 @@ function Axis({
         return (
           <g key={`x-${index}`}>
             <line x1={x} x2={x} y1={top} y2={top + ch} />
-            <text x={x} y={height - 12} textAnchor="middle">{xLabels[index] || ""}</text>
+            <text x={x} y={height - 14} textAnchor="middle">{xLabels[index] || ""}</text>
           </g>
         );
       })}
@@ -185,6 +155,15 @@ function Axis({
 }
 
 function ChartSvg({ chart }: { chart: GeneratedChart }) {
+  if (isEmptyChart(chart)) {
+    return (
+      <div className="tc-chart-empty">
+        <strong>Sem registros reais</strong>
+        <span>{chart.meta?.source || "Fonte indisponível"}</span>
+      </div>
+    );
+  }
+
   if (chart.chart_type === "pie") return <PieSvg chart={chart} />;
   if (chart.chart_type === "line") return <LineSvg chart={chart} />;
   return <BarSvg chart={chart} />;
@@ -193,34 +172,32 @@ function ChartSvg({ chart }: { chart: GeneratedChart }) {
 function LineSvg({ chart }: { chart: GeneratedChart }) {
   const width = 920;
   const height = 360;
-  const left = 78;
-  const right = 34;
+  const left = 82;
+  const right = 36;
   const top = 30;
-  const bottom = 58;
+  const bottom = 60;
 
-  const rawValues = chart.series[0]?.data || [];
-  const values = rawValues.map(Number).filter(Number.isFinite);
-  const labels = chart.labels.length ? chart.labels : values.map((_, index) => String(index));
-
+  const data = cleanData(chart);
+  const values = data.map((item) => item.value);
   const maxY = Math.max(1, ...values);
   const minY = Math.min(0, ...values);
-  const points = values.map((value, index) => ({
-    x: scale(index, 0, Math.max(values.length - 1, 1), left, width - right),
-    y: scale(value, minY, maxY, height - bottom, top),
+  const points = data.map((item, index) => ({
+    x: scale(index, 0, Math.max(data.length - 1, 1), left, width - right),
+    y: scale(item.value, minY, maxY, height - bottom, top),
   }));
 
   const yLabels = [maxY, maxY * 0.8, maxY * 0.6, maxY * 0.4, maxY * 0.2, minY].map((n) => fmt(n));
-  const xLabels = [0, 0.2, 0.4, 0.6, 0.8, 1].map((factor) => labels[Math.round((labels.length - 1) * factor)] || "");
+  const xLabels = [0, 0.2, 0.4, 0.6, 0.8, 1].map((factor) => data[Math.round((data.length - 1) * factor)]?.label || "");
 
   return (
     <svg className="tc-svg" viewBox={`0 0 ${width} ${height}`}>
       <Axis width={width} height={height} left={left} right={right} top={top} bottom={bottom} xLabels={xLabels} yLabels={yLabels} />
       <path className="tc-line" d={pathFrom(points)} />
       {points.map((point, index) => (
-        <circle key={index} className={index === points.length - 1 ? "tc-current-point" : "tc-point"} cx={point.x} cy={point.y} r={index === points.length - 1 ? 7 : 3.5} />
+        <circle key={index} className={index === points.length - 1 ? "tc-current-point" : "tc-point"} cx={point.x} cy={point.y} r={index === points.length - 1 ? 6.5 : 3.2} />
       ))}
-      <text className="tc-axis-title" x={width / 2} y={height - 4} textAnchor="middle">Tempo / período</text>
-      <text className="tc-axis-title" x={16} y={height / 2} transform={`rotate(-90 16 ${height / 2})`} textAnchor="middle">Valor</text>
+      <text className="tc-axis-title" x={width / 2} y={height - 5} textAnchor="middle">Tempo / período</text>
+      <text className="tc-axis-title" x={17} y={height / 2} transform={`rotate(-90 17 ${height / 2})`} textAnchor="middle">Valor</text>
     </svg>
   );
 }
@@ -228,34 +205,34 @@ function LineSvg({ chart }: { chart: GeneratedChart }) {
 function BarSvg({ chart }: { chart: GeneratedChart }) {
   const width = 920;
   const height = 360;
-  const left = 78;
-  const right = 34;
+  const left = 82;
+  const right = 36;
   const top = 30;
-  const bottom = 66;
+  const bottom = 68;
   const cw = width - left - right;
   const ch = height - top - bottom;
 
-  const values = chart.series[0]?.data.map(Number).filter(Number.isFinite) || [];
-  const labels = chart.labels.length ? chart.labels : values.map((_, index) => String(index + 1));
-  const maxY = Math.max(1, ...values);
-  const barW = cw / Math.max(values.length, 1);
+  const data = cleanData(chart);
+  const maxY = Math.max(1, ...data.map((item) => item.value));
+  const barW = cw / Math.max(data.length, 1);
 
   const yLabels = [maxY, maxY * 0.8, maxY * 0.6, maxY * 0.4, maxY * 0.2, 0].map((n) => fmt(n));
-  const xLabels = [0, 0.2, 0.4, 0.6, 0.8, 1].map((factor) => labels[Math.round((labels.length - 1) * factor)] || "");
+  const xLabels = [0, 0.2, 0.4, 0.6, 0.8, 1].map((factor) => data[Math.round((data.length - 1) * factor)]?.label || "");
 
   return (
     <svg className="tc-svg" viewBox={`0 0 ${width} ${height}`}>
       <Axis width={width} height={height} left={left} right={right} top={top} bottom={bottom} xLabels={xLabels} yLabels={yLabels} />
 
-      {values.map((value, index) => {
-        const h = scale(value, 0, maxY, 0, ch);
-        const x = left + index * barW + barW * 0.18;
+      {data.map((item, index) => {
+        const h = scale(item.value, 0, maxY, 0, ch);
+        const x = left + index * barW + barW * 0.2;
         const y = top + ch - h;
+        const color = CHART_COLORS[index % CHART_COLORS.length];
 
         return (
           <g key={index}>
-            <rect className={`tc-bar b${index % 8}`} x={x} y={y} width={barW * 0.64} height={Math.max(2, h)} rx={5} />
-            <text className="tc-bar-text" x={x + barW * 0.32} y={height - 32} textAnchor="middle">{String(labels[index] || "").slice(0, 10)}</text>
+            <rect className="tc-bar" x={x} y={y} width={barW * 0.6} height={Math.max(2, h)} rx={2} fill={color} />
+            <text className="tc-bar-text" x={x + barW * 0.3} y={height - 34} textAnchor="middle">{item.label.slice(0, 10)}</text>
           </g>
         );
       })}
@@ -269,12 +246,12 @@ function PieSvg({ chart }: { chart: GeneratedChart }) {
   const cx = 250;
   const cy = 180;
   const r = 112;
-  const values = chart.series[0]?.data.map((value) => Math.max(0, Number(value))) || [];
-  const total = values.reduce((sum, value) => sum + value, 0) || 1;
+  const data = cleanData(chart).filter((item) => item.value > 0);
+  const total = data.reduce((sum, item) => sum + item.value, 0) || 1;
   let cursor = -Math.PI / 2;
 
-  const slices = values.map((value, index) => {
-    const angle = (value / total) * Math.PI * 2;
+  const slices = data.map((item, index) => {
+    const angle = (item.value / total) * Math.PI * 2;
     const start = cursor;
     const end = cursor + angle;
     cursor = end;
@@ -287,22 +264,24 @@ function PieSvg({ chart }: { chart: GeneratedChart }) {
 
     return {
       index,
+      item,
       d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`,
+      color: CHART_COLORS[index % CHART_COLORS.length],
     };
   });
 
   return (
     <svg className="tc-svg" viewBox={`0 0 ${width} ${height}`}>
-      {slices.map((slice) => <path key={slice.index} className={`tc-pie s${slice.index % 8}`} d={slice.d} />)}
+      {slices.map((slice) => <path key={slice.index} className="tc-pie" d={slice.d} fill={slice.color} />)}
       <circle className="tc-pie-hole" cx={cx} cy={cy} r={54} />
       <text className="tc-pie-total" x={cx} y={cy - 2} textAnchor="middle">{fmt(total)}</text>
       <text className="tc-pie-caption" x={cx} y={cy + 20} textAnchor="middle">TOTAL</text>
 
       <g transform="translate(460 58)">
-        {chart.labels.map((label, index) => (
-          <g key={label} transform={`translate(0 ${index * 30})`}>
-            <rect className={`tc-pie s${index % 8}`} x={0} y={-13} width={18} height={18} rx={3} />
-            <text className="tc-pie-label" x={30} y={2}>{label}: {values[index] ?? 0}</text>
+        {slices.map((slice, index) => (
+          <g key={slice.item.label} transform={`translate(0 ${index * 30})`}>
+            <rect x={0} y={-13} width={18} height={18} rx={2} fill={slice.color} stroke="#1f2937" strokeWidth="1" />
+            <text className="tc-pie-label" x={30} y={2}>{slice.item.label}: {fmt(slice.item.value)}</text>
           </g>
         ))}
       </g>
@@ -311,22 +290,26 @@ function PieSvg({ chart }: { chart: GeneratedChart }) {
 }
 
 function LegendTable({ chart }: { chart: GeneratedChart }) {
+  const data = cleanData(chart);
+
   return (
     <div className="tc-legend-table">
       <table>
         <thead>
           <tr>
             <th>Cor</th>
-            <th>Legenda</th>
-            <th>Interpretação</th>
+            <th>Série</th>
+            <th>Fonte</th>
+            <th>Amostras</th>
           </tr>
         </thead>
         <tbody>
-          {(chart.legend?.length ? chart.legend : [{ label: chart.series?.[0]?.name || "Série", description: "Dados do indicador selecionado." }]).map((item, index) => (
+          {(chart.legend?.length ? chart.legend : [{ label: chart.series?.[0]?.name || "Série", description: "Dados do indicador." }]).map((item, index) => (
             <tr key={`${item.label}-${index}`}>
-              <td><span className={`tc-color c${index % 8}`} /></td>
+              <td><span className="tc-color" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} /></td>
               <td>{item.label}</td>
-              <td>{item.description}</td>
+              <td>{chart.meta?.source || item.description}</td>
+              <td>{chart.meta?.sample_count ?? data.length}</td>
             </tr>
           ))}
         </tbody>
@@ -336,13 +319,15 @@ function LegendTable({ chart }: { chart: GeneratedChart }) {
 }
 
 function SupportTable({ chart }: { chart: GeneratedChart }) {
+  if (!chart.table?.length) return null;
+
   return (
     <div className="tc-data-table">
       <table>
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Dados</th>
+            <th>#</th>
+            <th>Registro</th>
           </tr>
         </thead>
         <tbody>
@@ -367,14 +352,19 @@ function ChartCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const empty = isEmptyChart(chart);
+
   return (
-    <article className={`tc-chart-card ${selected ? "selected" : ""}`} onClick={onSelect}>
+    <article className={`tc-chart-card ${selected ? "selected" : ""} ${empty ? "empty" : ""}`} onClick={onSelect}>
       <div className="tc-chart-head">
         <div>
           <span>{chart.metric}</span>
           <h3>{chart.title}</h3>
         </div>
-        <b>{chart.chart_type.toUpperCase()}</b>
+        <div className="tc-chart-tags">
+          <b>{chart.chart_type.toUpperCase()}</b>
+          <em>{empty ? "SEM DADOS" : "DADOS REAIS"}</em>
+        </div>
       </div>
 
       <ChartSvg chart={chart} />
@@ -403,7 +393,7 @@ function SpreadsheetCanvas({
     <div className={`tc-sheet-shell ${fullscreen ? "fullscreen" : ""}`}>
       <div className="tc-sheet-toolbar">
         <strong>Campo de análise gráfica</strong>
-        <span>Grade A-Z / 1-50</span>
+        <span>A-Z / 1-50</span>
         <button type="button" onClick={() => setFullscreen(!fullscreen)}>
           {fullscreen ? "Sair da tela cheia" : "Expandir campo"}
         </button>
@@ -422,7 +412,6 @@ function SpreadsheetCanvas({
           {charts.length === 0 ? (
             <div className="tc-empty-sheet">
               <strong>Nenhum gráfico gerado</strong>
-              <p>Gere um gráfico para iniciar.</p>
             </div>
           ) : (
             <div className="tc-chart-grid">
@@ -485,8 +474,13 @@ export function RealtimeRamp({ compact = false }: { compact?: boolean }) {
       table: points.slice(-12).reverse(),
       legend: [
         { label: "Pressão medida", description: "Valor numérico de pressão/vácuo recebido do sensor/PLC." },
-        { label: "Ponto atual", description: "Última amostra da operação em tempo real." },
       ],
+      meta: data?.meta || {
+        source: "state + chart_telemetry",
+        sample_count: points.length,
+        real_data: true,
+        empty: numeric.length === 0,
+      },
     };
   }, [data]);
 
@@ -502,17 +496,11 @@ export function RealtimeRamp({ compact = false }: { compact?: boolean }) {
         </div>
 
         <div className={`tc-mode-pill ${hasNumeric ? "ok" : "warn"}`}>
-          {hasNumeric ? "PRESSÃO NUMÉRICA DISPONÍVEL" : "SEM PRESSÃO NUMÉRICA CONTÍNUA"}
+          {hasNumeric ? "PRESSÃO NUMÉRICA" : "SENSOR DIGITAL"}
         </div>
       </div>
 
       {error && <div className="tc-error">{error}</div>}
-
-      {!hasNumeric && (
-        <div className="tc-warning">
-          Se o sensor estiver apenas em OUT1/OUT2 digital, a curva real só será preenchida quando houver leitura numérica contínua.
-        </div>
-      )}
 
       <div className="tc-realtime-grid">
         <div className="tc-realtime-chart">
@@ -570,6 +558,7 @@ export function TraceabilityChartsPanel() {
         series: Array.isArray(result.series) ? result.series : [],
         table: Array.isArray(result.table) ? result.table : [],
         legend: Array.isArray(result.legend) ? result.legend : [],
+        meta: result.meta || {},
       };
 
       setCharts((prev) => [chart, ...prev].slice(0, 8));
