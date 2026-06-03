@@ -619,3 +619,83 @@
 .tc-empty-sheet {
   margin: 0 !important;
 }
+
+/* ===== TSEA FIX TOOLBAR WIDTH A-Z ===== */
+.tc-sheet-shell {
+  --tc-row-header-width: 38px;
+  --tc-cell-size: 42px;
+  --tc-column-count: 26;
+  --tc-row-count: 50;
+  --tc-grid-width: calc(var(--tc-cell-size) * var(--tc-column-count));
+  --tc-grid-height: calc(var(--tc-cell-size) * var(--tc-row-count));
+}
+
+/* A barra escura superior precisa cobrir a largura total da planilha: números + A-Z. */
+.tc-sheet-toolbar {
+  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Cabeçalho A-Z alinhado com a largura real das 26 colunas. */
+.tc-sheet-cols {
+  width: var(--tc-grid-width) !important;
+  min-width: var(--tc-grid-width) !important;
+  max-width: var(--tc-grid-width) !important;
+  margin-left: var(--tc-row-header-width) !important;
+  grid-template-columns: repeat(26, var(--tc-cell-size)) !important;
+  box-sizing: border-box !important;
+}
+
+/* Corpo completo: coluna 1-50 + grade A-Z. */
+.tc-sheet-body {
+  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  max-width: none !important;
+}
+
+/* Coluna lateral 1-50. */
+.tc-sheet-rows {
+  width: var(--tc-row-header-width) !important;
+  min-width: var(--tc-row-header-width) !important;
+  max-width: var(--tc-row-header-width) !important;
+  grid-template-rows: repeat(50, var(--tc-cell-size)) !important;
+  height: var(--tc-grid-height) !important;
+  box-sizing: border-box !important;
+}
+
+/* Campo da grade com dimensão real. */
+.tc-sheet-grid {
+  width: var(--tc-grid-width) !important;
+  min-width: var(--tc-grid-width) !important;
+  height: var(--tc-grid-height) !important;
+  min-height: var(--tc-grid-height) !important;
+  box-sizing: border-box !important;
+}
+
+/* Células do cabeçalho e numeração com medidas fixas. */
+.tc-sheet-cols span,
+.tc-sheet-rows span {
+  width: var(--tc-cell-size) !important;
+  height: var(--tc-cell-size) !important;
+  box-sizing: border-box !important;
+  border-right: 1px solid #9ca3af;
+  border-bottom: 1px solid #9ca3af;
+}
+
+.tc-sheet-rows span {
+  width: var(--tc-row-header-width) !important;
+}
+
+/* Mantém os gráficos dentro da região visual A-Z. */
+.tc-chart-grid {
+  width: calc(var(--tc-grid-width) - 36px) !important;
+  max-width: calc(var(--tc-grid-width) - 36px) !important;
+}
+
+/* Evita aparência de barra cortada quando expandir. */
+.tc-sheet-shell.fullscreen .tc-sheet-toolbar {
+  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+}

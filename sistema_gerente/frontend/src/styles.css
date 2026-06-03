@@ -3846,3 +3846,74 @@ html[data-theme="dark"] .technicalReferenceBlock p {
 button {
   font-weight: 800;
 }
+
+/* ===== TSEA FIX TRACEABILITY DRAWER CONTRAST ===== */
+.trace-nav-overlay {
+  background: rgba(15, 23, 42, 0.46) !important;
+}
+
+.trace-nav-drawer {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-left: 1px solid rgba(148, 163, 184, 0.36) !important;
+  box-shadow: -18px 0 54px rgba(0, 0, 0, 0.34) !important;
+}
+
+.trace-nav-drawer-header {
+  background: #111827 !important;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.22) !important;
+  color: #f8fafc !important;
+}
+
+.trace-nav-drawer-header span,
+.trace-nav-drawer-header strong {
+  color: #f8fafc !important;
+}
+
+.trace-nav-drawer-header .btn,
+.trace-nav-drawer-header button {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1px solid #f8fafc !important;
+}
+
+.trace-nav-drawer-list {
+  background: #0f172a !important;
+}
+
+.trace-nav-drawer-list button {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(148, 163, 184, 0.32) !important;
+}
+
+.trace-nav-drawer-list button strong {
+  color: #ffffff !important;
+}
+
+.trace-nav-drawer-list button span {
+  color: #cbd5e1 !important;
+  display: block !important;
+}
+
+.trace-nav-drawer-list button:hover {
+  background: #334155 !important;
+  border-color: #93c5fd !important;
+}
+
+.trace-nav-drawer-list button.active {
+  background: #1f4e79 !important;
+  color: #ffffff !important;
+  border-color: #60a5fa !important;
+}
+
+.trace-nav-drawer-list button.active strong,
+.trace-nav-drawer-list button.active span {
+  color: #ffffff !important;
+}
+
+/* Se alguma regra anterior estiver escondendo a descrição dos submenus, reativa só no menu lateral. */
+.trace-nav-drawer .trace-nav-drawer-list button span {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
