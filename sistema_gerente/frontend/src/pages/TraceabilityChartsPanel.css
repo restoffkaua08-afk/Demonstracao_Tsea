@@ -699,3 +699,41 @@
   width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
   min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
 }
+
+/* ===== TSEA EDITABLE CHART EXPORTS ===== */
+.tc-export-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.tc-export-row span {
+  color: #111827;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-right: auto;
+}
+
+.tc-export-row button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #1f4e79;
+  background: #ffffff;
+  color: #1f4e79;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tc-export-row button:hover {
+  background: #1f4e79;
+  color: #ffffff;
+}

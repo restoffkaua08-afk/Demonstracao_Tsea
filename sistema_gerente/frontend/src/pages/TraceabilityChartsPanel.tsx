@@ -60,6 +60,192 @@ const CHART_COLORS = [
   "#595959",
 ];
 
+function sanitizeFileName(value: string) {
+  return String(value || "grafico")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9_-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80) || "grafico";
+}
+
+function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function downloadTextFile(filename: string, content: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+function normalizeRow(row: unknown): Record<string, unknown> {
+  if (row && typeof row === "object" && !Array.isArray(row)) {
+    return row as Record<string, unknown>;
+  }
+
+  return { valor: row };
+}
+
+function chartEditableRows(chart: GeneratedChart) {
+  if (Array.isArray(chart.table) && chart.table.length) {
+    return chart.table.map(normalizeRow);
+  }
+
+  const values = chart.series?.[0]?.data || [];
+  const labels = chart.labels || [];
+
+  return values.map((value, index) => ({
+    item: labels[index] ?? index + 1,
+    serie: chart.series?.[0]?.name || "Valor",
+    valor: value,
+  }));
+}
+
+function chartHeaders(rows: Record<string, unknown>[]) {
+  const headers = new Set<string>();
+
+  rows.forEach((row) => {
+    Object.keys(row).forEach((key) => headers.add(key));
+  });
+
+  return Array.from(headers);
+}
+
+function buildCsv(chart: GeneratedChart) {
+  const rows = chartEditableRows(chart);
+  const headers = chartHeaders(rows);
+
+  const csvEscape = (value: unknown) => {
+    const text = String(value ?? "").replace(/"/g, '""');
+    return `"${text}"`;
+  };
+
+  const lines = [
+    headers.map(csvEscape).join(";"),
+    ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(";")),
+  ];
+
+  return "\ufeff" + lines.join("\r\n");
+}
+
+function buildHtmlTable(chart: GeneratedChart) {
+  const rows = chartEditableRows(chart);
+  const headers = chartHeaders(rows);
+
+  const headerHtml = headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("");
+
+  const bodyHtml = rows.map((row) => {
+    return `<tr>${headers.map((header) => `<td>${escapeHtml(row[header])}</td>`).join("")}</tr>`;
+  }).join("");
+
+  return `
+    <table>
+      <thead>
+        <tr>${headerHtml}</tr>
+      </thead>
+      <tbody>
+        ${bodyHtml}
+      </tbody>
+    </table>
+  `;
+}
+
+function buildExcelDocument(chart: GeneratedChart) {
+  return `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; }
+    h1 { color: #111827; }
+    table { border-collapse: collapse; width: 100%; }
+    th { background: #dbeafe; color: #111827; font-weight: bold; }
+    th, td { border: 1px solid #64748b; padding: 8px; text-align: left; }
+    .meta { margin-bottom: 12px; color: #374151; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(chart.title)}</h1>
+  <div class="meta">
+    <strong>Indicador:</strong> ${escapeHtml(chart.metric)}<br/>
+    <strong>Tipo:</strong> ${escapeHtml(chart.chart_type)}<br/>
+    <strong>Fonte:</strong> ${escapeHtml(chart.meta?.source || "dados do sistema")}<br/>
+    <strong>Amostras:</strong> ${escapeHtml(chart.meta?.sample_count ?? chartEditableRows(chart).length)}
+  </div>
+  ${buildHtmlTable(chart)}
+</body>
+</html>
+  `.trim();
+}
+
+function buildWordDocument(chart: GeneratedChart) {
+  return `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; color: #111827; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    h2 { font-size: 16px; margin-top: 22px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th { background: #dbeafe; font-weight: bold; }
+    th, td { border: 1px solid #64748b; padding: 7px; text-align: left; }
+    .meta { margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(chart.title)}</h1>
+
+  <div class="meta">
+    <p><strong>Indicador:</strong> ${escapeHtml(chart.metric)}</p>
+    <p><strong>Tipo de gráfico:</strong> ${escapeHtml(chart.chart_type)}</p>
+    <p><strong>Fonte dos dados:</strong> ${escapeHtml(chart.meta?.source || "dados do sistema")}</p>
+    <p><strong>Amostras:</strong> ${escapeHtml(chart.meta?.sample_count ?? chartEditableRows(chart).length)}</p>
+  </div>
+
+  <h2>Dados editáveis do gráfico</h2>
+  ${buildHtmlTable(chart)}
+</body>
+</html>
+  `.trim();
+}
+
+function exportChartAsCsv(chart: GeneratedChart) {
+  const filename = `${sanitizeFileName(chart.title)}.csv`;
+  downloadTextFile(filename, buildCsv(chart), "text/csv;charset=utf-8");
+}
+
+function exportChartAsExcel(chart: GeneratedChart) {
+  const filename = `${sanitizeFileName(chart.title)}.xls`;
+  downloadTextFile(filename, buildExcelDocument(chart), "application/vnd.ms-excel;charset=utf-8");
+}
+
+function exportChartAsWord(chart: GeneratedChart) {
+  const filename = `${sanitizeFileName(chart.title)}.doc`;
+  downloadTextFile(filename, buildWordDocument(chart), "application/msword;charset=utf-8");
+}
+
+function exportChartAsJson(chart: GeneratedChart) {
+  const filename = `${sanitizeFileName(chart.title)}.json`;
+  downloadTextFile(filename, JSON.stringify(chart, null, 2), "application/json;charset=utf-8");
+}
+
+
 async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
 
@@ -368,6 +554,15 @@ function ChartCard({
       </div>
 
       <ChartSvg chart={chart} />
+
+      <div className="tc-export-row" onClick={(event) => event.stopPropagation()}>
+        <span>Exportar dados editáveis</span>
+        <button type="button" onClick={() => exportChartAsCsv(chart)}>CSV</button>
+        <button type="button" onClick={() => exportChartAsExcel(chart)}>Excel</button>
+        <button type="button" onClick={() => exportChartAsWord(chart)}>Word</button>
+        <button type="button" onClick={() => exportChartAsJson(chart)}>JSON</button>
+      </div>
+
       <LegendTable chart={chart} />
       <SupportTable chart={chart} />
     </article>
