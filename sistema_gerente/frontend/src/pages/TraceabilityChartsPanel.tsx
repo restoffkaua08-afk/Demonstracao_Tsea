@@ -403,7 +403,7 @@ function SpreadsheetCanvas({
     <div className={`tc-sheet-shell ${fullscreen ? "fullscreen" : ""}`}>
       <div className="tc-sheet-toolbar">
         <strong>Campo de análise gráfica</strong>
-        <span>Grade A-Z / 1-50 · use a rolagem para navegar e expanda para apresentar</span>
+        <span>Grade A-Z / 1-50</span>
         <button type="button" onClick={() => setFullscreen(!fullscreen)}>
           {fullscreen ? "Sair da tela cheia" : "Expandir campo"}
         </button>
@@ -422,7 +422,7 @@ function SpreadsheetCanvas({
           {charts.length === 0 ? (
             <div className="tc-empty-sheet">
               <strong>Nenhum gráfico gerado</strong>
-              <p>Escolha um indicador, um tipo compatível e clique em Gerar gráfico. O gráfico, a legenda e a tabela de apoio aparecerão dentro deste campo branco.</p>
+              <p>Gere um gráfico para iniciar.</p>
             </div>
           ) : (
             <div className="tc-chart-grid">
@@ -499,7 +499,6 @@ export function RealtimeRamp({ compact = false }: { compact?: boolean }) {
         <div>
           <span>Gráfico técnico principal</span>
           <h3>Rampa de vácuo da operação</h3>
-          <p>A bolinha avança pelo tempo no eixo X e desce conforme a pressão reduz no eixo Y.</p>
         </div>
 
         <div className={`tc-mode-pill ${hasNumeric ? "ok" : "warn"}`}>
@@ -594,7 +593,6 @@ export function TraceabilityChartsPanel() {
           <div>
             <span>Análise gerencial</span>
             <h3>Indicadores e Gráficos</h3>
-            <p>Escolha um indicador, selecione o tipo de gráfico e gere a visualização. Cada gráfico aparece dentro do campo branco com legenda e tabela de apoio.</p>
           </div>
         </div>
 
@@ -619,11 +617,6 @@ export function TraceabilityChartsPanel() {
                 ))}
               </select>
             </label>
-
-            <div className="tc-description">
-              <strong>{selectedMetric.label}</strong>
-              <p>{selectedMetric.description}</p>
-            </div>
 
             <label>
               Tipo de gráfico
@@ -653,11 +646,6 @@ export function TraceabilityChartsPanel() {
             </button>
 
             {error && <div className="tc-error">{error}</div>}
-
-            <div className="tc-help">
-              <b>Como usar</b>
-              <p>Escolha o indicador, selecione um tipo compatível e gere. O gráfico, a legenda e a tabela aparecem dentro do campo branco.</p>
-            </div>
           </aside>
 
           <div className="tc-analysis">

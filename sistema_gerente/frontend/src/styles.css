@@ -1,4 +1,4 @@
-﻿* {
+* {
   box-sizing: border-box;
 }
 
@@ -3798,3 +3798,51 @@ html[data-theme="dark"] .technicalReferenceBlock p {
   font-weight: 800;
 }
 
+/* ===== TSEA CLEAN MANAGER UI ===== */
+/* Remove textos explicativos de abas/menus para deixar o supervisório com linguagem de sistema real. */
+.sectionHeader p,
+.topbar-title p,
+.nav-item-text small,
+.sidebar-footer small,
+.brand-copy small,
+.trace-nav-drawer-list button span,
+.trace-report-preview .trace-report-format,
+.trace-report-preview > p,
+.trace-modal-header > div > p,
+.trace-detail-block > p:empty {
+  display: none !important;
+}
+
+/* Mantém campos, tabelas, valores e legendas técnicas visíveis. */
+.sectionHeader h2,
+.topbar-title h1,
+.nav-item-text strong,
+.trace-nav-drawer-list button strong {
+  color: inherit;
+}
+
+/* Reduz espaços vazios que sobravam após esconder subtítulos. */
+.sectionHeader,
+.topbar-title,
+.trace-modal-header {
+  gap: 8px;
+}
+
+.sectionHeader > div,
+.topbar-title {
+  min-height: unset;
+}
+
+/* Melhora contraste geral de títulos e botões do gerente. */
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.page-content h4,
+.sectionHeader h2 {
+  letter-spacing: -0.02em;
+}
+
+.btn,
+button {
+  font-weight: 800;
+}

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export type View = "dashboard" | "operation" | "twin" | "traceability" | "parameters";
 
@@ -58,7 +58,6 @@ export function AppShell({
           <div className="brand-copy">
             <strong>TSEA</strong>
             <span>Supervisório Digital</span>
-            <small>Vácuo · Rastreabilidade · Gêmeo Digital</small>
           </div>
 
           <button
@@ -85,7 +84,6 @@ export function AppShell({
               <span className="nav-item-dot" />
               <span className="nav-item-text">
                 <strong>{item.label}</strong>
-                <small>{item.sub}</small>
               </span>
             </button>
           ))}
@@ -95,7 +93,6 @@ export function AppShell({
           <span className={apiOnline ? "api-dot online" : "api-dot offline"} />
           <div>
             <strong>{apiOnline ? "API conectada" : "API desconectada"}</strong>
-            <small>{apiOnline ? "Sincronização ativa" : "Operando com dados locais"}</small>
           </div>
         </div>
       </aside>
@@ -125,7 +122,6 @@ export function AppShell({
           <div className="topbar-title">
             <span>TSEA · {pageTitle}</span>
             <h1>{pageTitle}</h1>
-            <p>Supervisão técnica do processo de vácuo, rastreabilidade e validação operacional.</p>
           </div>
 
           <div className="topbar-status">{statusBadge}</div>

@@ -586,3 +586,69 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== TSEA CHARTS CLEAN UI ===== */
+/* Remove descrições de funcionalidade; mantém dados, títulos, controles, e legendas técnicas dentro dos gráficos. */
+.tc-realtime-head p,
+.tc-builder-header p,
+.tc-description,
+.tc-help {
+  display: none !important;
+}
+
+/* Contraste reforçado para operação em tela de apresentação. */
+.tc-builder-header h3,
+.tc-realtime-head h3,
+.tc-controls h4,
+.tc-chart-head h3 {
+  color: #020617 !important;
+}
+
+.tc-controls label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+.tc-controls select {
+  background: #ffffff !important;
+  color: #020617 !important;
+  border: 2px solid #475569 !important;
+}
+
+.tc-sheet-toolbar span {
+  color: #e2e8f0 !important;
+}
+
+.tc-sheet-grid {
+  background:
+    linear-gradient(#b6c2d1 1px, transparent 1px),
+    linear-gradient(90deg, #b6c2d1 1px, transparent 1px),
+    #ffffff !important;
+}
+
+.tc-sheet-cols,
+.tc-sheet-rows {
+  background: #cbd5e1 !important;
+}
+
+.tc-sheet-cols span,
+.tc-sheet-rows span {
+  color: #020617 !important;
+  font-weight: 900 !important;
+}
+
+.tc-chart-card {
+  background: #ffffff !important;
+  color: #020617 !important;
+}
+
+.tc-legend-table th,
+.tc-data-table th {
+  background: #dbeafe !important;
+  color: #020617 !important;
+}
+
+.tc-legend-table td,
+.tc-data-table td {
+  color: #020617 !important;
+}
