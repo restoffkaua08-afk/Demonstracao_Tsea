@@ -3960,3 +3960,297 @@ button {
 .trace-nav-drawer-list button.active strong {
   color: #ffffff !important;
 }
+
+/* ===== TSEA UNIFIED SUBMENU DRAWERS ===== */
+/* Padroniza os submenus laterais de Rastreabilidade, Operação e Gêmeo Digital. */
+
+.trace-nav-overlay,
+.operation-nav-overlay,
+.operations-nav-overlay,
+.op-nav-overlay,
+.gemeo-nav-overlay,
+.gemeo-digital-nav-overlay,
+.digital-twin-nav-overlay,
+.twin-nav-overlay,
+[class*="operation"][class*="overlay"],
+[class*="operacao"][class*="overlay"],
+[class*="gemeo"][class*="overlay"],
+[class*="twin"][class*="overlay"] {
+  background: rgba(15, 23, 42, 0.46) !important;
+}
+
+.trace-nav-drawer,
+.operation-nav-drawer,
+.operations-nav-drawer,
+.operation-subnav-drawer,
+.op-nav-drawer,
+.operacao-nav-drawer,
+.gemeo-nav-drawer,
+.gemeo-digital-nav-drawer,
+.digital-twin-nav-drawer,
+.digitalTwin-nav-drawer,
+.twin-nav-drawer,
+.twin-subnav-drawer,
+[class*="operation"][class*="drawer"],
+[class*="operacao"][class*="drawer"],
+[class*="gemeo"][class*="drawer"],
+[class*="digital"][class*="drawer"],
+[class*="twin"][class*="drawer"] {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-left: 1px solid rgba(148, 163, 184, 0.36) !important;
+  border-right: 1px solid rgba(148, 163, 184, 0.36) !important;
+  box-shadow: -18px 0 54px rgba(0, 0, 0, 0.34) !important;
+}
+
+.trace-nav-drawer-header,
+.operation-nav-drawer-header,
+.operations-nav-drawer-header,
+.operation-subnav-drawer-header,
+.op-nav-drawer-header,
+.operacao-nav-drawer-header,
+.gemeo-nav-drawer-header,
+.gemeo-digital-nav-drawer-header,
+.digital-twin-nav-drawer-header,
+.digitalTwin-nav-drawer-header,
+.twin-nav-drawer-header,
+.twin-subnav-drawer-header,
+[class*="operation"][class*="drawer-header"],
+[class*="operacao"][class*="drawer-header"],
+[class*="gemeo"][class*="drawer-header"],
+[class*="digital"][class*="drawer-header"],
+[class*="twin"][class*="drawer-header"] {
+  background: #111827 !important;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.22) !important;
+  color: #f8fafc !important;
+}
+
+.trace-nav-drawer-header span,
+.trace-nav-drawer-header strong,
+.operation-nav-drawer-header span,
+.operation-nav-drawer-header strong,
+.operations-nav-drawer-header span,
+.operations-nav-drawer-header strong,
+.operation-subnav-drawer-header span,
+.operation-subnav-drawer-header strong,
+.op-nav-drawer-header span,
+.op-nav-drawer-header strong,
+.operacao-nav-drawer-header span,
+.operacao-nav-drawer-header strong,
+.gemeo-nav-drawer-header span,
+.gemeo-nav-drawer-header strong,
+.gemeo-digital-nav-drawer-header span,
+.gemeo-digital-nav-drawer-header strong,
+.digital-twin-nav-drawer-header span,
+.digital-twin-nav-drawer-header strong,
+.digitalTwin-nav-drawer-header span,
+.digitalTwin-nav-drawer-header strong,
+.twin-nav-drawer-header span,
+.twin-nav-drawer-header strong,
+.twin-subnav-drawer-header span,
+.twin-subnav-drawer-header strong,
+[class*="operation"][class*="drawer-header"] span,
+[class*="operation"][class*="drawer-header"] strong,
+[class*="operacao"][class*="drawer-header"] span,
+[class*="operacao"][class*="drawer-header"] strong,
+[class*="gemeo"][class*="drawer-header"] span,
+[class*="gemeo"][class*="drawer-header"] strong,
+[class*="digital"][class*="drawer-header"] span,
+[class*="digital"][class*="drawer-header"] strong,
+[class*="twin"][class*="drawer-header"] span,
+[class*="twin"][class*="drawer-header"] strong {
+  color: #f8fafc !important;
+}
+
+.trace-nav-drawer-header .btn,
+.trace-nav-drawer-header button,
+.operation-nav-drawer-header .btn,
+.operation-nav-drawer-header button,
+.operations-nav-drawer-header .btn,
+.operations-nav-drawer-header button,
+.operation-subnav-drawer-header .btn,
+.operation-subnav-drawer-header button,
+.op-nav-drawer-header .btn,
+.op-nav-drawer-header button,
+.operacao-nav-drawer-header .btn,
+.operacao-nav-drawer-header button,
+.gemeo-nav-drawer-header .btn,
+.gemeo-nav-drawer-header button,
+.gemeo-digital-nav-drawer-header .btn,
+.gemeo-digital-nav-drawer-header button,
+.digital-twin-nav-drawer-header .btn,
+.digital-twin-nav-drawer-header button,
+.digitalTwin-nav-drawer-header .btn,
+.digitalTwin-nav-drawer-header button,
+.twin-nav-drawer-header .btn,
+.twin-nav-drawer-header button,
+.twin-subnav-drawer-header .btn,
+.twin-subnav-drawer-header button,
+[class*="operation"][class*="drawer-header"] button,
+[class*="operacao"][class*="drawer-header"] button,
+[class*="gemeo"][class*="drawer-header"] button,
+[class*="digital"][class*="drawer-header"] button,
+[class*="twin"][class*="drawer-header"] button {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1px solid #f8fafc !important;
+}
+
+.trace-nav-drawer-list,
+.operation-nav-drawer-list,
+.operations-nav-drawer-list,
+.operation-subnav-drawer-list,
+.op-nav-drawer-list,
+.operacao-nav-drawer-list,
+.gemeo-nav-drawer-list,
+.gemeo-digital-nav-drawer-list,
+.digital-twin-nav-drawer-list,
+.digitalTwin-nav-drawer-list,
+.twin-nav-drawer-list,
+.twin-subnav-drawer-list,
+[class*="operation"][class*="drawer-list"],
+[class*="operacao"][class*="drawer-list"],
+[class*="gemeo"][class*="drawer-list"],
+[class*="digital"][class*="drawer-list"],
+[class*="twin"][class*="drawer-list"] {
+  background: #0f172a !important;
+}
+
+.trace-nav-drawer-list button,
+.operation-nav-drawer-list button,
+.operations-nav-drawer-list button,
+.operation-subnav-drawer-list button,
+.op-nav-drawer-list button,
+.operacao-nav-drawer-list button,
+.gemeo-nav-drawer-list button,
+.gemeo-digital-nav-drawer-list button,
+.digital-twin-nav-drawer-list button,
+.digitalTwin-nav-drawer-list button,
+.twin-nav-drawer-list button,
+.twin-subnav-drawer-list button,
+[class*="operation"][class*="drawer-list"] button,
+[class*="operacao"][class*="drawer-list"] button,
+[class*="gemeo"][class*="drawer-list"] button,
+[class*="digital"][class*="drawer-list"] button,
+[class*="twin"][class*="drawer-list"] button {
+  min-height: 48px !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  background: #1e293b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(148, 163, 184, 0.32) !important;
+  border-radius: 12px !important;
+}
+
+.trace-nav-drawer-list button strong,
+.operation-nav-drawer-list button strong,
+.operations-nav-drawer-list button strong,
+.operation-subnav-drawer-list button strong,
+.op-nav-drawer-list button strong,
+.operacao-nav-drawer-list button strong,
+.gemeo-nav-drawer-list button strong,
+.gemeo-digital-nav-drawer-list button strong,
+.digital-twin-nav-drawer-list button strong,
+.digitalTwin-nav-drawer-list button strong,
+.twin-nav-drawer-list button strong,
+.twin-subnav-drawer-list button strong,
+[class*="operation"][class*="drawer-list"] button strong,
+[class*="operacao"][class*="drawer-list"] button strong,
+[class*="gemeo"][class*="drawer-list"] button strong,
+[class*="digital"][class*="drawer-list"] button strong,
+[class*="twin"][class*="drawer-list"] button strong {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+}
+
+/* Remove subtítulos/legendas dos submenus em todos os drawers, igual Rastreabilidade. */
+.trace-nav-drawer-list button span,
+.operation-nav-drawer-list button span,
+.operations-nav-drawer-list button span,
+.operation-subnav-drawer-list button span,
+.op-nav-drawer-list button span,
+.operacao-nav-drawer-list button span,
+.gemeo-nav-drawer-list button span,
+.gemeo-digital-nav-drawer-list button span,
+.digital-twin-nav-drawer-list button span,
+.digitalTwin-nav-drawer-list button span,
+.twin-nav-drawer-list button span,
+.twin-subnav-drawer-list button span,
+[class*="operation"][class*="drawer-list"] button span,
+[class*="operacao"][class*="drawer-list"] button span,
+[class*="gemeo"][class*="drawer-list"] button span,
+[class*="digital"][class*="drawer-list"] button span,
+[class*="twin"][class*="drawer-list"] button span {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.trace-nav-drawer-list button:hover,
+.operation-nav-drawer-list button:hover,
+.operations-nav-drawer-list button:hover,
+.operation-subnav-drawer-list button:hover,
+.op-nav-drawer-list button:hover,
+.operacao-nav-drawer-list button:hover,
+.gemeo-nav-drawer-list button:hover,
+.gemeo-digital-nav-drawer-list button:hover,
+.digital-twin-nav-drawer-list button:hover,
+.digitalTwin-nav-drawer-list button:hover,
+.twin-nav-drawer-list button:hover,
+.twin-subnav-drawer-list button:hover,
+[class*="operation"][class*="drawer-list"] button:hover,
+[class*="operacao"][class*="drawer-list"] button:hover,
+[class*="gemeo"][class*="drawer-list"] button:hover,
+[class*="digital"][class*="drawer-list"] button:hover,
+[class*="twin"][class*="drawer-list"] button:hover {
+  background: #334155 !important;
+  border-color: #93c5fd !important;
+}
+
+.trace-nav-drawer-list button.active,
+.operation-nav-drawer-list button.active,
+.operations-nav-drawer-list button.active,
+.operation-subnav-drawer-list button.active,
+.op-nav-drawer-list button.active,
+.operacao-nav-drawer-list button.active,
+.gemeo-nav-drawer-list button.active,
+.gemeo-digital-nav-drawer-list button.active,
+.digital-twin-nav-drawer-list button.active,
+.digitalTwin-nav-drawer-list button.active,
+.twin-nav-drawer-list button.active,
+.twin-subnav-drawer-list button.active,
+[class*="operation"][class*="drawer-list"] button.active,
+[class*="operacao"][class*="drawer-list"] button.active,
+[class*="gemeo"][class*="drawer-list"] button.active,
+[class*="digital"][class*="drawer-list"] button.active,
+[class*="twin"][class*="drawer-list"] button.active {
+  background: #1f4e79 !important;
+  color: #ffffff !important;
+  border-color: #60a5fa !important;
+}
+
+.trace-nav-drawer-list button.active strong,
+.operation-nav-drawer-list button.active strong,
+.operations-nav-drawer-list button.active strong,
+.operation-subnav-drawer-list button.active strong,
+.op-nav-drawer-list button.active strong,
+.operacao-nav-drawer-list button.active strong,
+.gemeo-nav-drawer-list button.active strong,
+.gemeo-digital-nav-drawer-list button.active strong,
+.digital-twin-nav-drawer-list button.active strong,
+.digitalTwin-nav-drawer-list button.active strong,
+.twin-nav-drawer-list button.active strong,
+.twin-subnav-drawer-list button.active strong,
+[class*="operation"][class*="drawer-list"] button.active strong,
+[class*="operacao"][class*="drawer-list"] button.active strong,
+[class*="gemeo"][class*="drawer-list"] button.active strong,
+[class*="digital"][class*="drawer-list"] button.active strong,
+[class*="twin"][class*="drawer-list"] button.active strong {
+  color: #ffffff !important;
+}
