@@ -4254,3 +4254,161 @@ button {
 [class*="twin"][class*="drawer-list"] button.active strong {
   color: #ffffff !important;
 }
+
+/* ===== TSEA PAGE SUBNAV DRAWERS SAME AS TRACEABILITY ===== */
+/* Operação e Gêmeo Digital usam page-subnav-*. Este bloco deixa ambos iguais ao drawer de Rastreabilidade. */
+
+.page-subnav-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9990 !important;
+  background: rgba(15, 23, 42, 0.46) !important;
+}
+
+.page-subnav-drawer {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 9991 !important;
+  width: min(360px, 92vw) !important;
+  height: 100vh !important;
+  padding: 18px !important;
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-left: 1px solid rgba(148, 163, 184, 0.36) !important;
+  box-shadow: -18px 0 54px rgba(0, 0, 0, 0.34) !important;
+  transform: translateX(110%) !important;
+  transition: transform 180ms ease !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.page-subnav-drawer.open {
+  transform: translateX(0) !important;
+}
+
+.page-subnav-drawer-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 0 0 14px !important;
+  background: #111827 !important;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.22) !important;
+  color: #f8fafc !important;
+}
+
+.page-subnav-drawer-header div {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+.page-subnav-drawer-header span,
+.page-subnav-drawer-header strong {
+  color: #f8fafc !important;
+}
+
+.page-subnav-drawer-header span {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #93c5fd !important;
+}
+
+.page-subnav-drawer-header strong {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+}
+
+.page-subnav-drawer-header .btn,
+.page-subnav-drawer-header button {
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1px solid #f8fafc !important;
+  font-weight: 900 !important;
+}
+
+.page-subnav-drawer-list {
+  display: grid !important;
+  gap: 10px !important;
+  background: #0f172a !important;
+}
+
+.page-subnav-drawer-list button {
+  width: 100% !important;
+  min-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  padding: 0 14px !important;
+  background: #1e293b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(148, 163, 184, 0.32) !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.page-subnav-drawer-list button strong {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+}
+
+.page-subnav-drawer-list button span {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.page-subnav-drawer-list button:hover {
+  background: #334155 !important;
+  border-color: #93c5fd !important;
+}
+
+.page-subnav-drawer-list button.active {
+  background: #1f4e79 !important;
+  color: #ffffff !important;
+  border-color: #60a5fa !important;
+}
+
+.page-subnav-drawer-list button.active strong {
+  color: #ffffff !important;
+}
+
+.page-subnav-toggle {
+  position: fixed !important;
+  right: 22px !important;
+  top: 92px !important;
+  z-index: 1200 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(148, 163, 184, 0.42) !important;
+  background: #0f172a !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 4px !important;
+  padding: 10px !important;
+  cursor: pointer !important;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.28) !important;
+}
+
+.page-subnav-toggle span {
+  display: block !important;
+  width: 20px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+}

@@ -1,4 +1,4 @@
-﻿import type { ComponentType } from "react";
+import type { ComponentType } from "react";
 import { useMemo, useState } from "react";
 import { Badge, Chart, Empty, Field, fmt, Metric, Section, Table } from "../components/ui";
 
@@ -973,7 +973,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                 }}
               >
                 <strong>{item.label}</strong>
-                <span>{item.description}</span>
+
               </button>
             ))}
           </div>

@@ -675,7 +675,7 @@ export function OperationPage({
                 }}
               >
                 <strong>{item.label}</strong>
-                <span>{item.description}</span>
+
               </button>
             ))}
           </div>
