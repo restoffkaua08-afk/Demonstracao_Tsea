@@ -545,3 +545,77 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== TSEA FIX GRID A-Z / 1-50 ===== */
+/* Corrige a barra superior para ir visualmente até a letra Z e manter alinhamento com a grade. */
+.tc-sheet-shell {
+  --tc-row-header-width: 38px;
+  --tc-cell-size: 42px;
+  --tc-column-count: 26;
+  --tc-row-count: 50;
+  --tc-grid-width: calc(var(--tc-cell-size) * var(--tc-column-count));
+  --tc-grid-height: calc(var(--tc-cell-size) * var(--tc-row-count));
+}
+
+/* Cabeçalho A-Z fixo, com largura real das 26 colunas. */
+.tc-sheet-cols {
+  width: var(--tc-grid-width) !important;
+  min-width: var(--tc-grid-width) !important;
+  max-width: var(--tc-grid-width) !important;
+  margin-left: var(--tc-row-header-width) !important;
+  grid-template-columns: repeat(26, var(--tc-cell-size)) !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+/* Corpo total: coluna dos números + grade A-Z. */
+.tc-sheet-body {
+  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
+  max-width: none !important;
+}
+
+/* Coluna 1-50 com altura real de 50 linhas. */
+.tc-sheet-rows {
+  width: var(--tc-row-header-width) !important;
+  min-width: var(--tc-row-header-width) !important;
+  max-width: var(--tc-row-header-width) !important;
+  grid-template-rows: repeat(50, var(--tc-cell-size)) !important;
+  height: var(--tc-grid-height) !important;
+  box-sizing: border-box !important;
+}
+
+/* Campo branco principal com largura/altura compatível com A-Z e 1-50. */
+.tc-sheet-grid {
+  width: var(--tc-grid-width) !important;
+  min-width: var(--tc-grid-width) !important;
+  height: var(--tc-grid-height) !important;
+  min-height: var(--tc-grid-height) !important;
+  box-sizing: border-box !important;
+}
+
+/* Cada letra e número tem exatamente o mesmo tamanho da célula da grade. */
+.tc-sheet-cols span,
+.tc-sheet-rows span {
+  width: var(--tc-cell-size) !important;
+  height: var(--tc-cell-size) !important;
+  box-sizing: border-box !important;
+  border-right: 1px solid #9ca3af;
+  border-bottom: 1px solid #9ca3af;
+}
+
+/* Os números usam largura própria menor, sem quebrar o alinhamento das letras. */
+.tc-sheet-rows span {
+  width: var(--tc-row-header-width) !important;
+}
+
+/* Evita que cards ultrapassem a região A-Z de forma estranha. */
+.tc-chart-grid {
+  width: calc(var(--tc-grid-width) - 36px) !important;
+  max-width: calc(var(--tc-grid-width) - 36px) !important;
+}
+
+/* Estado vazio alinhado no início real da planilha. */
+.tc-empty-sheet {
+  margin: 0 !important;
+}
