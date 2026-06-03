@@ -1295,3 +1295,8 @@ try:
     app.include_router(charts_bridge_router)
 except Exception as charts_bridge_error:
     print(f"[TSEA CHARTS] Falha ao carregar ponte de gráficos: {charts_bridge_error}")
+try:
+    from app.google_sheets_bridge import router as google_sheets_bridge_router
+    app.include_router(google_sheets_bridge_router)
+except Exception as google_sheets_bridge_error:
+    print(f"[TSEA GOOGLE SHEETS] Falha ao carregar ponte Google Sheets: {google_sheets_bridge_error}")

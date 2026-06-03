@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 dist/
 .venv/
 venv/
@@ -11,3 +11,5 @@ __pycache__/
 Thumbs.db
 package-lock.json
 *.log
+gateway_fisico/backend/data/google_sheets_config.local.json
+gateway_fisico/backend/data/google_sheets_generated.local.json

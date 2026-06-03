@@ -15,6 +15,25 @@ type MetricId =
   | "logs_by_severity"
   | "reports_exported";
 
+type GeneratedSheet = {
+  title: string;
+  metric: string;
+  chart_type: string;
+  period: string;
+  spreadsheet_url: string;
+  spreadsheet_id?: string;
+  rows_sent?: number;
+  generated_at?: string;
+};
+
+type GoogleStatus = {
+  configured: boolean;
+  source: string;
+  webapp_url_masked: string;
+  has_shared_secret: boolean;
+  generated: GeneratedSheet[];
+};
+
 type GeneratedChart = {
   title: string;
   metric: MetricId | string;
@@ -49,205 +68,14 @@ const METRICS: {
   { id: "reports_exported", label: "Relatórios exportados", group: "Relatórios", allowed: ["bar", "line"], recommended: "bar" },
 ];
 
-const CHART_COLORS = [
-  "#1f4e79",
-  "#2e7d32",
-  "#ed7d31",
-  "#c00000",
-  "#7030a0",
-  "#008c95",
-  "#806000",
-  "#595959",
-];
-
-function sanitizeFileName(value: string) {
-  return String(value || "grafico")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9_-]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 80) || "grafico";
-}
-
-function escapeHtml(value: unknown) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function downloadTextFile(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  URL.revokeObjectURL(url);
-}
-
-function normalizeRow(row: unknown): Record<string, unknown> {
-  if (row && typeof row === "object" && !Array.isArray(row)) {
-    return row as Record<string, unknown>;
-  }
-
-  return { valor: row };
-}
-
-function chartEditableRows(chart: GeneratedChart) {
-  if (Array.isArray(chart.table) && chart.table.length) {
-    return chart.table.map(normalizeRow);
-  }
-
-  const values = chart.series?.[0]?.data || [];
-  const labels = chart.labels || [];
-
-  return values.map((value, index) => ({
-    item: labels[index] ?? index + 1,
-    serie: chart.series?.[0]?.name || "Valor",
-    valor: value,
-  }));
-}
-
-function chartHeaders(rows: Record<string, unknown>[]) {
-  const headers = new Set<string>();
-
-  rows.forEach((row) => {
-    Object.keys(row).forEach((key) => headers.add(key));
+async function requestJson<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(API + path, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
   });
-
-  return Array.from(headers);
-}
-
-function buildCsv(chart: GeneratedChart) {
-  const rows = chartEditableRows(chart);
-  const headers = chartHeaders(rows);
-
-  const csvEscape = (value: unknown) => {
-    const text = String(value ?? "").replace(/"/g, '""');
-    return `"${text}"`;
-  };
-
-  const lines = [
-    headers.map(csvEscape).join(";"),
-    ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(";")),
-  ];
-
-  return "\ufeff" + lines.join("\r\n");
-}
-
-function buildHtmlTable(chart: GeneratedChart) {
-  const rows = chartEditableRows(chart);
-  const headers = chartHeaders(rows);
-
-  const headerHtml = headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("");
-
-  const bodyHtml = rows.map((row) => {
-    return `<tr>${headers.map((header) => `<td>${escapeHtml(row[header])}</td>`).join("")}</tr>`;
-  }).join("");
-
-  return `
-    <table>
-      <thead>
-        <tr>${headerHtml}</tr>
-      </thead>
-      <tbody>
-        ${bodyHtml}
-      </tbody>
-    </table>
-  `;
-}
-
-function buildExcelDocument(chart: GeneratedChart) {
-  return `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <style>
-    body { font-family: Arial, sans-serif; }
-    h1 { color: #111827; }
-    table { border-collapse: collapse; width: 100%; }
-    th { background: #dbeafe; color: #111827; font-weight: bold; }
-    th, td { border: 1px solid #64748b; padding: 8px; text-align: left; }
-    .meta { margin-bottom: 12px; color: #374151; }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(chart.title)}</h1>
-  <div class="meta">
-    <strong>Indicador:</strong> ${escapeHtml(chart.metric)}<br/>
-    <strong>Tipo:</strong> ${escapeHtml(chart.chart_type)}<br/>
-    <strong>Fonte:</strong> ${escapeHtml(chart.meta?.source || "dados do sistema")}<br/>
-    <strong>Amostras:</strong> ${escapeHtml(chart.meta?.sample_count ?? chartEditableRows(chart).length)}
-  </div>
-  ${buildHtmlTable(chart)}
-</body>
-</html>
-  `.trim();
-}
-
-function buildWordDocument(chart: GeneratedChart) {
-  return `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <style>
-    body { font-family: Arial, sans-serif; color: #111827; }
-    h1 { font-size: 22px; margin-bottom: 4px; }
-    h2 { font-size: 16px; margin-top: 22px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th { background: #dbeafe; font-weight: bold; }
-    th, td { border: 1px solid #64748b; padding: 7px; text-align: left; }
-    .meta { margin: 12px 0; }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(chart.title)}</h1>
-
-  <div class="meta">
-    <p><strong>Indicador:</strong> ${escapeHtml(chart.metric)}</p>
-    <p><strong>Tipo de gráfico:</strong> ${escapeHtml(chart.chart_type)}</p>
-    <p><strong>Fonte dos dados:</strong> ${escapeHtml(chart.meta?.source || "dados do sistema")}</p>
-    <p><strong>Amostras:</strong> ${escapeHtml(chart.meta?.sample_count ?? chartEditableRows(chart).length)}</p>
-  </div>
-
-  <h2>Dados editáveis do gráfico</h2>
-  ${buildHtmlTable(chart)}
-</body>
-</html>
-  `.trim();
-}
-
-function exportChartAsCsv(chart: GeneratedChart) {
-  const filename = `${sanitizeFileName(chart.title)}.csv`;
-  downloadTextFile(filename, buildCsv(chart), "text/csv;charset=utf-8");
-}
-
-function exportChartAsExcel(chart: GeneratedChart) {
-  const filename = `${sanitizeFileName(chart.title)}.xls`;
-  downloadTextFile(filename, buildExcelDocument(chart), "application/vnd.ms-excel;charset=utf-8");
-}
-
-function exportChartAsWord(chart: GeneratedChart) {
-  const filename = `${sanitizeFileName(chart.title)}.doc`;
-  downloadTextFile(filename, buildWordDocument(chart), "application/msword;charset=utf-8");
-}
-
-function exportChartAsJson(chart: GeneratedChart) {
-  const filename = `${sanitizeFileName(chart.title)}.json`;
-  downloadTextFile(filename, JSON.stringify(chart, null, 2), "application/json;charset=utf-8");
-}
-
-
-async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(await response.text());
@@ -350,9 +178,7 @@ function ChartSvg({ chart }: { chart: GeneratedChart }) {
     );
   }
 
-  if (chart.chart_type === "pie") return <PieSvg chart={chart} />;
-  if (chart.chart_type === "line") return <LineSvg chart={chart} />;
-  return <BarSvg chart={chart} />;
+  return <LineSvg chart={chart} />;
 }
 
 function LineSvg({ chart }: { chart: GeneratedChart }) {
@@ -388,244 +214,6 @@ function LineSvg({ chart }: { chart: GeneratedChart }) {
   );
 }
 
-function BarSvg({ chart }: { chart: GeneratedChart }) {
-  const width = 920;
-  const height = 360;
-  const left = 82;
-  const right = 36;
-  const top = 30;
-  const bottom = 68;
-  const cw = width - left - right;
-  const ch = height - top - bottom;
-
-  const data = cleanData(chart);
-  const maxY = Math.max(1, ...data.map((item) => item.value));
-  const barW = cw / Math.max(data.length, 1);
-
-  const yLabels = [maxY, maxY * 0.8, maxY * 0.6, maxY * 0.4, maxY * 0.2, 0].map((n) => fmt(n));
-  const xLabels = [0, 0.2, 0.4, 0.6, 0.8, 1].map((factor) => data[Math.round((data.length - 1) * factor)]?.label || "");
-
-  return (
-    <svg className="tc-svg" viewBox={`0 0 ${width} ${height}`}>
-      <Axis width={width} height={height} left={left} right={right} top={top} bottom={bottom} xLabels={xLabels} yLabels={yLabels} />
-
-      {data.map((item, index) => {
-        const h = scale(item.value, 0, maxY, 0, ch);
-        const x = left + index * barW + barW * 0.2;
-        const y = top + ch - h;
-        const color = CHART_COLORS[index % CHART_COLORS.length];
-
-        return (
-          <g key={index}>
-            <rect className="tc-bar" x={x} y={y} width={barW * 0.6} height={Math.max(2, h)} rx={2} fill={color} />
-            <text className="tc-bar-text" x={x + barW * 0.3} y={height - 34} textAnchor="middle">{item.label.slice(0, 10)}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-function PieSvg({ chart }: { chart: GeneratedChart }) {
-  const width = 920;
-  const height = 360;
-  const cx = 250;
-  const cy = 180;
-  const r = 112;
-  const data = cleanData(chart).filter((item) => item.value > 0);
-  const total = data.reduce((sum, item) => sum + item.value, 0) || 1;
-  let cursor = -Math.PI / 2;
-
-  const slices = data.map((item, index) => {
-    const angle = (item.value / total) * Math.PI * 2;
-    const start = cursor;
-    const end = cursor + angle;
-    cursor = end;
-
-    const x1 = cx + Math.cos(start) * r;
-    const y1 = cy + Math.sin(start) * r;
-    const x2 = cx + Math.cos(end) * r;
-    const y2 = cy + Math.sin(end) * r;
-    const large = angle > Math.PI ? 1 : 0;
-
-    return {
-      index,
-      item,
-      d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`,
-      color: CHART_COLORS[index % CHART_COLORS.length],
-    };
-  });
-
-  return (
-    <svg className="tc-svg" viewBox={`0 0 ${width} ${height}`}>
-      {slices.map((slice) => <path key={slice.index} className="tc-pie" d={slice.d} fill={slice.color} />)}
-      <circle className="tc-pie-hole" cx={cx} cy={cy} r={54} />
-      <text className="tc-pie-total" x={cx} y={cy - 2} textAnchor="middle">{fmt(total)}</text>
-      <text className="tc-pie-caption" x={cx} y={cy + 20} textAnchor="middle">TOTAL</text>
-
-      <g transform="translate(460 58)">
-        {slices.map((slice, index) => (
-          <g key={slice.item.label} transform={`translate(0 ${index * 30})`}>
-            <rect x={0} y={-13} width={18} height={18} rx={2} fill={slice.color} stroke="#1f2937" strokeWidth="1" />
-            <text className="tc-pie-label" x={30} y={2}>{slice.item.label}: {fmt(slice.item.value)}</text>
-          </g>
-        ))}
-      </g>
-    </svg>
-  );
-}
-
-function LegendTable({ chart }: { chart: GeneratedChart }) {
-  const data = cleanData(chart);
-
-  return (
-    <div className="tc-legend-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Cor</th>
-            <th>Série</th>
-            <th>Fonte</th>
-            <th>Amostras</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(chart.legend?.length ? chart.legend : [{ label: chart.series?.[0]?.name || "Série", description: "Dados do indicador." }]).map((item, index) => (
-            <tr key={`${item.label}-${index}`}>
-              <td><span className="tc-color" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} /></td>
-              <td>{item.label}</td>
-              <td>{chart.meta?.source || item.description}</td>
-              <td>{chart.meta?.sample_count ?? data.length}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function SupportTable({ chart }: { chart: GeneratedChart }) {
-  if (!chart.table?.length) return null;
-
-  return (
-    <div className="tc-data-table">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Registro</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(chart.table || []).slice(0, 8).map((row, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td>
-              <td><code>{JSON.stringify(row)}</code></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ChartCard({
-  chart,
-  selected,
-  onSelect,
-}: {
-  chart: GeneratedChart;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const empty = isEmptyChart(chart);
-
-  return (
-    <article className={`tc-chart-card ${selected ? "selected" : ""} ${empty ? "empty" : ""}`} onClick={onSelect}>
-      <div className="tc-chart-head">
-        <div>
-          <span>{chart.metric}</span>
-          <h3>{chart.title}</h3>
-        </div>
-        <div className="tc-chart-tags">
-          <b>{chart.chart_type.toUpperCase()}</b>
-          <em>{empty ? "SEM DADOS" : "DADOS REAIS"}</em>
-        </div>
-      </div>
-
-      <ChartSvg chart={chart} />
-
-      <div className="tc-export-row" onClick={(event) => event.stopPropagation()}>
-        <span>Exportar dados editáveis</span>
-        <button type="button" onClick={() => exportChartAsCsv(chart)}>CSV</button>
-        <button type="button" onClick={() => exportChartAsExcel(chart)}>Excel</button>
-        <button type="button" onClick={() => exportChartAsWord(chart)}>Word</button>
-        <button type="button" onClick={() => exportChartAsJson(chart)}>JSON</button>
-      </div>
-
-      <LegendTable chart={chart} />
-      <SupportTable chart={chart} />
-    </article>
-  );
-}
-
-function SpreadsheetCanvas({
-  charts,
-  selectedIndex,
-  setSelectedIndex,
-  fullscreen,
-  setFullscreen,
-}: {
-  charts: GeneratedChart[];
-  selectedIndex: number;
-  setSelectedIndex: (index: number) => void;
-  fullscreen: boolean;
-  setFullscreen: (value: boolean) => void;
-}) {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
-  return (
-    <div className={`tc-sheet-shell ${fullscreen ? "fullscreen" : ""}`}>
-      <div className="tc-sheet-toolbar">
-        <strong>Campo de análise gráfica</strong>
-        <span>A-Z / 1-50</span>
-        <button type="button" onClick={() => setFullscreen(!fullscreen)}>
-          {fullscreen ? "Sair da tela cheia" : "Expandir campo"}
-        </button>
-      </div>
-
-      <div className="tc-sheet-cols">
-        {letters.map((letter) => <span key={letter}>{letter}</span>)}
-      </div>
-
-      <div className="tc-sheet-body">
-        <div className="tc-sheet-rows">
-          {Array.from({ length: 50 }, (_, index) => <span key={index}>{index + 1}</span>)}
-        </div>
-
-        <div className="tc-sheet-grid">
-          {charts.length === 0 ? (
-            <div className="tc-empty-sheet">
-              <strong>Nenhum gráfico gerado</strong>
-            </div>
-          ) : (
-            <div className="tc-chart-grid">
-              {charts.map((chart, index) => (
-                <ChartCard
-                  key={`${chart.metric}-${index}`}
-                  chart={chart}
-                  selected={selectedIndex === index}
-                  onSelect={() => setSelectedIndex(index)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function RealtimeRamp({ compact = false }: { compact?: boolean }) {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState("");
@@ -635,7 +223,7 @@ export function RealtimeRamp({ compact = false }: { compact?: boolean }) {
 
     async function load() {
       try {
-        const result = await getJson<any>(`${API}/charts/realtime-ramp`);
+        const result = await requestJson<any>("/charts/realtime-ramp");
 
         if (!active) return;
 
@@ -719,12 +307,15 @@ export function TraceabilityChartsPanel() {
   const [metric, setMetric] = useState<MetricId>("operations_by_day");
   const selectedMetric = METRICS.find((item) => item.id === metric) || METRICS[0];
   const [chartType, setChartType] = useState<ChartType>(selectedMetric.recommended);
-  const [period, setPeriod] = useState("all");
-  const [charts, setCharts] = useState<GeneratedChart[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [error, setError] = useState("");
+  const [period, setPeriod] = useState("month");
+  const [title, setTitle] = useState("");
+  const [status, setStatus] = useState<GoogleStatus | null>(null);
+  const [webappUrl, setWebappUrl] = useState("");
+  const [sharedSecret, setSharedSecret] = useState("");
   const [loading, setLoading] = useState(false);
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [error, setError] = useState("");
+  const [lastSheet, setLastSheet] = useState<GeneratedSheet | null>(null);
 
   useEffect(() => {
     if (!selectedMetric.allowed.includes(chartType)) {
@@ -732,32 +323,63 @@ export function TraceabilityChartsPanel() {
     }
   }, [metric, chartType, selectedMetric]);
 
-  async function generate() {
+  async function loadStatus() {
+    try {
+      const result = await requestJson<GoogleStatus>("/google-sheets/status");
+      setStatus(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  useEffect(() => {
+    loadStatus();
+  }, []);
+
+  async function saveConfig() {
+    setSavingConfig(true);
+    setError("");
+
+    try {
+      await requestJson("/google-sheets/config", {
+        method: "POST",
+        body: JSON.stringify({
+          webapp_url: webappUrl,
+          shared_secret: sharedSecret,
+        }),
+      });
+
+      setWebappUrl("");
+      setSharedSecret("");
+      await loadStatus();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSavingConfig(false);
+    }
+  }
+
+  async function generateOnSheets() {
     setLoading(true);
     setError("");
 
     try {
-      const params = new URLSearchParams({
-        metric,
-        chart_type: chartType,
-        period,
+      const result = await requestJson<GeneratedSheet & { ok: boolean }>("/google-sheets/generate-chart", {
+        method: "POST",
+        body: JSON.stringify({
+          metric,
+          chart_type: chartType,
+          period,
+          title,
+        }),
       });
 
-      const result = await getJson<any>(`${API}/charts/statistics?${params.toString()}`);
+      setLastSheet(result);
+      await loadStatus();
 
-      const chart: GeneratedChart = {
-        title: result.title || selectedMetric.label,
-        metric,
-        chart_type: result.chart_type || chartType,
-        labels: Array.isArray(result.labels) ? result.labels : [],
-        series: Array.isArray(result.series) ? result.series : [],
-        table: Array.isArray(result.table) ? result.table : [],
-        legend: Array.isArray(result.legend) ? result.legend : [],
-        meta: result.meta || {},
-      };
-
-      setCharts((prev) => [chart, ...prev].slice(0, 8));
-      setSelectedIndex(0);
+      if (result.spreadsheet_url) {
+        window.open(result.spreadsheet_url, "_blank", "noopener,noreferrer");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -765,82 +387,123 @@ export function TraceabilityChartsPanel() {
     }
   }
 
-  function clearCharts() {
-    setCharts([]);
-    setSelectedIndex(0);
-  }
-
   return (
     <div className="tc-root">
-      <section className="tc-builder">
+      <section className="tc-builder sheets-mode">
         <div className="tc-builder-header">
           <div>
             <span>Análise gerencial</span>
             <h3>Indicadores e Gráficos</h3>
           </div>
+
+          <div className={`tc-mode-pill ${status?.configured ? "ok" : "warn"}`}>
+            {status?.configured ? "GOOGLE PLANILHAS CONFIGURADO" : "CONFIGURAÇÃO PENDENTE"}
+          </div>
         </div>
 
-        <div className="tc-builder-layout">
-          <aside className="tc-controls">
-            <h4>Configurar gráfico</h4>
+        <div className="sheets-layout">
+          <aside className="sheets-config-card">
+            <h4>Google Planilhas</h4>
+
+            <div className="sheets-status">
+              <div><span>Status</span><strong>{status?.configured ? "Conectado" : "Pendente"}</strong></div>
+              <div><span>URL</span><strong>{status?.webapp_url_masked || "--"}</strong></div>
+              <div><span>Segredo</span><strong>{status?.has_shared_secret ? "Ativo" : "Não configurado"}</strong></div>
+            </div>
 
             <label>
-              Indicador
-              <select value={metric} onChange={(event) => setMetric(event.target.value as MetricId)}>
-                {Object.entries(
-                  METRICS.reduce((acc, item) => {
-                    acc[item.group] = [...(acc[item.group] || []), item];
-                    return acc;
-                  }, {} as Record<string, typeof METRICS>)
-                ).map(([group, items]) => (
-                  <optgroup key={group} label={group}>
-                    {items.map((item) => (
-                      <option key={item.id} value={item.id}>{item.label}</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+              URL do Web App
+              <input value={webappUrl} onChange={(event) => setWebappUrl(event.target.value)} placeholder="https://script.google.com/macros/s/..." />
             </label>
 
             <label>
-              Tipo de gráfico
-              <select value={chartType} onChange={(event) => setChartType(event.target.value as ChartType)}>
-                {selectedMetric.allowed.includes("bar") && <option value="bar">Barras</option>}
-                {selectedMetric.allowed.includes("line") && <option value="line">Linha</option>}
-                {selectedMetric.allowed.includes("pie") && <option value="pie">Pizza/Rosca</option>}
-              </select>
+              Segredo opcional
+              <input value={sharedSecret} onChange={(event) => setSharedSecret(event.target.value)} placeholder="chave local opcional" />
             </label>
 
-            <label>
-              Período
-              <select value={period} onChange={(event) => setPeriod(event.target.value)}>
-                <option value="all">Todos os registros</option>
-                <option value="today">Hoje</option>
-                <option value="week">Últimos 7 dias</option>
-                <option value="month">Últimos 30 dias</option>
-              </select>
-            </label>
-
-            <button className="tc-primary" onClick={generate} disabled={loading}>
-              {loading ? "Gerando..." : "Gerar gráfico"}
+            <button className="tc-secondary" onClick={saveConfig} disabled={savingConfig}>
+              {savingConfig ? "Salvando..." : "Salvar configuração"}
             </button>
+          </aside>
 
-            <button className="tc-secondary" onClick={clearCharts} disabled={!charts.length}>
-              Limpar campo
+          <main className="sheets-generator-card">
+            <h4>Gerar gráfico no Google Planilhas</h4>
+
+            <div className="sheets-form-grid">
+              <label>
+                Indicador
+                <select value={metric} onChange={(event) => setMetric(event.target.value as MetricId)}>
+                  {Object.entries(
+                    METRICS.reduce((acc, item) => {
+                      acc[item.group] = [...(acc[item.group] || []), item];
+                      return acc;
+                    }, {} as Record<string, typeof METRICS>)
+                  ).map(([group, items]) => (
+                    <optgroup key={group} label={group}>
+                      {items.map((item) => (
+                        <option key={item.id} value={item.id}>{item.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Tipo de gráfico
+                <select value={chartType} onChange={(event) => setChartType(event.target.value as ChartType)}>
+                  {selectedMetric.allowed.includes("bar") && <option value="bar">Barras</option>}
+                  {selectedMetric.allowed.includes("line") && <option value="line">Linha</option>}
+                  {selectedMetric.allowed.includes("pie") && <option value="pie">Pizza/Rosca</option>}
+                </select>
+              </label>
+
+              <label>
+                Período
+                <select value={period} onChange={(event) => setPeriod(event.target.value)}>
+                  <option value="all">Todos os registros</option>
+                  <option value="today">Hoje</option>
+                  <option value="week">Últimos 7 dias</option>
+                  <option value="month">Últimos 30 dias</option>
+                </select>
+              </label>
+
+              <label>
+                Título
+                <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={selectedMetric.label} />
+              </label>
+            </div>
+
+            <button className="tc-primary sheets-main-action" onClick={generateOnSheets} disabled={loading || !status?.configured}>
+              {loading ? "Gerando planilha..." : "Gerar no Google Planilhas"}
             </button>
 
             {error && <div className="tc-error">{error}</div>}
-          </aside>
 
-          <div className="tc-analysis">
-            <SpreadsheetCanvas
-              charts={charts}
-              selectedIndex={selectedIndex}
-              setSelectedIndex={setSelectedIndex}
-              fullscreen={fullscreen}
-              setFullscreen={setFullscreen}
-            />
-          </div>
+            {lastSheet && (
+              <div className="sheets-result">
+                <div>
+                  <span>Última planilha</span>
+                  <strong>{lastSheet.title}</strong>
+                </div>
+                <a href={lastSheet.spreadsheet_url} target="_blank" rel="noreferrer">Abrir no Google Planilhas</a>
+              </div>
+            )}
+          </main>
+
+          <aside className="sheets-history-card">
+            <h4>Planilhas geradas</h4>
+
+            <div className="sheets-history-list">
+              {(status?.generated || []).length ? (status?.generated || []).map((item, index) => (
+                <a key={`${item.spreadsheet_url}-${index}`} href={item.spreadsheet_url} target="_blank" rel="noreferrer">
+                  <strong>{item.title}</strong>
+                  <span>{item.chart_type.toUpperCase()} · {item.period} · {item.rows_sent || 0} linhas</span>
+                </a>
+              )) : (
+                <div className="sheets-empty">Nenhuma planilha gerada.</div>
+              )}
+            </div>
+          </aside>
         </div>
       </section>
     </div>

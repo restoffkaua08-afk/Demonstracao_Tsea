@@ -71,7 +71,7 @@
   background: #fef2f2;
   border-radius: 12px;
   padding: 12px;
-  margin-bottom: 14px;
+  margin-top: 14px;
   font-size: 13px;
   font-weight: 800;
 }
@@ -125,290 +125,6 @@
   font-weight: 900;
 }
 
-.tc-builder-layout {
-  display: grid;
-  grid-template-columns: 285px minmax(0, 1fr);
-  gap: 16px;
-}
-
-.tc-controls {
-  border: 1px solid #94a3b8;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  color: #111827;
-  box-shadow: none;
-}
-
-.tc-controls h4 {
-  margin: 0 0 12px;
-  color: #111827;
-  font-size: 18px;
-}
-
-.tc-controls label {
-  display: grid;
-  gap: 6px;
-  color: #111827;
-  font-size: 12px;
-  font-weight: 900;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
-
-.tc-controls select,
-.tc-controls button {
-  min-height: 42px;
-  border-radius: 8px;
-  border: 1px solid #64748b;
-  background: #ffffff;
-  color: #111827;
-  padding: 0 12px;
-  font-weight: 800;
-}
-
-.tc-controls select:focus,
-.tc-controls button:focus {
-  outline: 2px solid #1f4e79;
-  border-color: #1f4e79;
-}
-
-.tc-primary,
-.tc-secondary {
-  width: 100%;
-  margin-top: 8px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.tc-primary {
-  background: #1f4e79 !important;
-  color: #ffffff !important;
-  border-color: #1f4e79 !important;
-}
-
-.tc-primary:hover {
-  background: #163a5a !important;
-}
-
-.tc-secondary {
-  background: #f3f4f6 !important;
-  color: #111827 !important;
-}
-
-.tc-analysis {
-  min-width: 0;
-}
-
-.tc-sheet-shell {
-  height: 780px;
-  overflow: auto;
-  position: relative;
-  border: 1px solid #334155;
-  background: #ffffff;
-  border-radius: 12px;
-  color: #111827;
-  box-shadow: none;
-}
-
-.tc-sheet-shell.fullscreen {
-  position: fixed;
-  inset: 16px;
-  z-index: 99999;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: none;
-}
-
-.tc-sheet-shell.fullscreen::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: rgba(17, 24, 39, 0.84);
-}
-
-.tc-sheet-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 8;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 48px;
-  padding: 0 14px;
-  background: #111827;
-  border-bottom: 1px solid #111827;
-  color: #ffffff;
-}
-
-.tc-sheet-toolbar strong {
-  color: #ffffff;
-  font-size: 14px;
-}
-
-.tc-sheet-toolbar span {
-  color: #e5e7eb;
-  font-size: 12px;
-  flex: 1;
-  font-weight: 700;
-}
-
-.tc-sheet-toolbar button {
-  min-height: 32px;
-  border: 1px solid #ffffff;
-  background: #ffffff;
-  color: #111827;
-  border-radius: 6px;
-  padding: 0 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.tc-sheet-cols {
-  position: sticky;
-  top: 48px;
-  z-index: 7;
-  display: grid;
-  grid-template-columns: repeat(26, 42px);
-  height: 32px;
-  margin-left: 38px;
-  background: #e5e7eb;
-  border-bottom: 1px solid #9ca3af;
-}
-
-.tc-sheet-cols span,
-.tc-sheet-rows span {
-  display: grid;
-  place-items: center;
-  color: #111827;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.tc-sheet-body {
-  display: flex;
-  min-width: 1180px;
-  min-height: 1900px;
-}
-
-.tc-sheet-rows {
-  position: sticky;
-  left: 0;
-  z-index: 6;
-  width: 38px;
-  display: grid;
-  grid-template-rows: repeat(50, 42px);
-  background: #e5e7eb;
-  border-right: 1px solid #9ca3af;
-}
-
-.tc-sheet-grid {
-  flex: 1;
-  padding: 18px;
-  background:
-    linear-gradient(#d1d5db 1px, transparent 1px),
-    linear-gradient(90deg, #d1d5db 1px, transparent 1px),
-    #ffffff;
-  background-size: 42px 42px;
-}
-
-.tc-empty-sheet,
-.tc-chart-empty {
-  max-width: 620px;
-  padding: 24px;
-  border-radius: 8px;
-  border: 1px dashed #6b7280;
-  background: #ffffff;
-  color: #111827;
-  box-shadow: none;
-}
-
-.tc-chart-empty {
-  display: grid;
-  place-items: center;
-  min-height: 280px;
-  text-align: center;
-}
-
-.tc-chart-empty strong {
-  font-size: 18px;
-}
-
-.tc-chart-empty span {
-  color: #4b5563;
-  font-weight: 700;
-}
-
-.tc-chart-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(470px, 1fr));
-  gap: 18px;
-  align-items: start;
-}
-
-.tc-chart-card {
-  border: 1px solid #4b5563;
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  box-shadow: none;
-}
-
-.tc-chart-card.empty {
-  border-style: dashed;
-}
-
-.tc-chart-card.selected {
-  outline: 2px solid #1f4e79;
-  box-shadow: none;
-}
-
-.tc-chart-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #d1d5db;
-  padding-bottom: 8px;
-}
-
-.tc-chart-head span {
-  color: #1f4e79;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.tc-chart-head h3 {
-  margin: 3px 0 0;
-  font-size: 18px;
-  color: #111827;
-}
-
-.tc-chart-tags {
-  display: grid;
-  justify-items: end;
-  gap: 4px;
-}
-
-.tc-chart-tags b,
-.tc-chart-tags em {
-  color: #374151;
-  font-size: 11px;
-  font-weight: 900;
-  font-style: normal;
-}
-
-.tc-chart-tags em {
-  color: #14532d;
-}
-
-.tc-chart-card.empty .tc-chart-tags em {
-  color: #7c2d12;
-}
-
 .tc-svg {
   width: 100%;
   height: auto;
@@ -451,289 +167,204 @@
   stroke-width: 2;
 }
 
-.tc-bar {
-  stroke: #111827;
-  stroke-width: 0.5;
-}
-
-.tc-bar-text,
-.tc-pie-label,
-.tc-pie-total,
-.tc-pie-caption {
-  fill: #111827;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.tc-pie-caption {
-  fill: #374151;
-  font-size: 10px;
-}
-
-.tc-pie {
-  stroke: #ffffff;
-  stroke-width: 2;
-}
-
-.tc-pie-hole {
-  fill: #ffffff;
-  stroke: #4b5563;
-  stroke-width: 1.2;
-}
-
-.tc-legend-table,
-.tc-data-table {
-  margin-top: 10px;
-  border: 1px solid #9ca3af;
+.tc-chart-empty {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  text-align: center;
+  border: 1px dashed #6b7280;
   border-radius: 8px;
-  overflow: hidden;
   background: #ffffff;
 }
 
-.tc-legend-table table,
-.tc-data-table table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
+.tc-chart-empty strong {
+  font-size: 18px;
 }
 
-.tc-legend-table th,
-.tc-legend-table td,
-.tc-data-table th,
-.tc-data-table td {
-  border-bottom: 1px solid #d1d5db;
-  padding: 8px;
-  text-align: left;
-  color: #111827;
-  vertical-align: top;
-}
-
-.tc-legend-table tr:last-child td,
-.tc-data-table tr:last-child td {
-  border-bottom: 0;
-}
-
-.tc-legend-table th,
-.tc-data-table th {
-  background: #f3f4f6;
-  color: #111827;
-  font-weight: 900;
-}
-
-.tc-color {
-  display: inline-block;
-  width: 22px;
-  height: 13px;
-  border-radius: 2px;
-  border: 1px solid #111827;
-}
-
-.tc-data-table code {
-  color: #1f2937;
-  white-space: normal;
-  word-break: break-word;
+.tc-chart-empty span {
+  color: #4b5563;
   font-weight: 700;
 }
 
-@media (max-width: 1280px) {
-  .tc-builder-layout,
-  .tc-realtime-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .tc-chart-grid {
-    grid-template-columns: 1fr;
-  }
+.sheets-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
 }
 
-/* ===== TSEA FIX GRID A-Z / 1-50 ===== */
-/* Corrige a barra superior para ir visualmente até a letra Z e manter alinhamento com a grade. */
-.tc-sheet-shell {
-  --tc-row-header-width: 38px;
-  --tc-cell-size: 42px;
-  --tc-column-count: 26;
-  --tc-row-count: 50;
-  --tc-grid-width: calc(var(--tc-cell-size) * var(--tc-column-count));
-  --tc-grid-height: calc(var(--tc-cell-size) * var(--tc-row-count));
-}
-
-/* Cabeçalho A-Z fixo, com largura real das 26 colunas. */
-.tc-sheet-cols {
-  width: var(--tc-grid-width) !important;
-  min-width: var(--tc-grid-width) !important;
-  max-width: var(--tc-grid-width) !important;
-  margin-left: var(--tc-row-header-width) !important;
-  grid-template-columns: repeat(26, var(--tc-cell-size)) !important;
-  box-sizing: border-box !important;
-  overflow: visible !important;
-}
-
-/* Corpo total: coluna dos números + grade A-Z. */
-.tc-sheet-body {
-  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  max-width: none !important;
-}
-
-/* Coluna 1-50 com altura real de 50 linhas. */
-.tc-sheet-rows {
-  width: var(--tc-row-header-width) !important;
-  min-width: var(--tc-row-header-width) !important;
-  max-width: var(--tc-row-header-width) !important;
-  grid-template-rows: repeat(50, var(--tc-cell-size)) !important;
-  height: var(--tc-grid-height) !important;
-  box-sizing: border-box !important;
-}
-
-/* Campo branco principal com largura/altura compatível com A-Z e 1-50. */
-.tc-sheet-grid {
-  width: var(--tc-grid-width) !important;
-  min-width: var(--tc-grid-width) !important;
-  height: var(--tc-grid-height) !important;
-  min-height: var(--tc-grid-height) !important;
-  box-sizing: border-box !important;
-}
-
-/* Cada letra e número tem exatamente o mesmo tamanho da célula da grade. */
-.tc-sheet-cols span,
-.tc-sheet-rows span {
-  width: var(--tc-cell-size) !important;
-  height: var(--tc-cell-size) !important;
-  box-sizing: border-box !important;
-  border-right: 1px solid #9ca3af;
-  border-bottom: 1px solid #9ca3af;
-}
-
-/* Os números usam largura própria menor, sem quebrar o alinhamento das letras. */
-.tc-sheet-rows span {
-  width: var(--tc-row-header-width) !important;
-}
-
-/* Evita que cards ultrapassem a região A-Z de forma estranha. */
-.tc-chart-grid {
-  width: calc(var(--tc-grid-width) - 36px) !important;
-  max-width: calc(var(--tc-grid-width) - 36px) !important;
-}
-
-/* Estado vazio alinhado no início real da planilha. */
-.tc-empty-sheet {
-  margin: 0 !important;
-}
-
-/* ===== TSEA FIX TOOLBAR WIDTH A-Z ===== */
-.tc-sheet-shell {
-  --tc-row-header-width: 38px;
-  --tc-cell-size: 42px;
-  --tc-column-count: 26;
-  --tc-row-count: 50;
-  --tc-grid-width: calc(var(--tc-cell-size) * var(--tc-column-count));
-  --tc-grid-height: calc(var(--tc-cell-size) * var(--tc-row-count));
-}
-
-/* A barra escura superior precisa cobrir a largura total da planilha: números + A-Z. */
-.tc-sheet-toolbar {
-  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  max-width: none !important;
-  box-sizing: border-box !important;
-}
-
-/* Cabeçalho A-Z alinhado com a largura real das 26 colunas. */
-.tc-sheet-cols {
-  width: var(--tc-grid-width) !important;
-  min-width: var(--tc-grid-width) !important;
-  max-width: var(--tc-grid-width) !important;
-  margin-left: var(--tc-row-header-width) !important;
-  grid-template-columns: repeat(26, var(--tc-cell-size)) !important;
-  box-sizing: border-box !important;
-}
-
-/* Corpo completo: coluna 1-50 + grade A-Z. */
-.tc-sheet-body {
-  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  max-width: none !important;
-}
-
-/* Coluna lateral 1-50. */
-.tc-sheet-rows {
-  width: var(--tc-row-header-width) !important;
-  min-width: var(--tc-row-header-width) !important;
-  max-width: var(--tc-row-header-width) !important;
-  grid-template-rows: repeat(50, var(--tc-cell-size)) !important;
-  height: var(--tc-grid-height) !important;
-  box-sizing: border-box !important;
-}
-
-/* Campo da grade com dimensão real. */
-.tc-sheet-grid {
-  width: var(--tc-grid-width) !important;
-  min-width: var(--tc-grid-width) !important;
-  height: var(--tc-grid-height) !important;
-  min-height: var(--tc-grid-height) !important;
-  box-sizing: border-box !important;
-}
-
-/* Células do cabeçalho e numeração com medidas fixas. */
-.tc-sheet-cols span,
-.tc-sheet-rows span {
-  width: var(--tc-cell-size) !important;
-  height: var(--tc-cell-size) !important;
-  box-sizing: border-box !important;
-  border-right: 1px solid #9ca3af;
-  border-bottom: 1px solid #9ca3af;
-}
-
-.tc-sheet-rows span {
-  width: var(--tc-row-header-width) !important;
-}
-
-/* Mantém os gráficos dentro da região visual A-Z. */
-.tc-chart-grid {
-  width: calc(var(--tc-grid-width) - 36px) !important;
-  max-width: calc(var(--tc-grid-width) - 36px) !important;
-}
-
-/* Evita aparência de barra cortada quando expandir. */
-.tc-sheet-shell.fullscreen .tc-sheet-toolbar {
-  width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-  min-width: calc(var(--tc-row-header-width) + var(--tc-grid-width)) !important;
-}
-
-/* ===== TSEA EDITABLE CHART EXPORTS ===== */
-.tc-export-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 10px 0;
-  padding: 8px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #f8fafc;
-}
-
-.tc-export-row span {
-  color: #111827;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-  margin-right: auto;
-}
-
-.tc-export-row button {
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 6px;
-  border: 1px solid #1f4e79;
+.sheets-config-card,
+.sheets-generator-card,
+.sheets-history-card {
+  border: 1px solid #94a3b8;
   background: #ffffff;
-  color: #1f4e79;
-  font-size: 11px;
+  border-radius: 14px;
+  padding: 16px;
+  color: #111827;
+}
+
+.sheets-config-card h4,
+.sheets-generator-card h4,
+.sheets-history-card h4 {
+  margin: 0 0 14px;
+  color: #111827;
+  font-size: 18px;
+}
+
+.sheets-config-card label,
+.sheets-form-grid label {
+  display: grid;
+  gap: 6px;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.sheets-config-card input,
+.sheets-form-grid input,
+.sheets-form-grid select {
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid #64748b;
+  background: #ffffff;
+  color: #111827;
+  padding: 0 12px;
+  font-weight: 800;
+}
+
+.sheets-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tc-primary,
+.tc-secondary {
+  min-height: 42px;
+  border-radius: 8px;
   font-weight: 900;
   cursor: pointer;
 }
 
-.tc-export-row button:hover {
-  background: #1f4e79;
-  color: #ffffff;
+.tc-primary {
+  background: #1f4e79 !important;
+  color: #ffffff !important;
+  border: 1px solid #1f4e79 !important;
+}
+
+.tc-primary:hover {
+  background: #163a5a !important;
+}
+
+.tc-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tc-secondary {
+  width: 100%;
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  border: 1px solid #64748b !important;
+}
+
+.sheets-main-action {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.sheets-status {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sheets-status div,
+.sheets-result div {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.sheets-status span,
+.sheets-result span {
+  color: #374151;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sheets-status strong,
+.sheets-result strong {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+  word-break: break-word;
+}
+
+.sheets-result {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #16a34a;
+  background: #f0fdf4;
+  border-radius: 12px;
+}
+
+.sheets-result a,
+.sheets-history-list a {
+  color: #1f4e79;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.sheets-history-list {
+  display: grid;
+  gap: 10px;
+  max-height: 460px;
+  overflow: auto;
+}
+
+.sheets-history-list a {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.sheets-history-list a:hover {
+  border-color: #1f4e79;
+  background: #eff6ff;
+}
+
+.sheets-history-list span {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sheets-empty {
+  padding: 12px;
+  border: 1px dashed #9ca3af;
+  border-radius: 10px;
+  color: #4b5563;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 1280px) {
+  .sheets-layout,
+  .tc-realtime-grid,
+  .sheets-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
