@@ -13,3 +13,6 @@ package-lock.json
 *.log
 gateway_fisico/backend/data/google_sheets_config.local.json
 gateway_fisico/backend/data/google_sheets_generated.local.json
+gateway_fisico/backend/data/google_oauth_client_secret.local.json
+gateway_fisico/backend/data/google_oauth_token.local.json
+gateway_fisico/backend/data/google_oauth_state.local.json

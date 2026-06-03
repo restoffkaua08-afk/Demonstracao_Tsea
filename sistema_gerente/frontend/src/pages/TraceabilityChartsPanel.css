@@ -74,6 +74,7 @@
   margin-top: 14px;
   font-size: 13px;
   font-weight: 800;
+  white-space: pre-wrap;
 }
 
 .tc-realtime-grid {
@@ -211,7 +212,6 @@
   font-size: 18px;
 }
 
-.sheets-config-card label,
 .sheets-form-grid label {
   display: grid;
   gap: 6px;
@@ -222,7 +222,6 @@
   text-transform: uppercase;
 }
 
-.sheets-config-card input,
 .sheets-form-grid input,
 .sheets-form-grid select {
   min-height: 42px;
@@ -258,7 +257,8 @@
   background: #163a5a !important;
 }
 
-.tc-primary:disabled {
+.tc-primary:disabled,
+.tc-secondary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

@@ -27,10 +27,11 @@ type GeneratedSheet = {
 };
 
 type GoogleStatus = {
-  configured: boolean;
-  source: string;
-  webapp_url_masked: string;
-  has_shared_secret: boolean;
+  dependencies_available: boolean;
+  client_secret_exists: boolean;
+  client_secret_path: string;
+  authenticated: boolean;
+  redirect_uri: string;
   generated: GeneratedSheet[];
 };
 
@@ -78,7 +79,15 @@ async function requestJson<T>(path: string, options: RequestInit = {}): Promise<
   });
 
   if (!response.ok) {
-    throw new Error(await response.text());
+    const text = await response.text();
+
+    try {
+      const parsed = JSON.parse(text);
+      throw parsed;
+    } catch (error) {
+      if (typeof error === "object" && error && "detail" in error) throw error;
+      throw new Error(text);
+    }
   }
 
   return response.json();
@@ -310,10 +319,8 @@ export function TraceabilityChartsPanel() {
   const [period, setPeriod] = useState("month");
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<GoogleStatus | null>(null);
-  const [webappUrl, setWebappUrl] = useState("");
-  const [sharedSecret, setSharedSecret] = useState("");
   const [loading, setLoading] = useState(false);
-  const [savingConfig, setSavingConfig] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
   const [error, setError] = useState("");
   const [lastSheet, setLastSheet] = useState<GeneratedSheet | null>(null);
 
@@ -327,8 +334,8 @@ export function TraceabilityChartsPanel() {
     try {
       const result = await requestJson<GoogleStatus>("/google-sheets/status");
       setStatus(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (err: any) {
+      setError(typeof err?.detail === "string" ? err.detail : err instanceof Error ? err.message : JSON.stringify(err));
     }
   }
 
@@ -336,26 +343,69 @@ export function TraceabilityChartsPanel() {
     loadStatus();
   }, []);
 
-  async function saveConfig() {
-    setSavingConfig(true);
+  async function openGoogleAuthAndWait() {
+    setAuthenticating(true);
     setError("");
 
     try {
-      await requestJson("/google-sheets/config", {
-        method: "POST",
-        body: JSON.stringify({
-          webapp_url: webappUrl,
-          shared_secret: sharedSecret,
-        }),
+      const auth = await requestJson<{ auth_url: string }>("/google-oauth/start");
+      const authWindow = window.open(auth.auth_url, "_blank", "width=980,height=760,noopener,noreferrer");
+
+      await new Promise<void>((resolve, reject) => {
+        let attempts = 0;
+
+        const timer = window.setInterval(async () => {
+          attempts += 1;
+
+          try {
+            const next = await requestJson<GoogleStatus>("/google-sheets/status");
+            setStatus(next);
+
+            if (next.authenticated) {
+              window.clearInterval(timer);
+              resolve();
+            }
+
+            if (attempts > 180) {
+              window.clearInterval(timer);
+              reject(new Error("Tempo de autorização esgotado."));
+            }
+
+            if (authWindow?.closed && attempts > 3 && !next.authenticated) {
+              window.clearInterval(timer);
+              reject(new Error("Autorização Google não concluída."));
+            }
+          } catch (err) {
+            if (attempts > 5) {
+              window.clearInterval(timer);
+              reject(err instanceof Error ? err : new Error(String(err)));
+            }
+          }
+        }, 1500);
       });
 
-      setWebappUrl("");
-      setSharedSecret("");
       await loadStatus();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setSavingConfig(false);
+      setAuthenticating(false);
+    }
+  }
+
+  async function generateSheetDirect() {
+    const result = await requestJson<GeneratedSheet & { ok: boolean }>("/google-sheets/generate-chart", {
+      method: "POST",
+      body: JSON.stringify({
+        metric,
+        chart_type: chartType,
+        period,
+        title,
+      }),
+    });
+
+    setLastSheet(result);
+    await loadStatus();
+
+    if (result.spreadsheet_url) {
+      window.open(result.spreadsheet_url, "_blank", "noopener,noreferrer");
     }
   }
 
@@ -364,24 +414,26 @@ export function TraceabilityChartsPanel() {
     setError("");
 
     try {
-      const result = await requestJson<GeneratedSheet & { ok: boolean }>("/google-sheets/generate-chart", {
-        method: "POST",
-        body: JSON.stringify({
-          metric,
-          chart_type: chartType,
-          period,
-          title,
-        }),
-      });
+      const currentStatus = await requestJson<GoogleStatus>("/google-sheets/status");
+      setStatus(currentStatus);
 
-      setLastSheet(result);
-      await loadStatus();
-
-      if (result.spreadsheet_url) {
-        window.open(result.spreadsheet_url, "_blank", "noopener,noreferrer");
+      if (!currentStatus.client_secret_exists) {
+        throw new Error(`Credencial OAuth pendente. Salve o arquivo em: ${currentStatus.client_secret_path}`);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+
+      if (!currentStatus.authenticated) {
+        await openGoogleAuthAndWait();
+      }
+
+      await generateSheetDirect();
+    } catch (err: any) {
+      const detail = err?.detail;
+
+      if (detail && typeof detail === "object" && detail.auth_url) {
+        window.open(detail.auth_url, "_blank", "noopener,noreferrer");
+      } else {
+        setError(typeof detail === "string" ? detail : err instanceof Error ? err.message : JSON.stringify(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -396,33 +448,24 @@ export function TraceabilityChartsPanel() {
             <h3>Indicadores e Gráficos</h3>
           </div>
 
-          <div className={`tc-mode-pill ${status?.configured ? "ok" : "warn"}`}>
-            {status?.configured ? "GOOGLE PLANILHAS CONFIGURADO" : "CONFIGURAÇÃO PENDENTE"}
+          <div className={`tc-mode-pill ${status?.authenticated ? "ok" : "warn"}`}>
+            {status?.authenticated ? "GOOGLE AUTORIZADO" : "LOGIN GOOGLE PENDENTE"}
           </div>
         </div>
 
-        <div className="sheets-layout">
+        <div className="sheets-layout oauth-mode">
           <aside className="sheets-config-card">
-            <h4>Google Planilhas</h4>
+            <h4>Google</h4>
 
             <div className="sheets-status">
-              <div><span>Status</span><strong>{status?.configured ? "Conectado" : "Pendente"}</strong></div>
-              <div><span>URL</span><strong>{status?.webapp_url_masked || "--"}</strong></div>
-              <div><span>Segredo</span><strong>{status?.has_shared_secret ? "Ativo" : "Não configurado"}</strong></div>
+              <div><span>Dependências</span><strong>{status?.dependencies_available ? "OK" : "Pendente"}</strong></div>
+              <div><span>Credencial OAuth</span><strong>{status?.client_secret_exists ? "Encontrada" : "Pendente"}</strong></div>
+              <div><span>Conta Google</span><strong>{status?.authenticated ? "Autorizada" : "Não autorizada"}</strong></div>
+              <div><span>Callback</span><strong>{status?.redirect_uri || "--"}</strong></div>
             </div>
 
-            <label>
-              URL do Web App
-              <input value={webappUrl} onChange={(event) => setWebappUrl(event.target.value)} placeholder="https://script.google.com/macros/s/..." />
-            </label>
-
-            <label>
-              Segredo opcional
-              <input value={sharedSecret} onChange={(event) => setSharedSecret(event.target.value)} placeholder="chave local opcional" />
-            </label>
-
-            <button className="tc-secondary" onClick={saveConfig} disabled={savingConfig}>
-              {savingConfig ? "Salvando..." : "Salvar configuração"}
+            <button className="tc-secondary" onClick={openGoogleAuthAndWait} disabled={authenticating || !status?.client_secret_exists}>
+              {authenticating ? "Aguardando Google..." : "Entrar com Google"}
             </button>
           </aside>
 
@@ -473,8 +516,8 @@ export function TraceabilityChartsPanel() {
               </label>
             </div>
 
-            <button className="tc-primary sheets-main-action" onClick={generateOnSheets} disabled={loading || !status?.configured}>
-              {loading ? "Gerando planilha..." : "Gerar no Google Planilhas"}
+            <button className="tc-primary sheets-main-action" onClick={generateOnSheets} disabled={loading}>
+              {loading ? "Gerando..." : status?.authenticated ? "Gerar no Google Planilhas" : "Entrar e gerar no Google Planilhas"}
             </button>
 
             {error && <div className="tc-error">{error}</div>}
