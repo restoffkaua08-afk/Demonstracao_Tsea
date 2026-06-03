@@ -594,7 +594,7 @@ export function TraceabilityPage({
                 }}
               >
                 <strong>{tab.label}</strong>
-                <span>{tab.description}</span>
+
               </button>
             ))}
           </div>
